@@ -1,0 +1,26 @@
+title: "Load the YAML Config"
+category: "PyYAML"
+difficulty: 3
+xp: 200
+story: |
+  Your service uses a YAML config file for its settings.
+  The loader works but throws scary deprecation warnings in production
+  and crashes when an optional key is missing from the file.
+  The ops team is complaining. Fix it.
+description: |
+  The script loads a YAML config and extracts service settings.
+
+  There are 2 bugs:
+    1. `yaml.load(f)` without a Loader argument is deprecated and unsafe.
+       Use `yaml.safe_load(f)` instead.
+    2. `config["database"]["host"]` raises a KeyError if the "database"
+       key is missing. Use `.get()` with a default value instead.
+hints:
+  - "yaml.load() without Loader= is unsafe and deprecated. Use yaml.safe_load(f) instead."
+  - "config['database']['host'] crashes if 'database' key doesn't exist. Use config.get('database', {})"
+  - "Fix: yaml.load(f) -> yaml.safe_load(f)  and  use .get() for nested key access"
+tags:
+  - yaml
+  - pyyaml
+  - config
+  - dict

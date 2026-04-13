@@ -1,0 +1,28 @@
+title: "Deployment Gate Check"
+category: "Logic"
+difficulty: 5
+xp: 300
+story: |
+  Before every production deploy, a gate script checks:
+  is the new version newer than the current one, and are
+  enough replicas healthy? Both checks have subtle logic bugs.
+  A bad deploy went out last week because of this. Fix it.
+description: |
+  The script has two checks before allowing a deployment:
+    1. Version check: is new_version strictly greater than current_version?
+    2. Health check: at least `min_healthy` fraction of replicas must be healthy.
+
+  There are 2 bugs:
+    1. Version comparison uses string comparison: "1.10.0" < "1.9.0" is True
+       because "1" < "9" lexicographically. Use tuple of ints for correct comparison.
+    2. The health gate computes the fraction wrong: it uses len(replicas)
+       instead of len(healthy_replicas) in the numerator.
+hints:
+  - "String version comparison is wrong: '1.10.0' < '1.9.0'. Convert to tuple of ints: tuple(int(x) for x in v.split('.'))"
+  - "Count healthy replicas correctly: healthy = [r for r in replicas if r['healthy']]; fraction = len(healthy)/len(replicas)"
+  - "Fix: parse versions as int tuples for comparison, and count healthy replicas correctly in the fraction."
+tags:
+  - logic
+  - versioning
+  - deployment
+  - comparison

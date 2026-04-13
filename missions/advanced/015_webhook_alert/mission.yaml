@@ -1,0 +1,29 @@
+title: "Webhook Alerting"
+category: "requests + JSON"
+difficulty: 5
+xp: 300
+story: |
+  Your incident alert system sends notifications to a Slack-compatible
+  webhook. Alerts are being silently dropped - the webhook receives
+  them but responds with 400 Bad Request. Nobody on-call gets paged.
+  Fix the webhook sender.
+description: |
+  The script POSTs a JSON payload to a webhook URL.
+
+  There are 2 bugs:
+    1. The payload dict is passed directly as the `data=` argument.
+       This sends it as form-encoded data, not JSON.
+       Use `json=payload` OR `data=json.dumps(payload)` with the right header.
+    2. When using `data=` with a JSON string, the Content-Type header must be
+       "application/json". Without it, the server doesn't know it's JSON.
+       If you use `json=payload`, requests sets the header automatically.
+hints:
+  - "requests.post(url, data=dict) sends form data, not JSON. Use json=payload instead."
+  - "If you use data=json.dumps(payload), also set headers={'Content-Type': 'application/json'}."
+  - "The simplest fix: replace data=payload with json=payload - requests handles the rest."
+tags:
+  - requests
+  - json
+  - webhooks
+  - http
+  - alerts

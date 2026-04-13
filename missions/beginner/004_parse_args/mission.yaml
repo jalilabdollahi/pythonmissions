@@ -1,0 +1,27 @@
+title: "Parse the Args"
+category: "argparse"
+difficulty: 2
+xp: 100
+story: |
+  You're writing a deployment tool. It takes CLI arguments:
+  which environment, which version, and whether this is a dry run.
+  The script crashes every time it's called. Your pipeline is broken.
+  Fix it.
+description: |
+  The script uses argparse to accept:
+    --env       (required) target environment, e.g. staging or production
+    --version   (optional) version to deploy, default "latest"
+    --dry-run   (flag) if present, don't actually deploy
+
+  There are 2 bugs:
+    1. The argument is added as `--env` but accessed as `args.environment`
+       argparse converts `--env` to `args.env` (not args.environment)
+    2. `--dry-run` with a hyphen becomes `args.dry_run` (underscore), not `args.dry-run`
+hints:
+  - "argparse converts --env to args.env, not args.environment."
+  - "argparse converts hyphens to underscores: --dry-run becomes args.dry_run"
+  - "Fix: change args.environment -> args.env  and  args.dry-run -> args.dry_run"
+tags:
+  - argparse
+  - cli
+  - arguments

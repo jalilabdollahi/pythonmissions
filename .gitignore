@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.py[cod]
+
+# Virtual environments
+venv/
+.venv/
+
+# Test/cache output
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Runtime progress and sandbox
+sandbox/
+
+# OS / editor noise
+.DS_Store
+Thumbs.db

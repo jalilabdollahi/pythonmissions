@@ -1,0 +1,28 @@
+title: "Retry Logic Decorator"
+category: "Decorators"
+difficulty: 4
+xp: 300
+story: |
+  Flaky external APIs are part of life in DevOps. Your team wrote
+  a retry decorator to automatically retry failed calls. But it
+  breaks the function's name and docstring - breaking introspection,
+  logging, and your monitoring dashboards. Fix it.
+description: |
+  The `retry(max_attempts, delay)` decorator retries a function
+  on exception, up to max_attempts times.
+
+  There are 2 bugs:
+    1. The wrapper function overwrites the decorated function's
+       __name__, __doc__, and other metadata. Fix this by adding
+       `@functools.wraps(func)` above the `wrapper` function definition.
+    2. `time.sleep(delay)` is called even after the LAST failed attempt,
+       wasting time. Only sleep when there are more retries remaining.
+hints:
+  - "Decorators should use @functools.wraps(func) to preserve the original function's metadata."
+  - "After the last failure, sleeping is pointless. Only sleep if attempt < max_attempts."
+  - "Add 'import functools' and '@functools.wraps(func)' before def wrapper. Move sleep inside the if-block."
+tags:
+  - decorators
+  - functools
+  - retry
+  - error-handling

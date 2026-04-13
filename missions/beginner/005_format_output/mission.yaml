@@ -1,0 +1,28 @@
+title: "Format the Output"
+category: "String Formatting"
+difficulty: 2
+xp: 100
+story: |
+  Your deployment pipeline posts a status message to Slack
+  after every release. The formatter is broken and nobody
+  is getting notified. The on-call team is flying blind.
+  Fix the formatter.
+description: |
+  The script formats a deployment event message with a subject
+  and body, returned as a dict.
+
+  There are 2 bugs:
+    1. `"[DEPLOY] %s v%s -> %s" % (service, version)` - the %s format
+       requires exactly as many values in the tuple as there are %s placeholders.
+       There are 3 placeholders but only 2 values.
+    2. `"Deployed by: {}".format()` - .format() needs the variable as an argument.
+       The `deployer` variable is never passed in.
+hints:
+  - "Count the %s in the string: there are 3. The tuple (service, version) only has 2 items."
+  - "'.format()' with no arguments fills nothing. Pass deployer: '...{}'.format(deployer)"
+  - "Fix: % (service, version, environment)  and  .format(deployer)"
+tags:
+  - string-formatting
+  - f-strings
+  - percent-formatting
+  - format-method

@@ -1,0 +1,25 @@
+title: "Parse the Nginx Logs"
+category: "Regex"
+difficulty: 3
+xp: 200
+story: |
+  The SRE team needs a report: which IPs are hitting your service
+  with the most 5xx errors? Marketing wants to know if it's a DDoS
+  or just one bad client. The log parser is broken. Fix it.
+description: |
+  The script parses nginx access log lines and finds IPs that caused 5xx errors.
+
+  There are 2 bugs:
+    1. `re.match()` only matches at the START of a string.
+       Use `re.search()` to match anywhere in the line.
+    2. The regex captures 2 groups: (ip) and (status_code).
+       `match.group(3)` is out of range - use `match.group(2)` for status.
+hints:
+  - "re.match() anchors to the start of the string and may miss matches mid-line. Use re.search()."
+  - "Count the capture groups ( ) in LOG_PATTERN - there are only 2. group(1)=ip, group(2)=status."
+  - "Fix: re.match -> re.search  and  match.group(3) -> match.group(2)"
+tags:
+  - regex
+  - re
+  - log-parsing
+  - nginx

@@ -1,0 +1,27 @@
+title: "Run Shell Commands"
+category: "subprocess"
+difficulty: 3
+xp: 200
+story: |
+  Your automation script needs to shell out - run system commands
+  and capture their output to parse or log it. The script runs
+  without errors but the output is always empty. Something is
+  very wrong. Fix it.
+description: |
+  The script runs shell commands and returns their stdout output.
+
+  There are 2 bugs:
+    1. `subprocess.run(cmd)` without `capture_output=True` does NOT
+       capture stdout/stderr - they go to the terminal and result.stdout is None.
+       Add `capture_output=True` to capture the output.
+    2. `result.stdout` is bytes when capture_output=True.
+       Use `result.stdout.decode("utf-8")` or pass `text=True` to get a string.
+hints:
+  - "Without capture_output=True, subprocess.run() prints to terminal and result.stdout is None."
+  - "result.stdout returns bytes. Use .decode('utf-8') to get a string, or add text=True to the call."
+  - "Fix: add capture_output=True  and  result.stdout.decode('utf-8') or text=True"
+tags:
+  - subprocess
+  - shell
+  - automation
+  - os
