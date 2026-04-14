@@ -1,0 +1,12 @@
+title: "Log Stream Generator"
+category: "Generators"
+difficulty: 2
+xp: 220
+story: |
+  The log processor needs to stream multi-GB log files without loading them
+  into memory. A generator was written but it has two bugs.
+objective: "Fix the 2 bugs in the log stream generator."
+hints:
+  - "Generators use yield, not return, to produce values"
+  - "Check the file opening mode — logs are text, not binary"
+check_function: "stream_logs"

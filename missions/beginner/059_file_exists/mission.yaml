@@ -1,0 +1,18 @@
+title: "Check Before Reading"
+category: "File I/O"
+difficulty: 1
+xp: 100
+story: |
+  The backup script checks if a config file exists before reading it.
+  It crashes because os.path.exist() (typo) is not the right call.
+description: |
+  file_exists(path) returns True if the file exists.
+  Bug: os.path.exist() — should be os.path.exists() (with 's').
+hints:
+  - "os.path.exists() checks if a path exists."
+  - "os.path.exist() does not exist — note the missing 's'."
+  - "Change os.path.exist(path) to os.path.exists(path)."
+tags:
+  - file-io
+  - os.path
+  - exists

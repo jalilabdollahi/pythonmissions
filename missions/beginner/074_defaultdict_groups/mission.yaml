@@ -1,0 +1,18 @@
+title: "Group Servers by Region"
+category: "Modules"
+difficulty: 1
+xp: 100
+story: |
+  The inventory tool groups servers by region. It crashes with
+  KeyError the first time a new region is encountered.
+description: |
+  group_by_region(servers) returns {region: [server, ...]} dict.
+  Bug: plain dict raises KeyError; use defaultdict(list).
+hints:
+  - "dict[key].append() raises KeyError if key doesn't exist yet."
+  - "defaultdict(list) auto-creates an empty list for new keys."
+  - "Import defaultdict and change dict() to defaultdict(list)."
+tags:
+  - modules
+  - collections
+  - defaultdict

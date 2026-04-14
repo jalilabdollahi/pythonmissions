@@ -1,0 +1,18 @@
+title: "Find the Max CPU"
+category: "Lists"
+difficulty: 1
+xp: 100
+story: |
+  The auto-scaler checks if any server is over 90% CPU. The function
+  should return the highest reading but crashes on empty lists.
+description: |
+  max_cpu(readings) returns max of readings or 0 if empty.
+  Bug: max() on empty list raises ValueError.
+hints:
+  - "max([]) raises ValueError."
+  - "Provide a default: max(readings, default=0)."
+  - "Change max(readings) to max(readings, default=0)."
+tags:
+  - lists
+  - max
+  - default

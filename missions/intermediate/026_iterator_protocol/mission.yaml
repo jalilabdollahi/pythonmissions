@@ -1,0 +1,12 @@
+title: "Log Iterator Protocol"
+category: "Iterators"
+difficulty: 2
+xp: 210
+story: |
+  A custom log iterator is supposed to page through log entries in batches,
+  but it never stops and raises wrong exceptions. Fix the iterator protocol.
+objective: "Fix the 2 bugs in the log iterator."
+hints:
+  - "Iterators raise StopIteration when exhausted, not return None"
+  - "__iter__ should return self for the iterator object"
+check_function: "LogIterator"

@@ -1,0 +1,12 @@
+title: "Log Parser State Machine"
+category: "Algorithms"
+difficulty: 3
+xp: 260
+story: |
+  The log parser uses a state machine to parse multi-line stack traces.
+  State transitions are wrong causing stack traces to be split.
+objective: "Fix the 2 bugs in the log parser state machine."
+hints:
+  - "A line starting with whitespace is a continuation of the previous entry"
+  - "Flush the current entry when a new top-level line starts"
+check_function: "parse_multiline_logs"

@@ -1,0 +1,12 @@
+title: "Retry Decorator"
+category: "Decorators"
+difficulty: 2
+xp: 220
+story: |
+  Flaky network calls keep crashing the deployment pipeline. You need a retry
+  decorator that wraps functions and retries them on exception — but it has bugs.
+objective: "Fix the 2 bugs in the retry decorator."
+hints:
+  - "The wrapper function must accept and pass through *args and **kwargs"
+  - "Check the sleep call — it should delay between retries, not before the first attempt"
+check_function: "retry"

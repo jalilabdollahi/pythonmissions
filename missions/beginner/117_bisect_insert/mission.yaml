@@ -1,0 +1,18 @@
+title: "Insert into Sorted Threshold List"
+category: "Modules"
+difficulty: 1
+xp: 100
+story: |
+  Alert thresholds are kept sorted. bisect.insort adds a new one
+  but uses insort_right wrong — passes list and value in wrong order.
+description: |
+  add_threshold(thresholds, value) inserts value into sorted thresholds list.
+  Bug: bisect.insort(value, thresholds) has arguments swapped.
+hints:
+  - "bisect.insort(list, value) — list first, then value."
+  - "The arguments are swapped: it's insort(thresholds, value)."
+  - "Swap the arguments: change insort(value, thresholds) to insort(thresholds, value)."
+tags:
+  - modules
+  - bisect
+  - sorted

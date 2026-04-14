@@ -1,0 +1,13 @@
+title: "Self-Healing Service Manager"
+category: "DevOps"
+difficulty: 5
+xp: 420
+story: |
+  The self-healing service manager monitors services and automatically
+  restarts failed ones with exponential backoff. The restart loop and
+  backoff calculation are broken.
+objective: "Fix the 2 bugs in the self-healing service manager."
+hints:
+  - "Only restart services that are in FAILED state, not all services"
+  - "Track restart attempts per service for backoff calculation"
+check_function: "SelfHealingManager"

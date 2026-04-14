@@ -1,0 +1,12 @@
+title: "Kafka Consumer Offset Tracker"
+category: "Messaging"
+difficulty: 3
+xp: 260
+story: |
+  The Kafka consumer tracks message offsets for at-least-once delivery.
+  The offset commit logic has bugs causing message loss.
+objective: "Fix the 2 bugs in the Kafka offset tracker."
+hints:
+  - "Commit offset AFTER processing, not before"
+  - "Track the highest offset seen per partition"
+check_function: "OffsetTracker"

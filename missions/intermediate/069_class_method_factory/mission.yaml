@@ -1,0 +1,12 @@
+title: "Classmethod Config Factory"
+category: "OOP"
+difficulty: 2
+xp: 220
+story: |
+  The ServiceConfig class needs alternative constructors. The classmethod
+  factories have bugs — they call wrong constructors and miss fields.
+objective: "Fix the 2 bugs in the classmethod factories."
+hints:
+  - "@classmethod receives cls as first argument — use cls() to instantiate"
+  - "from_dict should pass all required fields from the dictionary"
+check_function: "ServiceConfig"

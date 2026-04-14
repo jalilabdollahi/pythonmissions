@@ -1,0 +1,18 @@
+title: "Read All Log Lines"
+category: "File I/O"
+difficulty: 1
+xp: 100
+story: |
+  The log parser reads a file and should return a list of lines.
+  Instead it returns one big string. Fix it.
+description: |
+  read_lines(path) returns a list of stripped lines from the file.
+  Bug: f.read() returns one string; use f.readlines() or splitlines().
+hints:
+  - "f.read() returns the entire file as a single string."
+  - "f.readlines() returns a list of lines (including newline chars)."
+  - "Change f.read() to f.read().splitlines() or use f.readlines()."
+tags:
+  - file-io
+  - readlines
+  - strings

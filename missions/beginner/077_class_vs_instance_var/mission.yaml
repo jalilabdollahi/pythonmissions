@@ -1,0 +1,18 @@
+title: "Shared vs Per-Instance Config"
+category: "OOP"
+difficulty: 1
+xp: 100
+story: |
+  The Connection class accidentally shares the timeout across all instances.
+  Each instance should have its own timeout. Fix the class.
+description: |
+  Connection(host, timeout) stores timeout as instance variable.
+  Bug: timeout is set as class variable, shared by all instances.
+hints:
+  - "Class variables are shared by all instances."
+  - "Instance variables are set with self.timeout = timeout inside __init__."
+  - "Move timeout assignment inside __init__ and use self.timeout."
+tags:
+  - oop
+  - class-variables
+  - instance-variables

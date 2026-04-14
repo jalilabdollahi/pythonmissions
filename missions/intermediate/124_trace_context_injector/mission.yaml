@@ -1,0 +1,12 @@
+title: "Trace Context HTTP Injector"
+category: "Observability"
+difficulty: 2
+xp: 230
+story: |
+  The trace context injector adds W3C traceparent headers to outgoing HTTP
+  requests. The header format is wrong and trace IDs aren't random.
+objective: "Fix the 2 bugs in the trace context injector."
+hints:
+  - "W3C traceparent format: 00-<trace-id>-<span-id>-<flags>"
+  - "Use secrets.token_hex(16) for 32-char trace ID, token_hex(8) for 16-char span ID"
+check_function: "inject_trace_context"

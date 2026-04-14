@@ -1,0 +1,12 @@
+title: "Finite State Machine Workflow"
+category: "Architecture"
+difficulty: 4
+xp: 370
+story: |
+  The CI/CD workflow uses a finite state machine to track pipeline state.
+  Invalid transitions are allowed and guards aren't being evaluated.
+objective: "Fix the 2 bugs in the state machine."
+hints:
+  - "Only allow transitions defined in the transition table"
+  - "Guard conditions must evaluate to True for a transition to proceed"
+check_function: "StateMachine"

@@ -1,0 +1,12 @@
+title: "Jinja2 Template Renderer"
+category: "Templating"
+difficulty: 2
+xp: 220
+story: |
+  The config generator uses Jinja2 to render service configs from templates,
+  but undefined variables crash the renderer instead of using defaults.
+objective: "Fix the 2 bugs in the template renderer."
+hints:
+  - "Use jinja2.Undefined or ChainableUndefined to handle missing variables gracefully"
+  - "Pass the context dict as **kwargs to render(), not as a positional arg"
+check_function: "render_template"

@@ -1,0 +1,12 @@
+title: "Feature Flag Evaluator"
+category: "Configuration"
+difficulty: 2
+xp: 230
+story: |
+  The feature flag system evaluates flags based on user segments. The
+  percentage rollout calculation is wrong and segment matching is broken.
+objective: "Fix the 2 bugs in the feature flag evaluator."
+hints:
+  - "Percentage rollout: hash user_id to 0-99 and compare against percentage"
+  - "Segment match should check if user is IN the allowed segments list"
+check_function: "evaluate_flag"

@@ -1,0 +1,12 @@
+title: "Metric Aggregator"
+category: "Data Processing"
+difficulty: 2
+xp: 210
+story: |
+  The metrics aggregation service calculates p95 and p99 latencies wrong.
+  The percentile calculation has bugs that skew the results.
+objective: "Fix the 2 bugs in the metric aggregator."
+hints:
+  - "sorted() returns a new list — you need to use it, not the original"
+  - "Percentile index: int(len * p / 100) — check the formula"
+check_function: "percentile"

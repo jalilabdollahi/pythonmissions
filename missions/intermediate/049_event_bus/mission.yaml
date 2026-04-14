@@ -1,0 +1,12 @@
+title: "Event Bus"
+category: "Patterns"
+difficulty: 2
+xp: 230
+story: |
+  The internal event bus publishes deployment events to subscribers, but
+  subscribers are never called and unsubscription doesn't work.
+objective: "Fix the 2 bugs in the event bus."
+hints:
+  - "Subscribers are stored per event — use the event name as the dict key"
+  - "To unsubscribe, remove the specific handler, not clear all handlers"
+check_function: "EventBus"

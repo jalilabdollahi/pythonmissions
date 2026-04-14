@@ -1,0 +1,13 @@
+title: "Saga Orchestrator"
+category: "Distributed Systems"
+difficulty: 5
+xp: 400
+story: |
+  The distributed saga orchestrates payment and inventory operations with
+  compensating transactions. The compensation order and failure detection
+  are broken, risking partial failures.
+objective: "Fix the 2 bugs in the saga orchestrator."
+hints:
+  - "Compensating transactions must run in REVERSE order of successful steps"
+  - "A step fails when it raises an exception — catch it and trigger compensation"
+check_function: "SagaOrchestrator"

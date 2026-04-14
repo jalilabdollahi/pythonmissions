@@ -1,0 +1,13 @@
+title: "Zero-Downtime DB Migration"
+category: "Databases"
+difficulty: 4
+xp: 360
+story: |
+  You're implementing a zero-downtime column migration strategy. The dual-write
+  phase must write to both old and new columns, but the read path and
+  backfill logic are broken.
+objective: "Fix the 2 bugs in the zero-downtime migration manager."
+hints:
+  - "During dual-write phase, write to BOTH old and new columns"
+  - "Backfill should copy old column values to new column where new is NULL"
+check_function: "MigrationManager"

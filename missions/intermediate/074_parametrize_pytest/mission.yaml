@@ -1,0 +1,12 @@
+title: "Parametrized Pytest Cases"
+category: "Testing"
+difficulty: 2
+xp: 220
+story: |
+  The test suite uses @pytest.mark.parametrize but the decorator syntax
+  is wrong and test IDs are missing, making failures hard to debug.
+objective: "Fix the 2 bugs in the parametrized test setup."
+hints:
+  - "@pytest.mark.parametrize('arg1,arg2', [(v1,v2),...]) — comma-separated arg names"
+  - "The values list must be a list of tuples when multiple args are used"
+check_function: "validate_port"

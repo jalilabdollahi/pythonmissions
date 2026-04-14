@@ -1,0 +1,18 @@
+title: "Check for Required Keys"
+category: "Dicts"
+difficulty: 1
+xp: 100
+story: |
+  The config validator checks that all required keys are present.
+  It's always returning True even when keys are missing.
+description: |
+  has_required_keys(cfg, required) returns True only if all keys are in cfg.
+  Bug: 'all(required)' checks truthiness of key names, not membership in cfg.
+hints:
+  - "all(required) checks if all key strings are truthy (always True for non-empty strings)."
+  - "You need to check if each key is IN cfg: all(k in cfg for k in required)."
+  - "Change all(required) to all(k in cfg for k in required)."
+tags:
+  - dicts
+  - all
+  - membership

@@ -1,0 +1,12 @@
+title: "Named Tuple Server Record"
+category: "Data Structures"
+difficulty: 2
+xp: 200
+story: |
+  Server records use namedtuples for immutability, but field access
+  is by wrong names and the factory function has a bug.
+objective: "Fix the 2 bugs in the namedtuple server record."
+hints:
+  - "namedtuple fields are accessed by their declared names"
+  - "collections.namedtuple takes (typename, field_names) — field_names as list or space-separated string"
+check_function: "make_server"

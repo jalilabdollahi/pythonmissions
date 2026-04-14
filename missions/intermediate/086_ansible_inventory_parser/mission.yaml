@@ -1,0 +1,12 @@
+title: "Ansible Inventory Parser"
+category: "DevOps"
+difficulty: 2
+xp: 220
+story: |
+  The Ansible inventory parser reads INI-style inventory files and groups
+  hosts, but group parsing and variable extraction are broken.
+objective: "Fix the 2 bugs in the inventory parser."
+hints:
+  - "Group headers in INI are wrapped in brackets: [group_name]"
+  - "Host variables are key=value pairs on the same line as the host"
+check_function: "parse_inventory"

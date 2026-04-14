@@ -1,0 +1,12 @@
+title: "Secret Rotation Manager"
+category: "Security"
+difficulty: 2
+xp: 240
+story: |
+  The secret rotation system tracks when secrets need rotation and
+  generates new ones. The rotation logic uses wrong comparisons.
+objective: "Fix the 2 bugs in the secret rotation manager."
+hints:
+  - "Compare datetimes with < not is"
+  - "secrets.token_hex(n) generates n*2 hex characters"
+check_function: "SecretRotationManager"

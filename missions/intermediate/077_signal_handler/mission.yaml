@@ -1,0 +1,12 @@
+title: "Graceful Shutdown Handler"
+category: "Systems"
+difficulty: 2
+xp: 230
+story: |
+  The service must handle SIGTERM gracefully, draining in-flight requests
+  before shutting down. The signal handler is misconfigured.
+objective: "Fix the 2 bugs in the signal handler setup."
+hints:
+  - "signal.signal() takes (signal_number, handler) — not a string for the signal"
+  - "The handler function signature must be (signum, frame)"
+check_function: "setup_shutdown_handler"

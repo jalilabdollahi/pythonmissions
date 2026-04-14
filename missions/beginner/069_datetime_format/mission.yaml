@@ -1,0 +1,18 @@
+title: "Format the Deploy Timestamp"
+category: "Modules"
+difficulty: 1
+xp: 100
+story: |
+  The deploy log stamps each event with a timestamp. The format string
+  has %m and %d swapped — dates show as month/day reversed.
+description: |
+  format_timestamp(dt) returns timestamp in 'YYYY-MM-DD HH:MM:SS' format.
+  Bug: strftime format has %d-%m (day-month) instead of %m-%d (month-day).
+hints:
+  - "strftime format codes: %Y=year, %m=month, %d=day."
+  - "The format should be '%Y-%m-%d %H:%M:%S'."
+  - "Swap %d and %m in the format string."
+tags:
+  - modules
+  - datetime
+  - strftime

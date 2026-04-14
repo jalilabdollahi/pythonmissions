@@ -1,0 +1,12 @@
+title: "Secrets Vault with Encryption"
+category: "Security"
+difficulty: 5
+xp: 420
+story: |
+  The secrets vault encrypts sensitive values using AES-256 GCM.
+  The key derivation and nonce reuse prevention have critical security bugs.
+objective: "Fix the 2 critical security bugs in the secrets vault."
+hints:
+  - "Always generate a fresh nonce/IV for each encryption operation"
+  - "Use PBKDF2 with sufficient iterations (100000+) for key derivation"
+check_function: "SecretsVault"

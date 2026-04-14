@@ -1,0 +1,18 @@
+title: "Unique Alert Types"
+category: "Type Conversion"
+difficulty: 1
+xp: 100
+story: |
+  The alerting dashboard lists unique alert types. The set is converted
+  back to a sorted list wrong — sorted() is called on the wrong thing.
+description: |
+  unique_sorted(items) deduplicates and sorts items.
+  Bug: sorted is called before set, so duplicates remain.
+hints:
+  - "set() removes duplicates; sorted() sorts."
+  - "First deduplicate with set(), then sort: sorted(set(items))."
+  - "Change sorted(items) to sorted(set(items))."
+tags:
+  - type-conversion
+  - set
+  - sorted

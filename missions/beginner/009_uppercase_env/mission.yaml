@@ -1,0 +1,19 @@
+title: "Uppercase the Environment"
+category: "Strings"
+difficulty: 1
+xp: 100
+story: |
+  Config values come in mixed case from the CI system. Your
+  normalizer should uppercase the environment name, but it's
+  returning lowercase. The staging pipeline is routing to prod.
+description: |
+  normalize_env(env) returns the environment name in uppercase.
+  Bug: lower() is called instead of upper().
+hints:
+  - "lower() converts to lowercase. upper() converts to uppercase."
+  - "Change s.lower() to s.upper()."
+  - "Double-check: 'staging'.upper() == 'STAGING'."
+tags:
+  - strings
+  - upper
+  - lower

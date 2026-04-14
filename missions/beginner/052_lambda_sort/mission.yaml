@@ -1,0 +1,18 @@
+title: "Sort by CPU Usage"
+category: "Functions"
+difficulty: 1
+xp: 100
+story: |
+  The resource monitor sorts servers by CPU usage. It sorts alphabetically
+  by name instead of numerically by cpu_pct. Fix the sort key.
+description: |
+  sort_by_cpu(servers) returns servers sorted by 'cpu_pct' ascending.
+  Bug: lambda returns s['name'] instead of s['cpu_pct'].
+hints:
+  - "The lambda key function determines what value to sort by."
+  - "s['name'] sorts alphabetically. s['cpu_pct'] sorts numerically."
+  - "Change lambda s: s['name'] to lambda s: s['cpu_pct']."
+tags:
+  - functions
+  - lambda
+  - sorted

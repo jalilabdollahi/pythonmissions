@@ -1,0 +1,18 @@
+title: "Open the Config Safely"
+category: "OOP"
+difficulty: 1
+xp: 100
+story: |
+  The config writer is a context manager. The __exit__ method is
+  named incorrectly — resources are never released.
+description: |
+  ConfigWriter implements __enter__ and __exit__ for 'with' statement.
+  Bug: exit method is named __exit_ctx__ instead of __exit__.
+hints:
+  - "Context managers need exactly __enter__ and __exit__."
+  - "Python calls __exit__(exc_type, exc_val, exc_tb) on 'with' block exit."
+  - "Rename __exit_ctx__ to __exit__."
+tags:
+  - oop
+  - context-manager
+  - dunder

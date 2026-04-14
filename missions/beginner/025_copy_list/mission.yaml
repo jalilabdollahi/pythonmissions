@@ -1,0 +1,19 @@
+title: "Copy the Allow List"
+category: "Lists"
+difficulty: 1
+xp: 100
+story: |
+  The firewall script copies the allow-list before editing. But edits
+  to the 'copy' also change the original. Deploys are breaking
+  the production allow-list.
+description: |
+  copy_allowlist(original) returns an independent copy of the list.
+  Bug: assignment (result = original) makes an alias, not a copy.
+hints:
+  - "Assigning a list to a new variable makes them point to the same object."
+  - "Use list.copy() or list(original) to make a shallow copy."
+  - "Change result = original to result = original.copy()."
+tags:
+  - lists
+  - copy
+  - reference

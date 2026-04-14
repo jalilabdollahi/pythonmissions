@@ -1,0 +1,18 @@
+title: "Cache the Config Lookup"
+category: "Modules"
+difficulty: 1
+xp: 100
+story: |
+  The config service hits the database on every call. A cache decorator
+  is added but the import is wrong — functools.cache doesn't exist in Python 3.8.
+description: |
+  cached_get(key) fetches config for key, caching results.
+  Bug: @functools.cache doesn't exist before Python 3.9; use @functools.lru_cache().
+hints:
+  - "functools.cache was added in Python 3.9."
+  - "functools.lru_cache() works from Python 3.2+."
+  - "Change @functools.cache to @functools.lru_cache(maxsize=None)."
+tags:
+  - modules
+  - functools
+  - caching

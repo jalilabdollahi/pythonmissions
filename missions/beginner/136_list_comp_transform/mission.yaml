@@ -1,0 +1,18 @@
+title: "Extract All Hostnames"
+category: "Comprehensions"
+difficulty: 1
+xp: 100
+story: |
+  The inventory extracts hostnames from a list of endpoint dicts.
+  The comprehension has the wrong field name.
+description: |
+  get_hostnames(endpoints) returns list of hostname values.
+  Bug: accesses e['host'] but the key is 'hostname'.
+hints:
+  - "Check the actual key name in the dict."
+  - "The dict has 'hostname', not 'host'."
+  - "Change e['host'] to e['hostname']."
+tags:
+  - comprehensions
+  - list-comprehension
+  - dicts

@@ -1,0 +1,12 @@
+title: "Observer Pattern Alerting"
+category: "Patterns"
+difficulty: 2
+xp: 230
+story: |
+  The alerting system uses the observer pattern to notify multiple channels
+  when incidents occur, but observers aren't being notified properly.
+objective: "Fix the 2 bugs in the observer pattern."
+hints:
+  - "Observers should be stored in a list per subject"
+  - "notify() must call update() on each observer, not just the last one"
+check_function: "IncidentSubject"

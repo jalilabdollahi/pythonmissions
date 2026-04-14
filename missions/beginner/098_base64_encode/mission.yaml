@@ -1,0 +1,18 @@
+title: "Encode the API Key"
+category: "Modules"
+difficulty: 1
+xp: 100
+story: |
+  The API client encodes credentials as base64. The encode result
+  is bytes — it needs to be decoded to a string for use in HTTP headers.
+description: |
+  encode_credentials(user, password) returns base64 string of 'user:password'.
+  Bug: b64encode returns bytes; .decode() is missing.
+hints:
+  - "base64.b64encode() returns a bytes object."
+  - "Call .decode() on the result to get a string."
+  - "Change return base64.b64encode(...) to return base64.b64encode(...).decode()."
+tags:
+  - modules
+  - base64
+  - bytes

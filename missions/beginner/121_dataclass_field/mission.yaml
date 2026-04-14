@@ -1,0 +1,18 @@
+title: "Build the Server Dataclass"
+category: "OOP"
+difficulty: 1
+xp: 100
+story: |
+  The Server dataclass should have a default empty list of tags.
+  Using [] as default raises ValueError in dataclasses.
+description: |
+  Server dataclass with tags field defaulting to empty list.
+  Bug: tags: list = [] raises ValueError — use field(default_factory=list).
+hints:
+  - "Mutable defaults like [] are not allowed in dataclasses."
+  - "Use dataclasses.field(default_factory=list) for list fields."
+  - "Change tags: list = [] to tags: list = field(default_factory=list)."
+tags:
+  - oop
+  - dataclasses
+  - field

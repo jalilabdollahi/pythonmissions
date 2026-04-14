@@ -1,0 +1,12 @@
+title: "SQL Query Builder"
+category: "Databases"
+difficulty: 2
+xp: 220
+story: |
+  The query builder constructs safe parameterized SQL, but it's vulnerable
+  to SQL injection in one place and produces malformed queries in another.
+objective: "Fix the 2 bugs in the SQL query builder."
+hints:
+  - "Never use f-strings or string formatting for SQL values — use parameters"
+  - "The WHERE clause needs AND between multiple conditions"
+check_function: "build_select"

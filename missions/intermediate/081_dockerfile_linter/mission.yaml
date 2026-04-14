@@ -1,0 +1,12 @@
+title: "Dockerfile Linter"
+category: "DevOps"
+difficulty: 2
+xp: 220
+story: |
+  The Dockerfile linter checks for common mistakes. The rule checks
+  are inverted and the linter misses multi-instruction RUN chains.
+objective: "Fix the 2 bugs in the Dockerfile linter."
+hints:
+  - "Check if a line DOES start with the instruction, not if it doesn't"
+  - "Look for multiple consecutive RUN instructions, not just any RUN"
+check_function: "lint_dockerfile"

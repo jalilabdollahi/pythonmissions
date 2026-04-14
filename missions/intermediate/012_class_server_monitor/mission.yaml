@@ -1,0 +1,12 @@
+title: "OOP Server Monitor"
+category: "OOP"
+difficulty: 2
+xp: 200
+story: |
+  The ops team needs a ServerMonitor class that tracks server health metrics.
+  The class implementation has two bugs that cause incorrect readings.
+objective: "Fix the 2 bugs in the ServerMonitor class."
+hints:
+  - "Check how __init__ stores the server name"
+  - "The average calculation has an off-by-one or logic error"
+check_function: "ServerMonitor"

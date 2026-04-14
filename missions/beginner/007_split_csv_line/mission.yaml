@@ -1,0 +1,19 @@
+title: "Split the Config Line"
+category: "Strings"
+difficulty: 1
+xp: 100
+story: |
+  A legacy deploy script stores config as comma-separated lines.
+  You need the third field (index 2). The split is broken and
+  the team is getting the wrong service name.
+description: |
+  parse_field(line, index) splits by comma and returns the field at index.
+  Bug: split() with no args splits on whitespace, not commas.
+hints:
+  - "split() with no argument splits on whitespace."
+  - "split(',') splits on commas."
+  - "Change s.split() to s.split(',')."
+tags:
+  - strings
+  - split
+  - csv

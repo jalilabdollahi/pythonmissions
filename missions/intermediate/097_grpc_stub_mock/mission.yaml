@@ -1,0 +1,12 @@
+title: "gRPC Stub Mock"
+category: "Testing"
+difficulty: 3
+xp: 250
+story: |
+  The gRPC client is tested with a stub mock, but the mock returns wrong
+  types and error handling is missing.
+objective: "Fix the 2 bugs in the gRPC stub mock."
+hints:
+  - "gRPC responses are objects with fields, not plain dicts"
+  - "Check grpc.StatusCode for error handling, not HTTP status codes"
+check_function: "DeployServiceClient"

@@ -1,0 +1,18 @@
+title: "Access Nested Config"
+category: "Dicts"
+difficulty: 1
+xp: 100
+story: |
+  A nested config holds DB settings under 'database.host'.
+  The accessor crashes when intermediate keys are missing.
+description: |
+  safe_get(cfg, *keys) traverses nested dicts returning value or None.
+  Bug: uses direct bracket access which raises KeyError on missing intermediate key.
+hints:
+  - "Use dict.get() at each level to avoid KeyError."
+  - "If any intermediate key is missing, get() returns None and chaining stops."
+  - "Replace bracket access with .get() calls at each level."
+tags:
+  - dicts
+  - nested
+  - get

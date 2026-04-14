@@ -1,0 +1,18 @@
+title: "Build the Deploy Script"
+category: "Strings"
+difficulty: 1
+xp: 100
+story: |
+  The script builder generates a multiline shell script. Each line
+  should end with a newline but the join separator is wrong.
+description: |
+  build_script(commands) joins commands with newlines into a script.
+  Bug: commands are joined with space instead of newline.
+hints:
+  - "' '.join(cmds) puts a space between commands."
+  - "'\\n'.join(cmds) puts a newline between commands."
+  - "Change ' '.join(commands) to '\\n'.join(commands)."
+tags:
+  - strings
+  - join
+  - multiline

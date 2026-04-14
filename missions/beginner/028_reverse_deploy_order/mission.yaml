@@ -1,0 +1,18 @@
+title: "Reverse the Deploy Order"
+category: "Lists"
+difficulty: 1
+xp: 100
+story: |
+  Rollback runs services in reverse order of their deploy sequence.
+  The rollback function is returning None instead of the reversed list.
+description: |
+  reversed_order(steps) returns a new list in reverse order.
+  Bug: list.reverse() reverses in-place and returns None. Use reversed() or slicing.
+hints:
+  - "list.reverse() returns None. It modifies the list in place."
+  - "To get a reversed list, use steps[::-1] or list(reversed(steps))."
+  - "Change return steps.reverse() to return steps[::-1]."
+tags:
+  - lists
+  - reverse
+  - reversed

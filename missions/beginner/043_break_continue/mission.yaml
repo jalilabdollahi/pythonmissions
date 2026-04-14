@@ -1,0 +1,18 @@
+title: "Skip the Inactive Nodes"
+category: "Loops"
+difficulty: 1
+xp: 100
+story: |
+  The health reporter should skip inactive nodes (continue) but stop
+  entirely on 'shutdown' nodes (break). The logic is reversed.
+description: |
+  report_nodes(nodes) skips inactive, stops on shutdown, prints active.
+  Bug: break and continue are swapped.
+hints:
+  - "continue skips to the next iteration. break exits the loop entirely."
+  - "Inactive nodes should be skipped (continue), shutdown should stop all (break)."
+  - "Swap the break and continue statements."
+tags:
+  - loops
+  - break
+  - continue

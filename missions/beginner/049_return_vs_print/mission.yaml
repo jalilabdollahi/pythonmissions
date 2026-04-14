@@ -1,0 +1,18 @@
+title: "Return the Status"
+category: "Functions"
+difficulty: 1
+xp: 100
+story: |
+  The health-check function should return the status string so callers
+  can act on it. Instead it's printing it and returning None.
+description: |
+  get_status(code) returns 'healthy' or 'unhealthy' based on code.
+  Bug: print() instead of return — callers get None.
+hints:
+  - "print() displays output but returns None."
+  - "return sends a value back to the caller."
+  - "Change print(...) to return ...."
+tags:
+  - functions
+  - return
+  - print

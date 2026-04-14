@@ -1,0 +1,19 @@
+title: "Increment the Server Code"
+category: "Modules"
+difficulty: 1
+xp: 100
+story: |
+  Server codes end with a letter (e.g. 'web-a'). The incrementer should
+  return the next letter but uses ord() and chr() in wrong order.
+description: |
+  next_code(letter) returns the next ASCII letter after letter.
+  Bug: chr() and ord() are swapped.
+hints:
+  - "ord('a') returns the ASCII integer for 'a'."
+  - "chr(97) returns the character 'a'."
+  - "To get the next char: chr(ord(letter) + 1)."
+  - "The current code does ord(chr(letter)) which crashes."
+tags:
+  - modules
+  - ord
+  - chr

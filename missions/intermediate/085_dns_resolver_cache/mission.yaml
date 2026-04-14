@@ -1,0 +1,12 @@
+title: "DNS Resolver Cache"
+category: "Networking"
+difficulty: 2
+xp: 230
+story: |
+  The DNS resolver caches lookups with TTL, but expired entries aren't
+  evicted and the TTL comparison is off by one.
+objective: "Fix the 2 bugs in the DNS cache."
+hints:
+  - "time.monotonic() returns current time — expired if now > expiry"
+  - "Evict expired entries on lookup, not just on insert"
+check_function: "DNSCache"

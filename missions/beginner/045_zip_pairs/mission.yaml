@@ -1,0 +1,18 @@
+title: "Pair the Hosts and Ports"
+category: "Loops"
+difficulty: 1
+xp: 100
+story: |
+  The service lister pairs host names with port numbers using zip.
+  It's missing the last pair because one list is shorter due to a typo.
+description: |
+  pair_services(hosts, ports) returns list of (host, port) tuples.
+  Bug: ports list has one fewer element than hosts — off by one in the list literal.
+hints:
+  - "zip() stops at the shortest iterable."
+  - "Count the items in both lists — one is missing an entry."
+  - "Add the missing port 5432 to the ports list."
+tags:
+  - loops
+  - zip
+  - lists

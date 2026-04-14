@@ -1,0 +1,12 @@
+title: "Deployment Pipeline Stages"
+category: "DevOps"
+difficulty: 2
+xp: 230
+story: |
+  The deployment pipeline runs stages sequentially and stops on failure.
+  Failed stages don't stop the pipeline and stage results aren't recorded.
+objective: "Fix the 2 bugs in the deployment pipeline."
+hints:
+  - "Stop the pipeline and return failure when a stage fails"
+  - "Record the result of each stage in the pipeline report"
+check_function: "DeploymentPipeline"

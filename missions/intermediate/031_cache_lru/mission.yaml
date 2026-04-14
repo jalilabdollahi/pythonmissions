@@ -1,0 +1,12 @@
+title: "LRU Cache Implementation"
+category: "Algorithms"
+difficulty: 2
+xp: 230
+story: |
+  The API gateway caches responses to reduce backend load, but the LRU cache
+  is evicting the wrong items and has a size bug.
+objective: "Fix the 2 bugs in the LRU cache."
+hints:
+  - "LRU evicts the least recently used — the oldest, not the newest"
+  - "Cache size check should happen before inserting, not after"
+check_function: "LRUCache"

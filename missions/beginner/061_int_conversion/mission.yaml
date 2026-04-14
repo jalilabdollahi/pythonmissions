@@ -1,0 +1,18 @@
+title: "Convert the Port String"
+category: "Type Conversion"
+difficulty: 1
+xp: 100
+story: |
+  Environment variables are always strings. The port number comes in
+  as '8080' and needs to be an integer for the socket call. Fix it.
+description: |
+  get_port(env_val) converts string env_val to integer.
+  Bug: returns the string directly without converting.
+hints:
+  - "int('8080') converts the string to integer 8080."
+  - "Socket and comparison operations need an integer, not a string."
+  - "Return int(env_val) instead of env_val."
+tags:
+  - type-conversion
+  - int
+  - strings

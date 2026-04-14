@@ -1,0 +1,12 @@
+title: "Healthcheck Scheduler"
+category: "Scheduling"
+difficulty: 2
+xp: 220
+story: |
+  The healthcheck scheduler runs checks at configurable intervals, but it
+  never runs the first check immediately and skips some services.
+objective: "Fix the 2 bugs in the healthcheck scheduler."
+hints:
+  - "The first check should run immediately (at time 0)"
+  - "The loop should iterate over all services, not just the first one"
+check_function: "Scheduler"

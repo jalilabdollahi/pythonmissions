@@ -1,0 +1,12 @@
+title: "Idempotency Key Manager"
+category: "Patterns"
+difficulty: 2
+xp: 230
+story: |
+  The payment API uses idempotency keys to prevent duplicate charges.
+  The key lookup is case-sensitive and TTL isn't being enforced.
+objective: "Fix the 2 bugs in the idempotency key manager."
+hints:
+  - "Normalize idempotency keys to lowercase for case-insensitive matching"
+  - "Remove expired keys before lookup"
+check_function: "IdempotencyManager"

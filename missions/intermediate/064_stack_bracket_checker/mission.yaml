@@ -1,0 +1,12 @@
+title: "Bracket Checker for Config"
+category: "Data Structures"
+difficulty: 2
+xp: 210
+story: |
+  The config parser validates JSON/YAML bracket matching before parsing.
+  The stack-based checker has two bugs causing false positives.
+objective: "Fix the 2 bugs in the bracket checker."
+hints:
+  - "Closing brackets must match the most recently opened bracket"
+  - "After processing all chars, the stack must be empty for valid input"
+check_function: "check_brackets"

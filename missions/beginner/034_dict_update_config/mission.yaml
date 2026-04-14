@@ -1,0 +1,18 @@
+title: "Update the Config"
+category: "Dicts"
+difficulty: 1
+xp: 100
+story: |
+  The deploy script merges override settings into the base config.
+  Changes from the override are not appearing in the result.
+description: |
+  merge_config(base, override) updates base with override values.
+  Bug: dict.update() is called on override instead of on base.
+hints:
+  - "dict.update(other) merges other INTO the dict it's called on."
+  - "You want to update base with override, so: base.update(override)."
+  - "Change override.update(base) to base.update(override)."
+tags:
+  - dicts
+  - update
+  - merge

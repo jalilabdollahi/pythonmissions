@@ -1,0 +1,18 @@
+title: "Parse the Log Timestamp"
+category: "Modules"
+difficulty: 1
+xp: 100
+story: |
+  The log analyzer parses timestamps from log lines. The strptime
+  format is wrong — it doesn't match the actual log format.
+description: |
+  parse_log_time(s) parses '2024-03-15 14:30:00' into a datetime.
+  Bug: format string uses '/' but log uses '-' as date separator.
+hints:
+  - "strptime(string, format) — format must exactly match the string."
+  - "The date separator in the log is '-', not '/'."
+  - "Change '%Y/%m/%d' to '%Y-%m-%d' in the format string."
+tags:
+  - modules
+  - datetime
+  - strptime

@@ -1,0 +1,12 @@
+title: "Type-Safe Config Builder"
+category: "Type Hints"
+difficulty: 4
+xp: 370
+story: |
+  The type-safe config builder uses Python's Protocol and TypeVar for
+  compile-time guarantees. The Protocol definition and bound are wrong.
+objective: "Fix the 2 bugs in the type-safe config builder."
+hints:
+  - "Protocol classes should inherit from typing.Protocol"
+  - "TypeVar bound restricts to subtypes: TypeVar('T', bound=BaseClass)"
+check_function: "ConfigBuilder"

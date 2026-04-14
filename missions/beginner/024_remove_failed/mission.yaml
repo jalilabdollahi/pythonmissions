@@ -1,0 +1,18 @@
+title: "Remove the Failed Server"
+category: "Lists"
+difficulty: 1
+xp: 100
+story: |
+  The health checker removes a failed server from the active pool.
+  When the server isn't in the pool it crashes with a ValueError. Fix it.
+description: |
+  remove_if_present(pool, server) removes server from pool only if present.
+  Bug: list.remove() raises ValueError if item not found. Check first.
+hints:
+  - "list.remove(x) raises ValueError if x is not in the list."
+  - "Check membership with 'if server in pool' before removing."
+  - "Add an 'if server in pool:' guard before the remove() call."
+tags:
+  - lists
+  - remove
+  - error-handling

@@ -1,0 +1,18 @@
+title: "Generate the Alert Email"
+category: "Strings"
+difficulty: 1
+xp: 100
+story: |
+  The alert emailer fills in a message template. The Template variable
+  substitution uses wrong delimiter — $ not @.
+description: |
+  render_alert(template_str, values) fills placeholders in template.
+  Bug: template uses @variable syntax but Template uses $variable.
+hints:
+  - "Python's string.Template uses $variable or ${variable} syntax."
+  - "Replace @host with $host in the template string."
+  - "Change '@host' to '$host' and '@level' to '$level' etc."
+tags:
+  - strings
+  - template
+  - formatting

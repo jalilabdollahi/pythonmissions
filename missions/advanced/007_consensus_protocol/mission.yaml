@@ -1,0 +1,13 @@
+title: "Raft Leader Election"
+category: "Distributed Systems"
+difficulty: 5
+xp: 400
+story: |
+  You are implementing a simplified Raft consensus leader election. Nodes
+  vote for candidates but the vote counting and term comparison are broken,
+  allowing split-brain scenarios.
+objective: "Fix the 2 bugs in the Raft leader election logic."
+hints:
+  - "A candidate needs votes from a majority: (cluster_size // 2) + 1"
+  - "Nodes only vote for a candidate with a term GREATER than their own"
+check_function: "RaftNode"

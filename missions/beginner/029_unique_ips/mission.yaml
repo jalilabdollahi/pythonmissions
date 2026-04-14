@@ -1,0 +1,18 @@
+title: "Deduplicate the IPs"
+category: "Lists"
+difficulty: 1
+xp: 100
+story: |
+  The audit tool deduplicates IP addresses that appeared in logs.
+  The result still has duplicates. Fix it.
+description: |
+  unique_ips(ip_list) returns a list with duplicates removed.
+  Bug: list() wraps the list in another list. Use set() to deduplicate then convert back.
+hints:
+  - "set() removes duplicates automatically."
+  - "list(set(ip_list)) converts back to a list after deduplication."
+  - "Change list(ip_list) to list(set(ip_list))."
+tags:
+  - lists
+  - set
+  - deduplication

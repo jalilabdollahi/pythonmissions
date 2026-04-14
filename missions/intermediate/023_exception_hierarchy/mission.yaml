@@ -1,0 +1,12 @@
+title: "Custom Exception Hierarchy"
+category: "Exceptions"
+difficulty: 2
+xp: 210
+story: |
+  The alerting system uses custom exceptions to categorize failures, but the
+  hierarchy is wrong and the handler isn't catching the right exceptions.
+objective: "Fix the 2 bugs in the exception hierarchy."
+hints:
+  - "Custom exceptions should inherit from Exception (or a subclass), not object"
+  - "Catch the most specific exception first, then broader ones"
+check_function: "DeploymentError"

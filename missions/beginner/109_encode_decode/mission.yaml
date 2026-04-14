@@ -1,0 +1,19 @@
+title: "Encode to UTF-8 Bytes"
+category: "Strings"
+difficulty: 1
+xp: 100
+story: |
+  The network sender encodes a message to bytes for transmission.
+  The bytes object needs to be decoded back to string on receipt.
+description: |
+  to_bytes(text) returns UTF-8 encoded bytes.
+  to_string(data) decodes bytes back to string.
+  Bug: to_string calls encode() instead of decode().
+hints:
+  - "bytes.encode() doesn't exist — strings have encode()."
+  - "bytes.decode() converts bytes to string."
+  - "Change data.encode('utf-8') to data.decode('utf-8')."
+tags:
+  - strings
+  - encode
+  - decode

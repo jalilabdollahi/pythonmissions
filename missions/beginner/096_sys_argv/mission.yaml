@@ -1,0 +1,18 @@
+title: "Parse the Script Argument"
+category: "Modules"
+difficulty: 1
+xp: 100
+story: |
+  The deploy script takes a single command-line argument — the environment
+  name. It always uses index 0 which is the script name, not the arg.
+description: |
+  get_env_arg() returns sys.argv[1], the first CLI argument.
+  Bug: returns sys.argv[0] (script name) instead of sys.argv[1].
+hints:
+  - "sys.argv[0] is the script name."
+  - "sys.argv[1] is the first argument passed by the user."
+  - "Change sys.argv[0] to sys.argv[1]."
+tags:
+  - modules
+  - sys
+  - argv

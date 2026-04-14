@@ -1,0 +1,18 @@
+title: "Align the Report Table"
+category: "Strings"
+difficulty: 1
+xp: 100
+story: |
+  The CLI report table left-aligns the service name column to 20 chars.
+  It uses rjust() which right-aligns — the table looks wrong.
+description: |
+  align_name(name, width) returns name left-justified to width chars.
+  Bug: rjust() right-justifies; should use ljust().
+hints:
+  - "str.rjust(w) right-justifies (pads on the left)."
+  - "str.ljust(w) left-justifies (pads on the right)."
+  - "Change .rjust(width) to .ljust(width)."
+tags:
+  - strings
+  - ljust
+  - formatting

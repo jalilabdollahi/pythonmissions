@@ -1,0 +1,18 @@
+title: "Pad the Task ID"
+category: "Strings"
+difficulty: 1
+xp: 100
+story: |
+  Task IDs must be zero-padded to 6 digits for the job queue.
+  The function returns unpadded numbers like '42' instead of '000042'.
+description: |
+  pad_id(n) returns the integer n as a zero-padded 6-char string.
+  Bug: zfill is called with 0 as argument instead of 6.
+hints:
+  - "zfill(n) pads with zeros to make the total width n characters."
+  - "zfill(0) doesn't add any padding. You need zfill(6)."
+  - "Change .zfill(0) to .zfill(6)."
+tags:
+  - strings
+  - zfill
+  - padding

@@ -1,0 +1,12 @@
+title: "Pydantic API Request Model"
+category: "Validation"
+difficulty: 2
+xp: 230
+story: |
+  The FastAPI service validates incoming requests with Pydantic models,
+  but field validators are using wrong decorators and defaults are broken.
+objective: "Fix the 2 bugs in the Pydantic model."
+hints:
+  - "Use @validator('field_name') for field-level validation"
+  - "Optional fields should have Optional[type] annotation with a default"
+check_function: "DeployRequest"

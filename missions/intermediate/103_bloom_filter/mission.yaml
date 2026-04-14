@@ -1,0 +1,12 @@
+title: "Bloom Filter Cache"
+category: "Data Structures"
+difficulty: 3
+xp: 260
+story: |
+  The cache uses a Bloom filter to quickly check if a key might exist before
+  querying the backend. The hash functions are wrong causing high false negatives.
+objective: "Fix the 2 bugs in the Bloom filter."
+hints:
+  - "Use multiple hash functions by seeding with different values"
+  - "A bit is set by index modulo the array size"
+check_function: "BloomFilter"

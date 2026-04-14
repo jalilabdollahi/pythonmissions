@@ -1,0 +1,18 @@
+title: "Group Deployments by Service"
+category: "Modules"
+difficulty: 2
+xp: 150
+story: |
+  The release report groups deployments by service name using groupby.
+  The list must be sorted first but the sort is missing.
+description: |
+  group_by_service(deployments) groups by 'service' field.
+  Bug: itertools.groupby requires sorted input; sort is missing.
+hints:
+  - "itertools.groupby only groups CONSECUTIVE equal keys."
+  - "Sort by the same key before groupby: sorted(data, key=keyfunc)."
+  - "Add sorted(deployments, key=lambda d: d['service']) before groupby."
+tags:
+  - modules
+  - itertools
+  - groupby

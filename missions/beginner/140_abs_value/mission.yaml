@@ -1,0 +1,18 @@
+title: "Calculate Disk Delta"
+category: "Modules"
+difficulty: 1
+xp: 100
+story: |
+  The disk monitor calculates change in free space (could be positive
+  or negative). It should return the absolute value of the change.
+description: |
+  disk_delta(before, after) returns absolute difference in MB.
+  Bug: returns after - before which can be negative.
+hints:
+  - "abs(x) returns the absolute value of x."
+  - "after - before is negative if disk usage grew."
+  - "Change return after - before to return abs(after - before)."
+tags:
+  - modules
+  - math
+  - abs

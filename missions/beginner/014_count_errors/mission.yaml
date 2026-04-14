@@ -1,0 +1,18 @@
+title: "Count the Errors"
+category: "Strings"
+difficulty: 1
+xp: 100
+story: |
+  The on-call script counts how many times 'ERROR' appears in a log
+  chunk. It's always returning 0. The team is missing alerts.
+description: |
+  count_errors(log) returns the number of 'ERROR' occurrences in log.
+  Bug: count() searches for 'error' (lowercase) but logs use 'ERROR'.
+hints:
+  - "Python string methods are case-sensitive."
+  - "The log has 'ERROR' in uppercase. count('error') won't match."
+  - "Change count('error') to count('ERROR')."
+tags:
+  - strings
+  - count
+  - case-sensitivity

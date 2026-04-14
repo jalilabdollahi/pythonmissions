@@ -1,0 +1,18 @@
+title: "Filter Critical Alerts"
+category: "Lists"
+difficulty: 1
+xp: 100
+story: |
+  The alerting pipeline filters only CRITICAL severity messages.
+  It's returning all messages regardless of severity.
+description: |
+  filter_critical(alerts) returns only alerts where severity == 'CRITICAL'.
+  Bug: the condition is always True because of wrong comparison operator.
+hints:
+  - "Check the comparison operator in the list comprehension."
+  - "Use == to compare equality, not = (assignment)."
+  - "Change a['severity'] = 'CRITICAL' to a['severity'] == 'CRITICAL'."
+tags:
+  - lists
+  - list-comprehension
+  - filtering

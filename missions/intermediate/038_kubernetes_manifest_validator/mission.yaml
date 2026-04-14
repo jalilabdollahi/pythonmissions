@@ -1,0 +1,12 @@
+title: "K8s Manifest Validator"
+category: "DevOps"
+difficulty: 2
+xp: 220
+story: |
+  Before applying Kubernetes manifests, they must be validated. The validator
+  is missing required field checks and has wrong type comparisons.
+objective: "Fix the 2 bugs in the manifest validator."
+hints:
+  - "isinstance() checks type properly — don't compare type() directly"
+  - "Required fields should all be checked — use a loop or all()"
+check_function: "validate_deployment"

@@ -1,0 +1,12 @@
+title: "Adaptive Timeout Calculator"
+category: "Patterns"
+difficulty: 4
+xp: 380
+story: |
+  The adaptive timeout system sets call timeouts based on historical latency
+  percentiles. The EWMA update and percentile selection are wrong.
+objective: "Fix the 2 bugs in the adaptive timeout calculator."
+hints:
+  - "EWMA: new_value = alpha * sample + (1 - alpha) * old_value"
+  - "For p99 timeout, use the 99th percentile of recent samples"
+check_function: "AdaptiveTimeout"

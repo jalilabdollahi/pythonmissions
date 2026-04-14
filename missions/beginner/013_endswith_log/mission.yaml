@@ -1,0 +1,17 @@
+title: "Check the Log Extension"
+category: "Strings"
+difficulty: 1
+xp: 100
+story: |
+  A log archiver should only process files ending in '.log'.
+  It's processing everything and running out of disk space. Fix it.
+description: |
+  is_log_file(filename) returns True if filename ends with '.log'.
+  Bug: endswith argument is '.txt' instead of '.log'.
+hints:
+  - "Check what extension endswith() is looking for."
+  - "The argument to endswith() is the wrong extension."
+  - "Change '.txt' to '.log'."
+tags:
+  - strings
+  - endswith

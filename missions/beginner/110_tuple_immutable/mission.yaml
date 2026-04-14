@@ -1,0 +1,18 @@
+title: "Protect the Config Tuple"
+category: "Strings"
+difficulty: 1
+xp: 100
+story: |
+  The immutable config is stored as a tuple. The function tries to
+  append to it, which raises AttributeError. Convert to list first.
+description: |
+  add_to_config(config_tuple, item) returns new tuple with item added.
+  Bug: tries to call .append() on a tuple — tuples are immutable.
+hints:
+  - "Tuples are immutable — they have no append() method."
+  - "Convert to list, append, then convert back: tuple(list(t) + [item])."
+  - "Change config_tuple.append(item) to use list conversion."
+tags:
+  - type-conversion
+  - tuple
+  - immutable

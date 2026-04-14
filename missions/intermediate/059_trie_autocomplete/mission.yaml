@@ -1,0 +1,12 @@
+title: "Trie Autocomplete"
+category: "Data Structures"
+difficulty: 3
+xp: 250
+story: |
+  The CLI tool uses a trie for command autocomplete, but insertion
+  and search are broken — completions return empty results.
+objective: "Fix the 2 bugs in the trie implementation."
+hints:
+  - "Each character in the word needs its own TrieNode child"
+  - "Mark end_of_word=True on the last character's node"
+check_function: "Trie"

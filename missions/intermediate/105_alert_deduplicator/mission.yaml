@@ -1,0 +1,12 @@
+title: "Alert Deduplicator"
+category: "Monitoring"
+difficulty: 2
+xp: 230
+story: |
+  The alerting system deduplicates alerts to prevent notification storms.
+  Alerts are not being deduplicated and TTL isn't respected.
+objective: "Fix the 2 bugs in the alert deduplicator."
+hints:
+  - "Deduplication key should be consistent — use frozenset or sorted tuple for labels"
+  - "Expired dedup entries should be evicted before checking"
+check_function: "AlertDeduplicator"

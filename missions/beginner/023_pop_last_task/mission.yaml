@@ -1,0 +1,17 @@
+title: "Pop the Last Task"
+category: "Lists"
+difficulty: 1
+xp: 100
+story: |
+  The task queue always removes the first item instead of the last.
+  The oldest tasks should complete first but the newest are being dropped.
+description: |
+  pop_last(queue) removes and returns the last item in the list.
+  Bug: pop(0) removes the first item. pop() with no arg removes the last.
+hints:
+  - "list.pop(0) removes the first element."
+  - "list.pop() with no argument removes the LAST element."
+  - "Change queue.pop(0) to queue.pop()."
+tags:
+  - lists
+  - pop

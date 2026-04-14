@@ -1,0 +1,18 @@
+title: "Fix the Global Counter"
+category: "Functions"
+difficulty: 1
+xp: 100
+story: |
+  The deploy counter lives at module level. The incrementer never updates
+  it — it creates a local variable instead. Fix it.
+description: |
+  increment_counter() should add 1 to the module-level COUNTER.
+  Bug: missing 'global COUNTER' declaration.
+hints:
+  - "Without 'global', assignment creates a local variable."
+  - "Add 'global COUNTER' before modifying it."
+  - "Insert 'global COUNTER' as the first line of increment_counter()."
+tags:
+  - functions
+  - global
+  - scope

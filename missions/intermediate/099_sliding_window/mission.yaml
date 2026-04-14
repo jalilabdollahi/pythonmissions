@@ -1,0 +1,12 @@
+title: "Sliding Window Rate Counter"
+category: "Algorithms"
+difficulty: 3
+xp: 250
+story: |
+  The rate limiter uses a sliding window to count requests per minute.
+  Old entries aren't evicted and the count includes expired events.
+objective: "Fix the 2 bugs in the sliding window counter."
+hints:
+  - "Evict timestamps older than window_seconds before counting"
+  - "Use collections.deque for efficient front removal"
+check_function: "SlidingWindow"

@@ -1,0 +1,18 @@
+title: "Pair Envs with Defaults"
+category: "Modules"
+difficulty: 1
+xp: 100
+story: |
+  The config merger pairs environments with their configs. When one list
+  is shorter, zip drops the extra items. Use zip_longest instead.
+description: |
+  merge_env_configs(envs, configs) pairs lists with None fill for missing.
+  Bug: zip() truncates; use itertools.zip_longest with fillvalue={}.
+hints:
+  - "zip() stops at the shortest iterable."
+  - "itertools.zip_longest fills missing values with fillvalue."
+  - "Change zip(envs, configs) to zip_longest(envs, configs, fillvalue={})."
+tags:
+  - modules
+  - itertools
+  - zip_longest

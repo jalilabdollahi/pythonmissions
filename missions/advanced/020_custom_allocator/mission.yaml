@@ -1,0 +1,12 @@
+title: "Object Pool Allocator"
+category: "Performance"
+difficulty: 4
+xp: 380
+story: |
+  The high-throughput metrics system uses an object pool to avoid GC pressure.
+  The pool overflows and pre-allocated objects are shared across threads unsafely.
+objective: "Fix the 2 bugs in the object pool allocator."
+hints:
+  - "Use threading.local() for per-thread pools to avoid sharing"
+  - "When the pool is exhausted, create a new object rather than raising"
+check_function: "ObjectPool"

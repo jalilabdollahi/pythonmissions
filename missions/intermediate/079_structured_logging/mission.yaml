@@ -1,0 +1,12 @@
+title: "Structured JSON Logging"
+category: "Logging"
+difficulty: 2
+xp: 220
+story: |
+  The microservice emits structured JSON logs for log aggregation, but
+  the log format is broken — keys are wrong and timestamp is missing.
+objective: "Fix the 2 bugs in the structured logger."
+hints:
+  - "json.dumps() serializes a dict to JSON string"
+  - "Include 'timestamp' field using datetime.utcnow().isoformat()"
+check_function: "log_event"

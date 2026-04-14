@@ -1,0 +1,12 @@
+title: "Thread-Safe Counter"
+category: "Threading"
+difficulty: 2
+xp: 230
+story: |
+  The metrics counter runs in multiple threads and produces wrong counts.
+  A race condition is corrupting the results. Make it thread-safe.
+objective: "Fix the 2 bugs in the thread-safe counter."
+hints:
+  - "Use threading.Lock() to protect shared state"
+  - "The lock must be acquired before reading AND writing the counter"
+check_function: "Counter"

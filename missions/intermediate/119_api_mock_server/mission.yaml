@@ -1,0 +1,12 @@
+title: "API Mock Server"
+category: "Testing"
+difficulty: 2
+xp: 230
+story: |
+  The mock server returns canned responses for testing. Routes are
+  registered wrong and response data isn't serialized properly.
+objective: "Fix the 2 bugs in the API mock server."
+hints:
+  - "Store routes as (method, path) tuples for precise matching"
+  - "json.dumps() converts dict to string — don't double-serialize"
+check_function: "MockServer"

@@ -1,0 +1,12 @@
+title: "CRDT Counter"
+category: "Distributed Systems"
+difficulty: 5
+xp: 400
+story: |
+  You're implementing a Grow-only Counter (G-Counter) CRDT for distributed
+  metrics aggregation. The merge and value calculation have bugs.
+objective: "Fix the 2 bugs in the G-Counter CRDT."
+hints:
+  - "Merge takes the maximum value per node ID (not sum)"
+  - "G-Counter value is the sum of all node counters"
+check_function: "GCounter"

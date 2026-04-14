@@ -1,0 +1,18 @@
+title: "Number the Steps"
+category: "Loops"
+difficulty: 1
+xp: 100
+story: |
+  The deploy log adds step numbers starting from 1. They're
+  starting from 0 instead, confusing the ops team.
+description: |
+  numbered_steps(steps) returns list of '1. step' strings starting at 1.
+  Bug: enumerate(steps) starts at 0 by default.
+hints:
+  - "enumerate(iterable, start=1) starts counting from 1."
+  - "The second argument to enumerate is the starting number."
+  - "Change enumerate(steps) to enumerate(steps, 1)."
+tags:
+  - loops
+  - enumerate
+  - indexing

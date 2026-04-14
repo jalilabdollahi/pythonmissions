@@ -1,0 +1,12 @@
+title: "Generic Cache Type Hints"
+category: "Type Hints"
+difficulty: 2
+xp: 220
+story: |
+  The typed cache utility has incorrect generic type hints that confuse
+  IDEs and fail at runtime type checking.
+objective: "Fix the 2 bugs in the generic type hints."
+hints:
+  - "Use TypeVar to define generic types: T = TypeVar('T')"
+  - "Dict[K, V] from typing — or dict[K, V] in Python 3.9+"
+check_function: "TypedCache"

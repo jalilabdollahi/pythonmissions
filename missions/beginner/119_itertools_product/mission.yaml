@@ -1,0 +1,18 @@
+title: "Generate All Deploy Combos"
+category: "Modules"
+difficulty: 1
+xp: 100
+story: |
+  The CI system generates all (env, service, region) combinations.
+  product is called with separate lists but they need to be unpacked.
+description: |
+  all_combos(envs, services, regions) returns cartesian product tuples.
+  Bug: product([envs, services, regions]) wraps in extra list.
+hints:
+  - "itertools.product(a, b, c) takes iterables as separate arguments."
+  - "product([a, b, c]) only iterates the outer list elements."
+  - "Change product([envs, services, regions]) to product(envs, services, regions)."
+tags:
+  - modules
+  - itertools
+  - product

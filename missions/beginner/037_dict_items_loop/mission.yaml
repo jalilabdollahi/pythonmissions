@@ -1,0 +1,18 @@
+title: "Loop the Config Items"
+category: "Dicts"
+difficulty: 1
+xp: 100
+story: |
+  The config printer loops over a dict to display key=value pairs.
+  It's printing tuple objects instead of formatted strings.
+description: |
+  print_config(cfg) prints each key=value on its own line.
+  Bug: looping over dict gives keys only; use .items() for key-value pairs.
+hints:
+  - "Looping over a dict gives keys, not (key, value) tuples."
+  - "Use cfg.items() to get (key, value) pairs in a for loop."
+  - "Change 'for item in cfg' to 'for key, value in cfg.items()'."
+tags:
+  - dicts
+  - items
+  - loops

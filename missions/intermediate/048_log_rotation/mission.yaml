@@ -1,0 +1,12 @@
+title: "Log Rotation Handler"
+category: "File I/O"
+difficulty: 2
+xp: 220
+story: |
+  The log rotation handler should archive old logs and start fresh ones,
+  but it's appending to the archive instead of replacing and checking size wrong.
+objective: "Fix the 2 bugs in the log rotation handler."
+hints:
+  - "To overwrite an archive, open with 'w' mode not 'a' (append)"
+  - "File size in bytes: os.path.getsize() — compare against max_bytes"
+check_function: "LogRotator"

@@ -1,0 +1,12 @@
+title: "Task Queue Processor"
+category: "Data Structures"
+difficulty: 2
+xp: 220
+story: |
+  The background job processor uses a priority queue to handle tasks.
+  High-priority tasks are being processed last instead of first.
+objective: "Fix the 2 bugs in the task queue processor."
+hints:
+  - "heapq is a min-heap — to prioritize higher values, negate the priority"
+  - "heappop returns the smallest element — use (−priority, task)"
+check_function: "TaskQueue"

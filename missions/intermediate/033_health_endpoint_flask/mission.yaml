@@ -1,0 +1,12 @@
+title: "Flask Health Endpoint"
+category: "Web/API"
+difficulty: 2
+xp: 220
+story: |
+  The microservice health endpoint always returns 500 even when everything
+  is fine. The Flask route has two bugs preventing correct responses.
+objective: "Fix the 2 bugs in the Flask health endpoint."
+hints:
+  - "Flask's jsonify() creates a Response with correct content-type"
+  - "A healthy response should return HTTP 200, not 500"
+check_function: "create_app"

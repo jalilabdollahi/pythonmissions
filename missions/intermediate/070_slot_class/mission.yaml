@@ -1,0 +1,12 @@
+title: "Memory-Efficient Metric Class"
+category: "OOP"
+difficulty: 2
+xp: 220
+story: |
+  The metrics system creates millions of Metric objects. __slots__ is used
+  for memory efficiency, but it's misconfigured and crashes on access.
+objective: "Fix the 2 bugs in the __slots__ class."
+hints:
+  - "__slots__ must list all instance attributes the class will use"
+  - "Classes with __slots__ cannot have a __dict__ unless 'dict' is in __slots__"
+check_function: "Metric"

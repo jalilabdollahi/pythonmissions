@@ -1,0 +1,12 @@
+title: "SLA Calculator"
+category: "Monitoring"
+difficulty: 2
+xp: 230
+story: |
+  The SLA calculator computes uptime percentages from incident data.
+  The uptime formula is wrong and incident duration calculation has a bug.
+objective: "Fix the 2 bugs in the SLA calculator."
+hints:
+  - "Uptime % = (total - downtime) / total * 100"
+  - "Incident duration: end_time - start_time (not start - end)"
+check_function: "calculate_sla"

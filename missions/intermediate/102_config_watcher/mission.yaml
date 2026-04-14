@@ -1,0 +1,12 @@
+title: "File Config Watcher"
+category: "Systems"
+difficulty: 2
+xp: 230
+story: |
+  The config watcher monitors a directory for changes and triggers reloads.
+  It's watching the wrong path and callbacks aren't being called.
+objective: "Fix the 2 bugs in the config watcher."
+hints:
+  - "os.path.abspath() resolves relative paths"
+  - "Call each registered callback with the changed file path"
+check_function: "ConfigWatcher"

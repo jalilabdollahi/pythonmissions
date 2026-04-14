@@ -1,0 +1,12 @@
+title: "Top-K Error Sources"
+category: "Algorithms"
+difficulty: 2
+xp: 230
+story: |
+  The SRE dashboard needs the top-K error-producing services. The heap-based
+  implementation returns wrong results.
+objective: "Fix the 2 bugs in the top-K heap algorithm."
+hints:
+  - "heapq in Python is a min-heap — negate values for max-heap behavior"
+  - "heapq.nlargest(k, iterable) returns k largest elements"
+check_function: "top_k_errors"

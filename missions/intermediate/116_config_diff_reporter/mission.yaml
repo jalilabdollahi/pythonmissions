@@ -1,0 +1,12 @@
+title: "Config Diff Reporter"
+category: "Configuration"
+difficulty: 2
+xp: 220
+story: |
+  The drift reporter compares two configs and generates a human-readable diff.
+  Added and removed keys are being reported incorrectly.
+objective: "Fix the 2 bugs in the config diff reporter."
+hints:
+  - "Keys only in new config are ADDED; keys only in old config are REMOVED"
+  - "Changed values: key exists in both but values differ"
+check_function: "config_diff"

@@ -1,0 +1,18 @@
+title: "Countdown to Deploy"
+category: "Functions"
+difficulty: 1
+xp: 100
+story: |
+  The deploy script counts down from n before starting. It runs forever
+  because the recursive function never reaches its base case. Fix it.
+description: |
+  countdown(n) prints n, n-1, ..., 1 recursively.
+  Bug: missing base case — the function never stops recursing.
+hints:
+  - "A recursive function needs a base case to stop."
+  - "When n reaches 0 (or below), return without calling countdown again."
+  - "Add: if n <= 0: return  at the start of the function."
+tags:
+  - functions
+  - recursion
+  - base-case

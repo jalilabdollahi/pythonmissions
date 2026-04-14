@@ -1,0 +1,18 @@
+title: "Validate IP Without Instance"
+category: "OOP"
+difficulty: 1
+xp: 100
+story: |
+  The NetworkUtil class has a validate_ip method that doesn't need
+  self — it's a static method. The decorator is wrong.
+description: |
+  NetworkUtil.validate_ip(ip) is a static method that validates IP format.
+  Bug: decorated with @classmethod instead of @staticmethod.
+hints:
+  - "@classmethod receives the class as first argument."
+  - "@staticmethod receives no implicit first argument."
+  - "Change @classmethod to @staticmethod and remove the 'cls' parameter."
+tags:
+  - oop
+  - staticmethod
+  - classmethod

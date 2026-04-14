@@ -1,0 +1,18 @@
+title: "Compare Two Configs"
+category: "OOP"
+difficulty: 1
+xp: 100
+story: |
+  The Config class should support == comparison. Two configs with the
+  same values should be equal but currently they're always unequal.
+description: |
+  Config.__eq__(self, other) returns True when configs have same values.
+  Bug: __eq__ is missing — Python uses object identity by default.
+hints:
+  - "By default, == checks identity (same object), not equal values."
+  - "Define __eq__(self, other) to compare attribute by attribute."
+  - "Add __eq__ that returns self.data == other.data."
+tags:
+  - oop
+  - __eq__
+  - comparison

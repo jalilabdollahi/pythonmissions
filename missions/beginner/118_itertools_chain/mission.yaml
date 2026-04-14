@@ -1,0 +1,18 @@
+title: "Chain Multiple Log Sources"
+category: "Modules"
+difficulty: 1
+xp: 100
+story: |
+  The log aggregator chains multiple log source lists into one iterator.
+  It passes the list-of-lists as a single argument instead of unpacking.
+description: |
+  chain_logs(*sources) merges multiple log lists into one iterator.
+  Bug: itertools.chain(sources) wraps the list; use chain(*sources) or chain.from_iterable.
+hints:
+  - "itertools.chain(*lists) unpacks and chains all lists."
+  - "itertools.chain(sources) only chains elements of the outer list."
+  - "Change chain(sources) to chain(*sources) or chain.from_iterable(sources)."
+tags:
+  - modules
+  - itertools
+  - chain

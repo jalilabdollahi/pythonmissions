@@ -1,0 +1,12 @@
+title: "Secure Password Hasher"
+category: "Security"
+difficulty: 2
+xp: 230
+story: |
+  The authentication service hashes passwords, but it's using MD5 (weak)
+  and not using a salt. Fix the security issues.
+objective: "Fix the 2 bugs in the password hasher."
+hints:
+  - "Use hashlib.sha256 or better — MD5 is cryptographically broken"
+  - "Always add a random salt before hashing to prevent rainbow table attacks"
+check_function: "hash_password"

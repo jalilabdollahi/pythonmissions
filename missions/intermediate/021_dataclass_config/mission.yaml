@@ -1,0 +1,12 @@
+title: "Dataclass Service Config"
+category: "Dataclasses"
+difficulty: 2
+xp: 210
+story: |
+  The service config is modeled as a dataclass, but it's not working.
+  Fields are missing defaults and post_init validation is broken.
+objective: "Fix the 2 bugs in the dataclass config."
+hints:
+  - "Fields with defaults must come after fields without defaults"
+  - "__post_init__ is the correct name for post-initialization logic"
+check_function: "ServiceConfig"

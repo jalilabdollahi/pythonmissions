@@ -1,0 +1,12 @@
+title: "Helm Values Merger"
+category: "DevOps"
+difficulty: 2
+xp: 230
+story: |
+  The deployment system merges Helm values files with overrides. The
+  merge is shallow and loses nested configuration.
+objective: "Fix the 2 bugs in the Helm values merger."
+hints:
+  - "Deep merge must recurse into nested dicts"
+  - "The merged result should be a new dict — don't mutate the original"
+check_function: "merge_helm_values"

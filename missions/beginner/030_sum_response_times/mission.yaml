@@ -1,0 +1,18 @@
+title: "Sum the Response Times"
+category: "Lists"
+difficulty: 1
+xp: 100
+story: |
+  SRE metrics collection sums response times from a list.
+  The function crashes with TypeError when the list has strings.
+description: |
+  total_ms(times) sums a list of numbers and returns the total.
+  Bug: times contains strings; they need to be converted to int first.
+hints:
+  - "sum() requires numeric values, not strings."
+  - "Convert each item with int() before summing."
+  - "Use sum(int(t) for t in times) or convert the list first."
+tags:
+  - lists
+  - sum
+  - type-conversion

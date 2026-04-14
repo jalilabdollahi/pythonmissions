@@ -1,0 +1,18 @@
+title: "Sum Any Number of Metrics"
+category: "Functions"
+difficulty: 1
+xp: 100
+story: |
+  The metrics aggregator takes any number of values and returns their sum.
+  It's crashing because the function signature expects a list, not *args.
+description: |
+  total(*values) accepts any number of positional args and sums them.
+  Bug: function takes a single 'values' param not *values.
+hints:
+  - "*args collects any number of positional arguments into a tuple."
+  - "Without *, calling total(1, 2, 3) fails because it expects one arg."
+  - "Change def total(values) to def total(*values)."
+tags:
+  - functions
+  - args
+  - variadic

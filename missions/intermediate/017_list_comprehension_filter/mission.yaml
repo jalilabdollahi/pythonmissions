@@ -1,0 +1,12 @@
+title: "Log Filter Comprehension"
+category: "Comprehensions"
+difficulty: 2
+xp: 200
+story: |
+  The log analysis pipeline uses list comprehensions for speed, but the filters
+  are wrong and dropping valid entries or including bad ones.
+objective: "Fix the 2 bugs in the list comprehension filters."
+hints:
+  - "Check the condition logic — should ERROR lines be included or excluded?"
+  - "The IP extraction comprehension has the wrong split index"
+check_function: "filter_errors"

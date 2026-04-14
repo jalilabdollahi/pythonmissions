@@ -1,0 +1,18 @@
+title: "Chain the DB Exception"
+category: "Error Handling"
+difficulty: 2
+xp: 150
+story: |
+  Database errors should be wrapped in a ServiceError with the original
+  exception as context. The 'raise ... from' syntax is missing.
+description: |
+  connect(host) raises ServiceError chained to original exception.
+  Bug: raise ServiceError(...) doesn't chain the original error.
+hints:
+  - "'raise NewError(...) from original_error' chains exceptions."
+  - "Without 'from e', the original cause is lost."
+  - "Change raise ServiceError(...) to raise ServiceError(...) from e."
+tags:
+  - error-handling
+  - exception-chaining
+  - debugging

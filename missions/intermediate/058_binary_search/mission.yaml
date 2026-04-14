@@ -1,0 +1,12 @@
+title: "Binary Search in Sorted Logs"
+category: "Algorithms"
+difficulty: 2
+xp: 210
+story: |
+  Log entries are stored sorted by timestamp. Binary search is used to find
+  entries quickly, but the implementation has off-by-one errors.
+objective: "Fix the 2 bugs in the binary search."
+hints:
+  - "mid = left + (right - left) // 2 avoids integer overflow"
+  - "When target is found, return mid — not left"
+check_function: "binary_search"

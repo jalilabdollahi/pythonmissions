@@ -1,0 +1,18 @@
+title: "Wait for the Service"
+category: "Loops"
+difficulty: 1
+xp: 100
+story: |
+  A polling loop checks service health up to 5 times. It only runs
+  4 times because the loop condition is wrong. Critical tests time out.
+description: |
+  poll_service(check_fn, max_tries) calls check_fn up to max_tries times.
+  Bug: 'while tries < max_tries - 1' runs one fewer iteration than intended.
+hints:
+  - "tries < max_tries - 1 means the loop stops one iteration early."
+  - "To run exactly max_tries times, use: while tries < max_tries."
+  - "Change max_tries - 1 to max_tries."
+tags:
+  - loops
+  - while
+  - off-by-one

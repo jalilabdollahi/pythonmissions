@@ -1,0 +1,12 @@
+title: "Memory Profiler Decorator"
+category: "Performance"
+difficulty: 4
+xp: 360
+story: |
+  The memory profiler decorator tracks peak memory usage of functions.
+  The baseline measurement and units conversion are wrong.
+objective: "Fix the 2 bugs in the memory profiler."
+hints:
+  - "Measure baseline BEFORE calling the function, not after"
+  - "tracemalloc.get_traced_memory() returns (current, peak) in bytes — convert to KB"
+check_function: "profile_memory"

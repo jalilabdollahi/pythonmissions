@@ -1,0 +1,12 @@
+title: "Memoized Fibonacci"
+category: "Algorithms"
+difficulty: 2
+xp: 210
+story: |
+  The capacity planning tool uses Fibonacci-based growth projections.
+  The memoized implementation has a cache bug causing wrong results.
+objective: "Fix the 2 bugs in the memoized Fibonacci."
+hints:
+  - "The cache should be checked before computing, not after"
+  - "Base cases: fib(0)=0, fib(1)=1 — check the return values"
+check_function: "fib"

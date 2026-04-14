@@ -1,0 +1,12 @@
+title: "Query Plan Optimizer"
+category: "Databases"
+difficulty: 4
+xp: 370
+story: |
+  The query optimizer rewrites SQL queries to improve performance. The
+  predicate pushdown and join reordering logic are broken.
+objective: "Fix the 2 bugs in the query optimizer."
+hints:
+  - "Push WHERE predicates as close to the base table as possible"
+  - "Sort joins so smaller tables (fewer estimated rows) come first"
+check_function: "QueryOptimizer"

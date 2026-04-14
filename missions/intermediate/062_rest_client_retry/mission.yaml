@@ -1,0 +1,12 @@
+title: "REST Client with Retry"
+category: "HTTP/API"
+difficulty: 2
+xp: 230
+story: |
+  The REST client wraps requests with retry logic, but it retries on all
+  errors including 4xx (client errors that shouldn't be retried).
+objective: "Fix the 2 bugs in the REST client retry logic."
+hints:
+  - "Only retry on 5xx server errors and connection errors, not 4xx"
+  - "Exponential backoff: delay doubles each attempt"
+check_function: "RestClient"

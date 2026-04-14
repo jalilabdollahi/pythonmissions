@@ -1,0 +1,12 @@
+title: "Config Schema Migration"
+category: "Configuration"
+difficulty: 2
+xp: 230
+story: |
+  The config migration system upgrades old config files to new schemas.
+  Version detection is broken and migrations are applied in wrong order.
+objective: "Fix the 2 bugs in the config migration system."
+hints:
+  - "Compare version as tuple for correct ordering: tuple(map(int, v.split('.')))"
+  - "Apply migrations in ascending version order"
+check_function: "MigrationRunner"

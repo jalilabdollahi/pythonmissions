@@ -1,0 +1,12 @@
+title: "Prometheus Metric Scraper"
+category: "Monitoring"
+difficulty: 2
+xp: 230
+story: |
+  The metrics scraper parses Prometheus text format to extract gauge values.
+  The parser misses lines and extracts wrong values.
+objective: "Fix the 2 bugs in the metric scraper."
+hints:
+  - "Skip comment lines starting with # and empty lines"
+  - "The metric value is the last whitespace-separated field"
+check_function: "parse_prometheus_text"

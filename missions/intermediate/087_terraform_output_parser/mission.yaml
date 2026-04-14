@@ -1,0 +1,12 @@
+title: "Terraform Output Parser"
+category: "DevOps"
+difficulty: 2
+xp: 230
+story: |
+  The CI pipeline parses terraform output to extract resource IDs.
+  The JSON parsing assumes wrong structure and crashes on null values.
+objective: "Fix the 2 bugs in the Terraform output parser."
+hints:
+  - "terraform output -json returns {name: {value: ..., type: ...}}"
+  - "Handle null values — not all outputs have a value"
+check_function: "parse_tf_output"

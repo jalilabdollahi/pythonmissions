@@ -1,0 +1,12 @@
+title: "Event Sourcing Aggregate"
+category: "Architecture"
+difficulty: 4
+xp: 360
+story: |
+  The event-sourced Order aggregate replays events to rebuild state.
+  The event handler dispatch and version tracking are broken.
+objective: "Fix the 2 bugs in the event sourcing aggregate."
+hints:
+  - "Dispatch to handler methods named apply_<EventType>"
+  - "Version must increment with each applied event"
+check_function: "OrderAggregate"

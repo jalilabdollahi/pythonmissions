@@ -1,0 +1,12 @@
+title: "Database Context Manager"
+category: "Context Managers"
+difficulty: 2
+xp: 220
+story: |
+  The database connection pool is leaking connections because someone forgot
+  to implement the context manager protocol properly. Fix it before prod melts.
+objective: "Fix the 2 bugs in the database context manager."
+hints:
+  - "Context managers need __enter__ and __exit__ methods"
+  - "__exit__ must accept exc_type, exc_val, exc_tb parameters"
+check_function: "FakeDB"

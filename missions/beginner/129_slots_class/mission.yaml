@@ -1,0 +1,18 @@
+title: "Memory-Efficient Node"
+category: "OOP"
+difficulty: 2
+xp: 150
+story: |
+  The Node class is created millions of times. Adding __slots__ reduces
+  memory usage but the slot names have a typo.
+description: |
+  Node with __slots__ = ('node_id', 'value') for memory efficiency.
+  Bug: slot name is 'node_di' (typo) instead of 'node_id'.
+hints:
+  - "__slots__ restricts attributes to the named list."
+  - "A typo in __slots__ means self.node_id raises AttributeError."
+  - "Fix the typo: change 'node_di' to 'node_id'."
+tags:
+  - oop
+  - __slots__
+  - memory

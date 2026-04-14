@@ -1,0 +1,12 @@
+title: "Plugin Hot-Swap System"
+category: "Metaprogramming"
+difficulty: 4
+xp: 370
+story: |
+  The plugin system supports hot-swapping plugins at runtime without restart.
+  The old plugin cleanup and new plugin initialization are broken.
+objective: "Fix the 2 bugs in the plugin hot-swap system."
+hints:
+  - "Call teardown() on the old plugin before replacing it"
+  - "Call setup() on the new plugin after registering it"
+check_function: "PluginManager"

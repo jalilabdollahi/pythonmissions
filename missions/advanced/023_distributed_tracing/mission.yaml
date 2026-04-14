@@ -1,0 +1,12 @@
+title: "Distributed Trace Correlator"
+category: "Observability"
+difficulty: 4
+xp: 380
+story: |
+  The trace correlator reconstructs distributed call trees from span data.
+  Parent-child relationships and timing calculations are wrong.
+objective: "Fix the 2 bugs in the trace correlator."
+hints:
+  - "A span's parent is identified by parent_span_id matching another span's span_id"
+  - "Span duration = end_time - start_time"
+check_function: "TraceCorrelator"

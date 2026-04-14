@@ -1,0 +1,12 @@
+title: "Distributed Lock"
+category: "Concurrency"
+difficulty: 3
+xp: 260
+story: |
+  The distributed lock prevents concurrent access to shared resources.
+  The lock acquire/release logic has race conditions.
+objective: "Fix the 2 bugs in the distributed lock."
+hints:
+  - "Check-and-set must be atomic — use a lock to protect the flag"
+  - "Release should only succeed if the current holder is releasing"
+check_function: "DistributedLock"

@@ -1,0 +1,18 @@
+title: "Type-Annotated Health Check"
+category: "OOP"
+difficulty: 2
+xp: 150
+story: |
+  The health checker function has type annotations but the return type
+  is wrong — annotated as str but returns a dict.
+description: |
+  health_check(host, port) returns a dict with 'healthy' bool and 'msg' str.
+  Bug: return type annotation says str but function returns dict.
+hints:
+  - "Type annotations don't enforce types — they document intent."
+  - "The annotation -> str should be -> dict to match the actual return."
+  - "Change -> str to -> dict in the function signature."
+tags:
+  - oop
+  - type-hints
+  - annotations

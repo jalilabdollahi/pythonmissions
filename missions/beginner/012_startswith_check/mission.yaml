@@ -1,0 +1,17 @@
+title: "Check the Protocol"
+category: "Strings"
+difficulty: 1
+xp: 100
+story: |
+  A URL validator checks whether endpoints start with 'https'.
+  It's incorrectly classifying all URLs as insecure. Fix the check.
+description: |
+  is_secure(url) returns True if url starts with 'https://'.
+  Bug: startswith argument has a typo — 'htps://' instead of 'https://'.
+hints:
+  - "Check the prefix string character by character."
+  - "The prefix in startswith() is missing an 's'."
+  - "Change 'htps://' to 'https://'."
+tags:
+  - strings
+  - startswith

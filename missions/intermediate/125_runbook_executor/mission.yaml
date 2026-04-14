@@ -1,0 +1,12 @@
+title: "Runbook Step Executor"
+category: "DevOps"
+difficulty: 2
+xp: 230
+story: |
+  The automated runbook executes recovery steps. Steps with 'continue_on_error'
+  should not stop the runbook on failure. The flag is checked backwards.
+objective: "Fix the 2 bugs in the runbook executor."
+hints:
+  - "continue_on_error=True means: keep going even if this step fails"
+  - "Record both successful and failed steps in the run report"
+check_function: "RunbookExecutor"

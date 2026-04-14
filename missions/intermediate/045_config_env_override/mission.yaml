@@ -1,0 +1,12 @@
+title: "Config with Env Override"
+category: "Configuration"
+difficulty: 2
+xp: 210
+story: |
+  The 12-factor app configuration system reads defaults from a file and
+  overrides them from environment variables, but the override logic is broken.
+objective: "Fix the 2 bugs in the config override system."
+hints:
+  - "os.environ is a dict — check membership with 'in', not hasattr()"
+  - "Type coercion must happen after the override, not before"
+check_function: "load_with_env_override"

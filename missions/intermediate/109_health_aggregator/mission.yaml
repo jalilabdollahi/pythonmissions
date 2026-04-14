@@ -1,0 +1,12 @@
+title: "Health Status Aggregator"
+category: "Monitoring"
+difficulty: 2
+xp: 220
+story: |
+  The health check aggregator combines component statuses into an overall
+  system status. The severity ranking is wrong.
+objective: "Fix the 2 bugs in the health status aggregator."
+hints:
+  - "Overall status is the WORST of all components"
+  - "Status severity order: healthy < degraded < unhealthy"
+check_function: "aggregate_health"

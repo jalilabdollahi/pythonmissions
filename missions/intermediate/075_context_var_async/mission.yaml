@@ -1,0 +1,12 @@
+title: "Context Variables in Async"
+category: "Async"
+difficulty: 3
+xp: 250
+story: |
+  The async request handler uses contextvars to track request IDs across
+  coroutines, but the variable isn't set before use and resets mid-request.
+objective: "Fix the 2 bugs in the context variable usage."
+hints:
+  - "ContextVar.set() sets the value and returns a Token for restoration"
+  - "Always set the context var at the start of a request, not mid-flight"
+check_function: "request_id_var"

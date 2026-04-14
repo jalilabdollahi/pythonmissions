@@ -1,0 +1,18 @@
+title: "Insert at the Front"
+category: "Lists"
+difficulty: 1
+xp: 100
+story: |
+  Priority tasks must be inserted at the front of the queue,
+  but they're being added at the end. Critical deploys are
+  waiting behind routine jobs.
+description: |
+  push_priority(queue, task) inserts task at position 0 (front).
+  Bug: insert(len(queue), task) inserts at the end, not the front.
+hints:
+  - "list.insert(i, x) inserts x before position i."
+  - "To insert at the front, use insert(0, task)."
+  - "Change insert(len(queue), task) to insert(0, task)."
+tags:
+  - lists
+  - insert

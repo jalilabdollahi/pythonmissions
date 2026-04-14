@@ -1,0 +1,12 @@
+title: "Database Connection Pool"
+category: "Databases"
+difficulty: 3
+xp: 260
+story: |
+  The connection pool manages a fixed number of database connections.
+  Connections aren't returned to the pool and max_size isn't enforced.
+objective: "Fix the 2 bugs in the connection pool."
+hints:
+  - "Return connections to the pool in the finally block"
+  - "Block or raise when pool is exhausted — don't create unlimited connections"
+check_function: "ConnectionPool"

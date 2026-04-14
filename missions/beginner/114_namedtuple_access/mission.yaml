@@ -1,0 +1,18 @@
+title: "Access the Server Record"
+category: "Modules"
+difficulty: 1
+xp: 100
+story: |
+  The server registry uses a namedtuple. A field is accessed by wrong
+  index instead of by name, returning the wrong value.
+description: |
+  get_port(server) returns the port from a Server namedtuple.
+  Bug: server[0] returns the first field (name), not port.
+hints:
+  - "NamedTuple fields are accessible by name: server.port."
+  - "Accessing by index server[0] returns the first field, not necessarily port."
+  - "Change server[0] to server.port."
+tags:
+  - modules
+  - namedtuple
+  - access

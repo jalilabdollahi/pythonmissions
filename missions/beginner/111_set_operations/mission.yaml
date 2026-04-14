@@ -1,0 +1,18 @@
+title: "Find Common Failing Hosts"
+category: "Modules"
+difficulty: 1
+xp: 100
+story: |
+  Two monitoring systems each report a set of failing hosts. We need
+  the intersection — hosts failing in BOTH systems.
+description: |
+  common_failures(set_a, set_b) returns hosts in both sets.
+  Bug: uses set_a.union(set_b) which finds all hosts in either set.
+hints:
+  - "set.union() returns all items in either set (OR)."
+  - "set.intersection() returns only items in both sets (AND)."
+  - "Change .union() to .intersection()."
+tags:
+  - modules
+  - set
+  - operations

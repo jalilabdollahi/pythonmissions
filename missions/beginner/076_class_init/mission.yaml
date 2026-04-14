@@ -1,0 +1,18 @@
+title: "Build the Service Object"
+category: "OOP"
+difficulty: 1
+xp: 100
+story: |
+  The Service class should store name, host, and port. Creating an instance
+  crashes because __init__ is missing the self parameter.
+description: |
+  Service.__init__(self, name, host, port) initializes the object.
+  Bug: first parameter is 'name' instead of 'self'.
+hints:
+  - "Every instance method's first parameter must be 'self'."
+  - "Without 'self', Python passes the instance as 'name' and the real name as 'host'."
+  - "Add 'self' as the first parameter: def __init__(self, name, host, port)."
+tags:
+  - oop
+  - classes
+  - __init__

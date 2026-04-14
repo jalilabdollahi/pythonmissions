@@ -1,0 +1,12 @@
+title: "Service Dependency BFS"
+category: "Algorithms"
+difficulty: 3
+xp: 250
+story: |
+  The dependency resolver uses BFS to find all services reachable from a
+  given root. The traversal is missing visited tracking and returns wrong order.
+objective: "Fix the 2 bugs in the BFS traversal."
+hints:
+  - "Track visited nodes to avoid infinite loops in cyclic graphs"
+  - "Add neighbors to the queue, not replace the queue with them"
+check_function: "bfs"

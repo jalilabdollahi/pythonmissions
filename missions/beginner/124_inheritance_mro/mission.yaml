@@ -1,0 +1,18 @@
+title: "Initialize the Logger Chain"
+category: "OOP"
+difficulty: 1
+xp: 100
+story: |
+  The FileLogger extends both Logger and Formatter. super().__init__
+  is called with wrong argument order — fields are misassigned.
+description: |
+  FileLogger(path, level, fmt) initializes correctly via super().
+  Bug: super().__init__ arguments are in wrong order.
+hints:
+  - "super().__init__ passes arguments to the parent class __init__."
+  - "Check the parent class __init__ parameter order."
+  - "Swap the arguments to match Logger.__init__(level, fmt)."
+tags:
+  - oop
+  - inheritance
+  - mro

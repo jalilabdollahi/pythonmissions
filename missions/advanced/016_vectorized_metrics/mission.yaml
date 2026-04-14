@@ -1,0 +1,12 @@
+title: "Vectorized Metrics with NumPy"
+category: "Performance"
+difficulty: 4
+xp: 360
+story: |
+  The metrics processor uses NumPy for vectorized computations, but array
+  operations produce wrong shapes and the normalization is broken.
+objective: "Fix the 2 bugs in the NumPy metrics processor."
+hints:
+  - "np.mean(axis=0) averages along rows; axis=1 averages along columns"
+  - "Normalization: (x - min) / (max - min) — don't subtract max"
+check_function: "MetricsProcessor"

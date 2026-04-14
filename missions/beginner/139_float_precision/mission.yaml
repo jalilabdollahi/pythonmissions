@@ -1,0 +1,18 @@
+title: "Round the Metric Value"
+category: "Modules"
+difficulty: 1
+xp: 100
+story: |
+  The metric reporter rounds values to 2 decimal places.
+  round() is called with wrong argument order.
+description: |
+  round_metric(value, decimals) rounds value to decimals places.
+  Bug: round(decimals, value) has arguments swapped.
+hints:
+  - "round(number, ndigits) — number first, then ndigits."
+  - "round(2, 45.678) would round 2 to 45 decimal places!"
+  - "Swap the arguments: change round(decimals, value) to round(value, decimals)."
+tags:
+  - modules
+  - round
+  - math

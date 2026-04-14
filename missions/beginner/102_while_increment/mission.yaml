@@ -1,0 +1,18 @@
+title: "Retry with Backoff Counter"
+category: "Loops"
+difficulty: 1
+xp: 100
+story: |
+  The retry loop tracks attempts but forgets to increment the counter.
+  It loops forever on the first attempt.
+description: |
+  retry_loop(max_retries, fn) retries fn up to max_retries times.
+  Bug: attempt counter is never incremented — infinite loop.
+hints:
+  - "The loop variable 'attempt' must be incremented inside the loop."
+  - "Add attempt += 1 inside the while loop body."
+  - "Place attempt += 1 after the fn() call."
+tags:
+  - loops
+  - while
+  - increment

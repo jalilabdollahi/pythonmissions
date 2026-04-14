@@ -1,0 +1,12 @@
+title: "Async Connection Pool"
+category: "Async"
+difficulty: 4
+xp: 370
+story: |
+  The async database connection pool manages connections for concurrent
+  coroutines. The semaphore limits and connection reuse are broken.
+objective: "Fix the 2 bugs in the async connection pool."
+hints:
+  - "asyncio.Semaphore(n) allows n concurrent acquires"
+  - "Always return the connection to the pool in a finally block"
+check_function: "AsyncConnectionPool"

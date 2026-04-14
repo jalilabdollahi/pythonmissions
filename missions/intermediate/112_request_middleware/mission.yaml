@@ -1,0 +1,12 @@
+title: "Request Middleware Chain"
+category: "Web/API"
+difficulty: 2
+xp: 230
+story: |
+  The middleware chain processes requests through auth, logging, and rate
+  limiting. The chain doesn't pass the modified request forward.
+objective: "Fix the 2 bugs in the middleware chain."
+hints:
+  - "Each middleware should pass the request to the next handler"
+  - "The middleware chain should be applied in order (left to right)"
+check_function: "MiddlewareChain"

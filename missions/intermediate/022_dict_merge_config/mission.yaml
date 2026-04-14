@@ -1,0 +1,12 @@
+title: "Config Dictionary Merge"
+category: "Dictionaries"
+difficulty: 2
+xp: 200
+story: |
+  The config system merges base configs with environment overrides, but the
+  merge logic is wrong — overrides aren't applied and values are lost.
+objective: "Fix the 2 bugs in the config merge logic."
+hints:
+  - "dict.update() modifies in place and returns None — don't assign its return value"
+  - "Deep merge needs to recurse into nested dicts, not just overwrite them"
+check_function: "merge_configs"

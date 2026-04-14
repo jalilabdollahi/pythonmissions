@@ -1,0 +1,17 @@
+title: "Join the Log Parts"
+category: "Strings"
+difficulty: 1
+xp: 100
+story: |
+  The alerting script builds log messages by joining a list of parts
+  with a pipe separator. It crashes on every deploy. Fix it.
+description: |
+  build_message(parts) joins a list of strings with ' | '.
+  Bug: join is called on the list instead of the separator string.
+hints:
+  - "join is a string method: separator.join(iterable)."
+  - "list.join() does not exist. The separator calls join."
+  - "Change parts.join(' | ') to ' | '.join(parts)."
+tags:
+  - strings
+  - join

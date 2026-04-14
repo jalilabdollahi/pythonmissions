@@ -1,0 +1,18 @@
+title: "Measure Deploy Duration"
+category: "Modules"
+difficulty: 1
+xp: 100
+story: |
+  The deploy timer measures elapsed time. It uses time.time() for
+  both start and end but forgets to subtract start.
+description: |
+  elapsed_seconds(start) returns seconds since start timestamp.
+  Bug: returns time.time() alone instead of time.time() - start.
+hints:
+  - "time.time() returns current Unix timestamp."
+  - "Elapsed time = current_time - start_time."
+  - "Change return time.time() to return time.time() - start."
+tags:
+  - modules
+  - time
+  - performance

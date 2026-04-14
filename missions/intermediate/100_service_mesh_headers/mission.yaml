@@ -1,0 +1,12 @@
+title: "Service Mesh Header Propagation"
+category: "Networking"
+difficulty: 2
+xp: 230
+story: |
+  The service mesh propagates tracing headers between services. The header
+  extraction is case-sensitive and injection overwrites existing headers.
+objective: "Fix the 2 bugs in the header propagation logic."
+hints:
+  - "HTTP headers are case-insensitive — normalize to lowercase"
+  - "Update (merge) headers rather than replacing them entirely"
+check_function: "extract_trace_headers"
