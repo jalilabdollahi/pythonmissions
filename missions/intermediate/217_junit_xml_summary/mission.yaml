@@ -1,0 +1,31 @@
+title: JUnit Result Digest
+category: Parsing
+difficulty: 3
+xp: 200
+story: |
+  Redwood CI collects JUnit XML reports from several test runners and posts a one-line digest to
+  the team chat. Reports from the monorepo runner, which wraps suites in `<testsuites>`, always
+  show zero tests. Elsewhere, crashed tests are reported as plain failures and skipped tests
+  inflate the pass count, so a release went out with a green digest and half the tests skipped.
+description: |
+  `summarize(xml_text)` parses a JUnit XML report and returns a dict with the counts `passed`, `failed`, `errors` and `skipped`, plus
+  `failures`, the sorted `classname.name` of every test that failed or errored. A `<failure>` child means an assertion failed, an `<error>`
+  child means the test crashed, and a `<skipped>` child means it did not run. The tests may live under `<testsuite>` or under
+  `<testsuites><testsuite>`. `digest(summary)` builds the chat line and `is_green(summary)` is True only without failures or errors.
+  There are 3 bugs.
+hints:
+  - |
+    Feed the function a report wrapped in `<testsuites>`, then one with a crashed test and a skipped test, and compare each count with what the XML says.
+  - |
+    `Element.findall("testcase")` only looks at direct children, `iter("testcase")` walks the whole tree. A testcase can have different child tags for different outcomes, and each one means something different.
+  - |
+    Use `root.iter("testcase")`, count `failure` and `error` children separately, and add a branch for a `skipped` child before the passed fallback.
+tags: [xml, elementtree, junit, ci]
+lesson: |
+  JUnit reports distinguish three non-passing outcomes: failures (an assertion did not hold), errors (the test blew up
+  unexpectedly) and skips (it never ran). Collapsing them hides important information, and counting skips as passes makes a run
+  look healthier than it is. With ElementTree, `findall` with a plain tag only inspects direct children; use `iter` or an
+  XPath like `.//testcase` when the nesting varies between tools. Parse by structure, never by string matching on the raw text.
+mistakes:
+  - Reading the `tests`, `failures` and `errors` attributes of the suite, which many runners omit or fill in inconsistently.
+  - Using `findall(".//testcase")` on the root but then counting `skipped` as passed because it has no failure child.

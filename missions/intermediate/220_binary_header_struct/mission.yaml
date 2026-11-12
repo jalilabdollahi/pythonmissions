@@ -1,0 +1,32 @@
+title: Wire Header Decoder
+category: Parsing
+difficulty: 4
+xp: 200
+story: |
+  Skylark Telemetry's collectors receive sensor frames over TCP in a compact binary format.
+  A new collector written in Python reports absurd payload lengths and sequence numbers,
+  crashes with `struct.error` on every frame, and happily accepts frames that were cut off in
+  transit, passing half a payload to the database.
+description: |
+  A frame is a 10-byte header followed by the payload. The header is big-endian (network byte order): 2-byte magic `HX`,
+  1-byte version, 1-byte flags, 2-byte unsigned payload length and a 4-byte unsigned sequence number.
+  `parse_frame(data)` returns a dict with `version`, `flags` (a dict with `compressed` for bit 0 and `encrypted` for bit 1),
+  `length`, `seq` and `payload`. It raises `ValueError` for frames that are too short, have the wrong magic or whose payload is
+  shorter than the announced length. Extra bytes after the payload are ignored. `pack_frame` builds frames and raises `ValueError` if the payload does not fit the 2-byte length field. `split_stream` cuts complete frames out of a byte buffer. There are 3 bugs.
+hints:
+  - |
+    Build a frame with `pack_frame` and parse it. Compare the length and sequence number you get with what you packed. Then chop the last byte off the frame, and try to pack a payload of 70000 bytes.
+  - |
+    A `struct` format string starts with a byte-order character (`<` little-endian, `>` or `!` big-endian). `struct.calcsize(fmt)` tells you how many bytes the format needs, and `unpack` wants exactly that many.
+  - |
+    Use `"!2sBBHI"`, derive the header size with `struct.calcsize(HEADER_FORMAT)` instead of typing a number, and compare `len(payload)` with `length` after slicing the header off. A 2-byte length tops out at 65535, so check it in `pack_frame`.
+tags: [struct, binary, byte-order, parsing]
+lesson: |
+  Binary protocols are defined by byte order and exact field sizes. `struct` format strings make both explicit: `!` means network
+  (big-endian) order, while `<` reads the same bytes in the opposite order and yields huge, plausible-looking numbers. Do not hard-code
+  the header size; `struct.calcsize` computes it from the format so the two can never drift apart. Finally, a length field
+  is a promise, and a robust parser verifies that the bytes really arrived before trusting them, rejecting truncated frames instead of
+  passing partial data downstream.
+mistakes:
+  - Using the native byte order prefix `@` or no prefix, which also adds alignment padding and depends on the CPU.
+  - Reading `length` correctly but never comparing it with the number of payload bytes received.

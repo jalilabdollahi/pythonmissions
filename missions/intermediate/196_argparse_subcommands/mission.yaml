@@ -1,0 +1,31 @@
+title: Edge Cache Console
+category: CLI
+difficulty: 3
+xp: 200
+story: |
+  Brightwave runs a small CDN and its support engineers use `edgectl` to purge
+  and tune cache zones. After a refactor into subcommands, `edgectl ttl` crashes
+  with a traceback and `edgectl` with no arguments dies in a strange way instead of
+  printing usage.
+description: |
+  `build_parser()` returns an argparse parser with three subcommands: `purge ZONE PATH...`,
+  `ttl ZONE SECONDS` and `status ZONE`. Each subcommand is bound to a handler through
+  `set_defaults(func=...)`, and `main(argv)` parses the arguments and returns whatever the handler returns.
+  `ttl` reports the TTL in whole minutes, and running the tool with no subcommand must be a usage error
+  (argparse exits with status 2). There are 3 bugs.
+hints:
+  - |
+    Run each subcommand through `main([...])` and read the traceback. Is it an AttributeError or a TypeError, and which subparser is involved?
+  - |
+    Every subparser needs its own `set_defaults(func=handler)`, numeric arguments need `type=int`, and `add_subparsers` can be told that a subcommand is mandatory.
+  - |
+    Add `set_defaults(func=cmd_ttl)` to the ttl parser, give `seconds` `type=int`, and pass `required=True` (together with `dest="command"`) to `add_subparsers`.
+tags: [argparse, subparsers, cli, set_defaults]
+lesson: |
+  argparse subcommands are separate parsers. The common pattern is `set_defaults(func=handler)` on each subparser, so the
+  top level just calls `args.func(args)` and never needs an if/elif chain. Arguments arrive as strings unless you
+  give `type=`, which is why arithmetic on them fails late and confusingly. Since Python 3.7 subparsers are optional by
+  default, so `required=True` is what turns a missing command into a clean usage error instead of an AttributeError.
+mistakes:
+  - Converting the value with `int()` inside the handler for one command but forgetting the others.
+  - Catching AttributeError in `main` to hide the missing subcommand instead of making argparse enforce it.

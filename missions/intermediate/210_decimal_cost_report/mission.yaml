@@ -1,0 +1,31 @@
+title: Cloud Bill Cents
+category: Numbers
+difficulty: 3
+xp: 200
+story: |
+  Vantage Labs re-bills its cloud costs to internal teams. Finance noticed that the
+  invoice total is a cent off from the sum of the printed lines, that half-cent amounts
+  round the "wrong" way, and that a 5.025% discount comes out a cent short.
+description: |
+  Prices are decimal strings such as `"0.125"`. `money(x)` rounds a Decimal to cents with "round half up" (0.125 becomes 0.13).
+  `line_cost(price, quantity)` returns the rounded cost of one line. `invoice(lines)` takes `(name, price, quantity)` tuples
+  and returns `(rows, total)` where the total is the sum of the **rounded** lines, so the printed numbers always add up.
+  `apply_discount(amount, pct)` takes the percentage as a float or string and returns the discounted amount in cents.
+  There are 3 bugs.
+hints:
+  - |
+    Print `money(Decimal("0.125"))` and `apply_discount(Decimal("100.00"), 5.025)`. Which results do you expect from a human point of view?
+  - |
+    `Decimal.quantize` rounds half to even unless you pass `rounding=`. `Decimal(5.025)` is built from the binary float, not from the text you typed.
+  - |
+    Use `quantize(CENT, rounding=ROUND_HALF_UP)`, convert percentages with `Decimal(str(pct))`, and sum the already rounded line costs when computing the total.
+tags: [decimal, quantize, rounding, money]
+lesson: |
+  Money should never be stored in binary floats. `Decimal` is exact for decimal text, but only if you build it from a string:
+  `Decimal(5.025)` captures the float's error, while `Decimal("5.025")` does not. Rounding is a business rule too: the default
+  context rounds half to even, whereas invoices usually expect half up, so pass `rounding=ROUND_HALF_UP` explicitly. Finally decide
+  where rounding happens. Rounding each line and summing the rounded values keeps the invoice self-consistent, while
+  rounding only the grand total can differ by a cent from what the customer can add up.
+mistakes:
+  - Wrapping the final float in `round(x, 2)`, which uses banker's rounding on an inexact binary value.
+  - Rounding the total again at the end and calling it fixed, while the lines themselves are still rounded half-even.

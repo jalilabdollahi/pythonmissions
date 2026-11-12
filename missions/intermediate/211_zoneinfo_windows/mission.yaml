@@ -1,0 +1,30 @@
+title: Maintenance Window Clock
+category: Dates
+difficulty: 4
+xp: 200
+story: |
+  Solstice Hosting announces maintenance windows in each datacentre's local time, and its
+  scheduler stores them in UTC. Around the clock changes in March and November, windows started
+  an hour off, and a four-hour window that spanned the spring change ended at the wrong moment.
+description: |
+  `window_to_utc(day, start, duration_minutes, tz_name)` takes a local date (`YYYY-MM-DD`), a local start time (`HH:MM`),
+  a duration in real elapsed minutes and an IANA zone name such as `Europe/Berlin`. It returns `(start_utc, end_utc)`
+  as timezone-aware datetimes in UTC. `local_label(utc_dt, tz_name)` renders a UTC moment as local wall-clock text
+  such as `2024-07-15 22:00 CEST`. `windows_overlap(a, b)` tells whether two `(start, end)` pairs share time. There are 3 bugs.
+hints:
+  - |
+    Compare a January date and a July date in Europe/Berlin. Then try a window that starts a few hours before the clocks change.
+  - |
+    A fixed UTC offset cannot know about daylight saving time; `zoneinfo.ZoneInfo` can. Adding a `timedelta` to an aware local datetime moves the wall clock, whereas adding it to a UTC datetime moves real time. And `replace(tzinfo=...)` relabels instead of converting.
+  - |
+    Attach `ZoneInfo(tz_name)` to the naive start, convert it to UTC first and then add the duration, and use `astimezone(ZoneInfo(tz_name))` in `local_label`.
+tags: [zoneinfo, dst, timezones, datetime]
+lesson: |
+  A time zone is a rule set, not an offset: Berlin is UTC+1 in winter and UTC+2 in summer, so hard-coded offsets are right for half
+  the year. Attach `ZoneInfo(name)` to local wall-clock times, convert to UTC with `astimezone`, and do arithmetic in UTC where
+  every hour has the same length. Adding a duration to an aware local time uses wall-clock arithmetic, which gives the wrong
+  elapsed time across a daylight-saving change. Use `astimezone` to convert for display, because `replace(tzinfo=...)` only changes the label
+  and keeps the same clock digits.
+mistakes:
+  - Adding one hour in summer by hand instead of using the zone database.
+  - Using `replace(tzinfo=...)` to convert a UTC datetime into local time.

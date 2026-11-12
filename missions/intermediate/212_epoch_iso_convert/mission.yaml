@@ -1,0 +1,29 @@
+title: Epoch Time Translator
+category: Dates
+difficulty: 3
+xp: 200
+story: |
+  Corvid Systems' incident tooling converts between epoch timestamps in metrics and ISO-8601 strings
+  in tickets. The converted times look right on the engineer's laptop in Boston and wrong on the
+  UTC build server, and anything that ends in `Z` is shifted by the local offset when converted back.
+description: |
+  `epoch_to_iso(ts)` converts epoch seconds to a UTC string like `2024-05-01T12:00:00Z`. `epoch_ms_to_iso(ms)` does the same for
+  milliseconds and keeps them (`2024-05-01T12:00:00.123Z`). `iso_to_epoch(text)` converts an ISO-8601 string
+  back to integer epoch seconds; it accepts a trailing `Z` or an explicit offset such as `+02:00`. Everything must give the same answer
+  no matter what time zone the machine is set to. There are 3 bugs.
+hints:
+  - |
+    Run the functions with the environment variable `TZ` set to something other than UTC. Which function changes its answer?
+  - |
+    `datetime.fromtimestamp(ts)` uses the machine's local zone unless you pass `tz=`. A naive datetime's `.timestamp()` also assumes local time. And milliseconds need dividing by 1000.
+  - |
+    Use `datetime.fromtimestamp(ts, tz=timezone.utc)`, replace a trailing `Z` with `+00:00` instead of deleting it, and divide milliseconds by 1000.
+tags: [datetime, epoch, utc, iso-8601]
+lesson: |
+  Epoch seconds are always UTC, but `datetime.fromtimestamp()` converts them to the machine's local time unless you pass `tz`. The same
+  trap lurks in the other direction: a naive datetime has no zone, so `.timestamp()` assumes local time. A trailing `Z` means UTC;
+  dropping it silently turns the value into a naive local time. Always create aware datetimes, convert with
+  `timezone.utc`, and test your date code with a non-UTC `TZ`, because a UTC CI server hides these bugs.
+mistakes:
+  - Using `datetime.utcfromtimestamp`, which returns a naive datetime that is easy to misuse later.
+  - Appending a literal `Z` to a local time string.

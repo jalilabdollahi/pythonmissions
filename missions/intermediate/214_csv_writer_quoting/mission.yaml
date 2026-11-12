@@ -1,0 +1,29 @@
+title: Audit CSV Export
+category: CSV
+difficulty: 3
+xp: 200
+story: |
+  Ironwood Bank's compliance team gets a nightly CSV of host audit results. The export job
+  crashes the first time a note contains a comma, the file has no header row for the spreadsheet
+  import, and notes that span two lines come back from the reader with their line breaks changed.
+description: |
+  `write_report(path, rows)` writes dicts with the keys `host`, `status` and `note` to a CSV file with a header row, quoting
+  fields that contain commas, quotes or line breaks. `read_report(path)` reads such a file back into a list of dicts that equals
+  what was written, including multi-line notes. `status_counts(path)` counts rows per status. There are 3 bugs.
+hints:
+  - |
+    Write a row whose note is `disk 91%, rotating logs` and read the file back. Then look at the first line of the file, and try a note that contains a line break.
+  - |
+    The csv module decides how to protect special characters with its `quoting` option. The header is not written unless you ask for it. Files for csv must be opened with a specific newline setting on both sides.
+  - |
+    Remove `QUOTE_NONE` (the default `QUOTE_MINIMAL` quotes when needed), call `writer.writerow(FIELDS)` first, and open the file in `read_report` with `newline=""` too.
+tags: [csv, quoting, newline, dictreader]
+lesson: |
+  CSV looks trivial until a field contains the delimiter, a quote or a line break. `QUOTE_MINIMAL` (the default) quotes exactly
+  those fields and doubles embedded quotes, while `QUOTE_NONE` makes the writer fail or corrupt the file. The csv module handles
+  line endings itself, so files must be opened with `newline=""` for both reading and writing; otherwise Python's universal
+  newline translation rewrites the line breaks inside quoted fields. Remember the header row too: consumers such as spreadsheets and
+  `DictReader` rely on it.
+mistakes:
+  - Building lines with `",".join(...)` by hand, which breaks as soon as a value contains a comma.
+  - Replacing commas in the data with semicolons to dodge quoting, which silently changes the data.

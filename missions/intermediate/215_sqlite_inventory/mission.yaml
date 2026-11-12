@@ -1,0 +1,30 @@
+title: Rack Inventory DB
+category: Databases
+difficulty: 3
+xp: 200
+story: |
+  Gannet Hosting tracks which server sits in which rack in a small SQLite file. The tool
+  throws an SQL syntax error when a hostname contains an apostrophe, lookups crash with a
+  strange "bindings" error, and rack moves vanish when the program exits.
+description: |
+  `Inventory(path)` wraps an SQLite database with a `hosts` table. `add_host(hostname, rack, cpu)` inserts a row,
+  `get_host(hostname)` returns `(hostname, rack, cpu)` or `None`, `move_to_rack(hostname, rack)` changes the rack and returns how
+  many rows changed, and `cpu_by_rack()` sums CPUs per rack. Data written by one `Inventory` instance must be visible to a
+  new instance opened on the same file. Values are always passed as query parameters. There are 3 bugs.
+hints:
+  - |
+    Add a host named `o'brien-lab`. Then call `get_host("web-01")`, then move a host and open the file with a second `Inventory`.
+  - |
+    Never build SQL with f-strings: use `?` placeholders. The parameters argument must be a sequence, and a lone string is a sequence of characters. Changes belong to a transaction that has to be committed.
+  - |
+    Use `VALUES (?, ?, ?)`, write the one-element tuple as `(hostname,)` and call `self.conn.commit()` after the UPDATE.
+tags: [sqlite3, parameters, commit, sql-injection]
+lesson: |
+  Parameterised queries (`?` placeholders) let the driver quote values correctly, so apostrophes work and SQL injection is
+  impossible; formatting values into the SQL string breaks on the first quote and is a security hole. The parameters must be a
+  sequence: `(name)` is just a string in parentheses, while `(name,)` is a tuple, and sqlite3 would treat the string as one binding per
+  character. Python's sqlite3 opens a transaction before data-changing statements, so unless you `commit()` the change is rolled back
+  when the connection goes away and no other connection ever sees it.
+mistakes:
+  - Escaping apostrophes by hand with `replace("'", "''")`, which is fragile and still not safe in general.
+  - Committing only in `add_host` and assuming the other write methods are covered.

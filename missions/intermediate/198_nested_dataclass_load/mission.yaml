@@ -1,0 +1,29 @@
+title: Nested Config Loader
+category: Data Models
+difficulty: 3
+xp: 200
+story: |
+  The Quartz platform team keeps service settings in JSON and loads them into
+  dataclasses. When a newer config generator started adding extra keys, every
+  service refused to boot, and the services that did boot kept their `database`
+  section as a plain dict that blew up on attribute access.
+description: |
+  `load(cls, data)` builds a dataclass instance from a dict. Keys that are not fields of the class are ignored.
+  A field whose type is itself a dataclass (or `Optional[SomeDataclass]`) is built recursively from the nested dict,
+  also ignoring its unknown keys. Missing optional sections stay `None`. There are 3 bugs.
+hints:
+  - |
+    Load a config with an extra top-level key, then one with an extra key inside `database`. Then look at the type of `cfg.cache`.
+  - |
+    `dataclasses.fields(cls)` lists the declared fields, and `typing.get_origin` / `get_args` can unwrap `Optional[X]` (a `Union[X, None]`).
+  - |
+    Skip keys that are not in `fields(cls)`, recurse with `load(nested_type, value)` instead of calling the class directly, and make `_unwrap` return the non-None argument of a Union.
+tags: [dataclasses, typing, recursion, json]
+lesson: |
+  Config files evolve faster than the code that reads them, so loaders should tolerate unknown keys instead of passing `**data`
+  straight into a constructor. For nested structures, a recursive loader driven by `dataclasses.fields` keeps the
+  schema in one place. Optional sections are annotated as `Optional[X]`, which is `Union[X, None]` at runtime, so
+  you must unwrap it with `typing.get_origin` and `get_args` before you can tell that `X` is a dataclass.
+mistakes:
+  - Calling `NestedClass(**value)` directly, which skips the filtering that the top level got.
+  - Checking `is_dataclass(field.type)` on an `Optional[...]` annotation, which is always False.

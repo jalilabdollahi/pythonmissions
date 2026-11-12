@@ -1,0 +1,30 @@
+title: Sink Registry
+category: Patterns
+difficulty: 3
+xp: 200
+story: |
+  Ferrous Logistics ships logs through pluggable "sinks" (stdout, file, webhook) that teams
+  register with a decorator. After the registry was rewritten, any module that
+  registered a sink ended up with `None` in place of its class, and two teams quietly
+  overwrote each other's `webhook` sink.
+description: |
+  `register(name)` is a decorator factory that records a class in the registry under `name` and returns the class
+  unchanged, so it stays usable. Registering a name twice raises `ValueError`. `create(name, **options)` returns a new
+  *instance* of the registered sink, and an unknown name raises `KeyError` that lists the known names.
+  `clear_registry()` is a helper for tests. There are 3 bugs.
+hints:
+  - |
+    After decorating a class, what does the module-level name refer to? Try calling it.
+  - |
+    A decorator replaces the decorated name with whatever the inner function returns. Also check what `create` hands back.
+  - |
+    Return `cls` from the inner decorator, test `name in _REGISTRY` before assigning, and call the class in `create`.
+tags: [decorators, registry, plugins, patterns]
+lesson: |
+  A registration decorator runs at import time and its return value *replaces* the decorated class. If it forgets to return the
+  class, every module ends up with `None` in place of its sink. Registries are global mutable state, so silent
+  overwrites are dangerous: raising on a duplicate name turns a hard-to-find runtime surprise into an import-time error.
+  Keep the registry storing classes (factories) and let `create` instantiate them, so each caller gets its own object.
+mistakes:
+  - Returning the wrapper function from the decorator, which breaks isinstance checks and subclassing.
+  - Adding a `try/except` around the duplicate check and ignoring the error.

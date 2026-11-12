@@ -1,0 +1,30 @@
+title: Rolling Window Iterator
+category: Patterns
+difficulty: 3
+xp: 200
+story: |
+  The Helix monitoring team analyses CPU samples in sliding windows to spot
+  sustained spikes. Their `RollingWindows` iterator is used in `for` loops, but the
+  loop crashes with an IndexError at the end, the last window is never reported, and
+  a second pass over the same object yields nothing.
+description: |
+  `RollingWindows(samples, size)` is an iterable that yields tuples of `size` consecutive samples, moving one sample at a time.
+  Five samples with size 3 give three windows. It must work in `for` loops, in `list(...)`, and it must be
+  reusable: iterating it a second time starts again from the beginning. `sustained_spike(samples, size, limit)` returns True
+  when some window has an average at or above `limit`; `peak_window(samples, size)` returns the window with the largest sum (or `None` if there is no window). There are 3 bugs.
+hints:
+  - |
+    Run `list(RollingWindows([1, 2, 3, 4, 5], 3))` and compare it to what you expect. Then iterate over the same object twice.
+  - |
+    The iterator protocol ends with `StopIteration`, not with any other exception. And `__iter__` is called at the start of every loop.
+  - |
+    Raise `StopIteration` when no full window remains (the last valid start is `len(samples) - size`), and reset `self._pos = 0` inside `__iter__`.
+tags: [iterator, dunder-methods, stopiteration, windows]
+lesson: |
+  A `for` loop calls `iter(obj)` once and then `next()` repeatedly until `StopIteration` is raised; any other exception escapes
+  to the caller. If an object is its own iterator, `__iter__` must reset the state, otherwise the second loop sees an
+  exhausted object and silently does nothing. Off-by-one errors in the stop condition are the other classic: a window that
+  starts at index `len(samples) - size` is still complete, so the test is "start + size > len", not ">=".
+mistakes:
+  - Converting the samples to a list inside `__next__` on every call to avoid state, which makes the iteration quadratic.
+  - Catching IndexError in the caller instead of raising StopIteration from the iterator.

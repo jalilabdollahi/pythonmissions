@@ -1,0 +1,31 @@
+title: Schema Migration Runner
+category: Databases
+difficulty: 3
+xp: 200
+story: |
+  Pelican Analytics ships schema changes as numbered migrations that every service applies at
+  startup. After migration 10 was added, a fresh database failed on its index, a second
+  startup crashed with "table already exists", and a migration that failed halfway was still
+  recorded as done, so nobody ever retried it.
+description: |
+  `migrate(conn, migrations)` takes `{version: sql}` with numeric version strings (`"1"`, `"2"`, `"10"`). It creates the
+  `schema_migrations` table if needed, applies every version that has not been applied yet **in numeric order**, records
+  each version only after its SQL succeeded, and returns the list of versions applied during this call. Running it again
+  applies nothing. If a migration fails the exception propagates and that version is not recorded. There are 3 bugs.
+hints:
+  - |
+    Run `migrate` with versions "1", "2" and "10" on an empty database, then run it a second time.
+  - |
+    Version strings sort alphabetically unless you give `sorted` a key. Rows come back from sqlite3 as tuples, so `"2" in rows` is never True. The bookkeeping row must only be written once the migration itself has worked.
+  - |
+    Sort with `key=int`, build the applied set as `{row[0] for row in rows}`, and execute the migration SQL before inserting its version.
+tags: [sqlite3, migrations, ordering, idempotence]
+lesson: |
+  A migration runner has to be ordered, idempotent and honest. Versions that are numbers stored as text must be sorted
+  numerically, otherwise "10" runs before "2". To be idempotent it must remember what ran, and the comparison has to use the
+  actual version strings, not the row tuples the driver returns. Finally, record a version only after its
+  statement succeeded; recording first means a failed migration is considered applied and the database is stuck in
+  a half-migrated state that no restart will repair.
+mistakes:
+  - Sorting the versions as strings and zero-padding them in the data to hide the problem.
+  - "Wrapping the migration in `try/except: pass`, which hides the failure and still records the version."

@@ -1,0 +1,29 @@
+title: Disk Alert Levels
+category: Algorithms
+difficulty: 3
+xp: 200
+story: |
+  The Granite storage team maps disk usage to alert levels with a sorted threshold
+  table and binary search. Yesterday a volume at exactly 85% did not page anyone,
+  and the config that lists levels in a different order produced nonsense levels.
+description: |
+  `build_scale(cutoffs)` takes `{level: lower_bound_percent}` in any order (for example `{"page": 95, "warn": 70, "critical": 85}`)
+  and returns a scale. `classify(scale, pct)` returns `"ok"` below the lowest bound and otherwise the level with
+  the highest bound that is **less than or equal to** `pct`. Values outside 0-100 raise `ValueError`. `classify_all`
+  maps volume names to levels. There are 3 bugs.
+hints:
+  - |
+    Classify exactly 70 and exactly 95 with the scale `{"warn": 70, "critical": 85, "page": 95}`. Then build the scale from a dict that lists the biggest bound first.
+  - |
+    `bisect_left` and `bisect_right` differ only for values equal to an existing bound, and `bisect` requires a sorted list.
+  - |
+    Sort the cutoffs by bound when building the scale, use `bisect_right` so equal values land in the higher level, and reject values above 100 as well as below 0.
+tags: [bisect, binary-search, thresholds, sorting]
+lesson: |
+  Mapping a number to a bucket is a job for `bisect` on a sorted list of boundaries. Two details decide correctness: the list
+  must be sorted, because bisect does not check, and the choice of `bisect_left` vs `bisect_right` decides which side a value
+  that sits exactly on a boundary falls on. For "lower bound is inclusive" semantics, `bisect_right` is the one that puts
+  85 into the 85+ bucket. Validate inputs at the edges so impossible values do not silently map to the top level.
+mistakes:
+  - Adding or subtracting a small epsilon from the value instead of choosing the right bisect function.
+  - Sorting the labels instead of sorting the bounds with their labels.

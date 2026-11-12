@@ -1,0 +1,31 @@
+title: Status Page Escape
+category: Web
+difficulty: 3
+xp: 200
+story: |
+  Lumen Cloud generates its public status page from a list of services that teams edit by hand.
+  A team named a service `<Billing & Invoices>` and the whole table below it disappeared,
+  a note containing a double quote cut an attribute short, and during a real outage the banner
+  still said "Partial outage".
+description: |
+  `render_row(service)` returns one table row for a dict with `name`, `status` (`up`, `degraded` or `down`) and an optional `detail`.
+  The name is shown as text and the detail goes into a `title="..."` attribute; both come from humans and must be safe to embed in HTML.
+  Unknown statuses are shown as `unknown`. `overall(services)` returns the banner text: `Major outage` if anything is down,
+  otherwise `Partial outage` if anything is degraded, otherwise `All systems operational`. `render_page(title, services)` builds
+  the full page. There are 3 bugs.
+hints:
+  - |
+    Render a service named `<b>Pay & Go</b>` with the detail `say "hi"` and look at the HTML you get. Then compute the banner for a list with one degraded and one down service.
+  - |
+    `html.escape` converts `<`, `>` and `&`, and by default also quotes, but only if you do not pass `quote=False`. Text that goes into an attribute needs the quote characters escaped.
+  - |
+    Wrap the name in `html.escape(...)`, drop `quote=False` for the detail, and test for `down` before `degraded` in `overall`.
+tags: [html, escaping, xss, templates]
+lesson: |
+  Anything that is not a constant must be escaped when you build HTML by string formatting, otherwise a name with `<` or `&`
+  breaks the markup and attacker-controlled text becomes script injection. Escaping depends on the context: in element text `<` and `&`
+  matter, but inside a double-quoted attribute the `"` has to be escaped too, which `html.escape` does by default and `quote=False`
+  turns off. Also order your severity checks from worst to best, because the first matching branch wins.
+mistakes:
+  - Escaping once when data is loaded and then escaping again on output, which shows `&amp;amp;`.
+  - Replacing only `<` and `>` by hand and leaving `&` and quotes alone.

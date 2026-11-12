@@ -1,0 +1,31 @@
+title: Policy Layer Merge
+category: Functional
+difficulty: 3
+xp: 200
+story: |
+  Atlas Retail builds each store's runtime policy from company, region and store layers using
+  `functools.reduce`. Since the refactor, the company-wide policy object changes every time a
+  store is built, so stores built later inherit overrides meant for someone else. An empty
+  list of layers also crashes the nightly job.
+description: |
+  `merge_layers(*layers)` combines policy dicts from lowest to highest priority and returns a **new** dict:
+  later layers win, nested dicts are merged key by key instead of replaced, and none of the input layers
+  (or anything reachable from them) is modified. With no layers it returns `{}`. `build_store_policy(company, region, store)`
+  is a thin wrapper. There are 3 bugs.
+hints:
+  - |
+    Merge two layers and then compare the first layer to what it was before. Also try `merge_layers()` with no arguments, and a three-level nested key.
+  - |
+    `reduce(function, items)` uses the first item as the starting accumulator unless you pass an initial value. Copying values matters too, because nested dicts are shared by reference.
+  - |
+    Pass `{}` as the third argument of `reduce`, recurse with `_merge_into(target[key], value)` for nested dicts, and store `copy.deepcopy(value)` for everything else.
+tags: [reduce, functools, deepcopy, dict-merge]
+lesson: |
+  Without an initial value `reduce` takes the first element as the accumulator, so a function that updates its accumulator in
+  place ends up mutating the first input and crashes on an empty sequence. Passing a fresh `{}` fixes both. Nested
+  structures bring a second trap: assigning a nested dict into the result shares it with the input, and a later in-place merge
+  then edits the original. Merge recursively, and deep-copy values you adopt from a layer, so the result is independent
+  of its sources.
+mistakes:
+  - Using `dict.update` on the nested level, which replaces the whole nested dict instead of merging it.
+  - Copying only the first layer with `dict(layers[0])`, which is a shallow copy and still shares nested dicts.

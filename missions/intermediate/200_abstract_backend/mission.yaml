@@ -1,0 +1,30 @@
+title: Artifact Store Contract
+category: Patterns
+difficulty: 3
+xp: 200
+story: |
+  Polar Build uploads release artifacts through a storage interface so that CI can use the
+  disk locally and an in-memory fake in tests. Someone added a new backend that was
+  supposed to be rejected at construction time for missing a method, but nothing
+  complained until a nightly job crashed halfway through a release.
+description: |
+  `ArtifactStore` is an abstract base class declaring `put(key, data)`, `get(key, default=None)` and
+  `delete(key)`. It must not be instantiable itself, and a subclass that forgets a method must fail at construction.
+  `DirectoryStore` keeps files under a root directory and `MemoryStore` keeps them in a dict; both honour the same
+  signatures, including the optional `default` argument of `get`. There are 3 bugs.
+hints:
+  - |
+    Try `ArtifactStore()` directly. Then try to create a `DirectoryStore`. Finally call `get("missing", b"")` on each backend.
+  - |
+    `@abstractmethod` only has an effect when the class uses `ABCMeta` (for example by inheriting from `abc.ABC`). A concrete class must implement every abstract method, with a signature compatible with the base.
+  - |
+    Inherit from `ABC`, implement `delete` in `DirectoryStore` (remove the file if it exists), and give `MemoryStore.get` the same `default=None` parameter as the base class.
+tags: [abc, abstractmethod, interfaces, inheritance]
+lesson: |
+  An abstract base class defines a contract: instantiation fails until every `@abstractmethod` is implemented, which moves
+  mistakes from run time deep in a job to the moment the object is created. That guarantee only exists if the base class
+  actually derives from `ABC`; decorating methods alone does nothing. Implementations must also keep the same call
+  signature as the interface, otherwise code written against the base class breaks as soon as it gets the other backend.
+mistakes:
+  - Raising `NotImplementedError` in the base methods, which only fails when the method is eventually called.
+  - Adding the missing parameter to the base class instead of to the backend that deviates.

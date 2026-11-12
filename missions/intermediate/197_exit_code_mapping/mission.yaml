@@ -1,0 +1,31 @@
+title: Exit Code Map
+category: CLI
+difficulty: 3
+xp: 200
+story: |
+  The Lantern release pipeline wraps `shipit` in a CI job that decides what to do
+  from the process exit code: retry on a timeout, page a human on a schema problem.
+  Lately every failure looks like exit code 1, and an engineer who pressed Ctrl-C got a
+  full traceback instead of a clean abort.
+description: |
+  `exit_code_for(exc)` maps an exception to a process exit code: `SchemaError` is 3, `ConfigError` is 2,
+  `RolloutTimeout` is 4, any other `DeployError` is 1 and a completely unknown exception is 70.
+  `run_cli(action)` runs a callable, prints `error: <message>` to stderr on failure and returns the code.
+  It returns 0 on success and 130 when the user hits Ctrl-C (`KeyboardInterrupt`). There are 3 bugs.
+hints:
+  - |
+    Check what `exit_code_for(SchemaError("x"))` returns. Subclasses are instances of their parents too.
+  - |
+    `isinstance` matches the first listed class that fits, so the most specific class must come first. Also remember that `KeyboardInterrupt` does not inherit from `Exception`.
+  - |
+    Reorder `EXIT_CODES` from most specific to most general, return 70 for the fallback, and add an `except KeyboardInterrupt` branch that returns 130.
+tags: [exceptions, exit-codes, inheritance, cli]
+lesson: |
+  Exit codes are the API of a command-line tool, and CI systems branch on them. When you map exception types to codes with
+  isinstance checks, the order matters: a subclass is also an instance of its base class, so the specific classes have to be
+  tested before the general ones. `KeyboardInterrupt` and `SystemExit` derive from `BaseException`, so `except Exception`
+  will not catch them; handle Ctrl-C explicitly, conventionally with 128 + SIGINT = 130. Reserve a distinct code for
+  "this is a bug in the tool" so it is never confused with an expected failure.
+mistakes:
+  - Replacing the list with a dict keyed by class, which loses the ordering and still matches by exact type only.
+  - Catching `BaseException` in `run_cli`, which also swallows `SystemExit`.

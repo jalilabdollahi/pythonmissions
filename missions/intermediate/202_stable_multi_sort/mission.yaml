@@ -1,0 +1,29 @@
+title: Triage Queue Order
+category: Algorithms
+difficulty: 3
+xp: 200
+story: |
+  The Orbit SRE rotation reads the incident queue top-down. Last week a P-high
+  incident opened at 09:00 sat below a lower-severity one opened at 08:00, and after
+  `triage_order` ran the shared incident list was also reordered for every other
+  dashboard that held a reference to it.
+description: |
+  `triage_order(incidents)` returns a new list of incident dicts sorted by severity (`critical`, `high`, `medium`, `low`),
+  then by `opened` time (oldest first), then by `id`. The sort is done in several stable passes, and the
+  input list must not be modified. There are 3 bugs.
+hints:
+  - |
+    Compare the result with what the rules say when two incidents share a severity. Also check whether the list you passed in changed.
+  - |
+    Python's sort is stable: to sort by several keys in several passes you start with the least significant key and finish with the most significant. `list.sort()` works in place, `sorted()` returns a copy.
+  - |
+    Sort by `id`, then `opened`, then severity rank (using `SEVERITY_RANK`, not the severity string), and start from `sorted(incidents, ...)` so the input is untouched.
+tags: [sorting, stable-sort, multi-key, algorithms]
+lesson: |
+  `sort` is guaranteed stable, so equal elements keep their previous relative order. That lets you sort by several criteria
+  with several passes, as long as you sort by the least important key first and the most important key last. Alphabetical
+  sorting of labels like "critical" and "high" is not severity order; map them to ranks. And prefer `sorted()` when the
+  caller's list is shared, since `list.sort()` mutates it in place and surprises everyone else who holds a reference.
+mistakes:
+  - Sorting by severity first and then by time, which makes time the primary key.
+  - Using `reverse=True` on the severity string to simulate importance.
