@@ -1,0 +1,39 @@
+title: Tenant Quota Transfers
+category: Concurrency
+difficulty: 5
+xp: 300
+story: |
+  Strata Cloud lets tenants hand spare compute quota to each other through a shared ledger.
+  Under load the transfer endpoint freezes with two worker threads stuck forever, a support
+  script that moved quota "to itself" hung a whole worker, and finance found a tenant with
+  negative quota and another that lost units to a rejected transfer.
+description: |
+  `QuotaLedger.transfer(src, dst, units)` moves quota between two `Tenant` objects, each guarded
+  by its own non-reentrant lock. It rejects non-positive amounts and transfers to the same
+  tenant with `ValueError`, raises `InsufficientQuota` when the source lacks the units and
+  `CapExceeded` when the destination would pass its cap. Both checks happen while both locks are
+  held and nothing is modified when either check fails. Locks are always taken in tenant id
+  order. `audit()` and `total()` return consistent snapshots. The `hook` is a test seam that is
+  called at named stages, and `transfer_many` applies a list of moves and reports rejections.
+  There are 4 bugs.
+hints:
+  - |
+    Run opposite transfers (A to B and B to A) in two threads and see which lock each one holds
+    when it waits. Then think about what "check, then lock" allows another thread to do.
+  - |
+    Deadlocks need a cycle in the lock acquisition order. Validation of shared state is only
+    reliable while holding the lock that protects it, and failures must not leave partial writes.
+  - |
+    Sort the two tenants by id before locking, reject `src_id == dst_id`, move the balance
+    check inside both locks, and validate the cap before changing either balance.
+tags: [threading, deadlock, lock-ordering, atomicity]
+lesson: |
+  Two threads that take the same pair of locks in opposite orders can each hold one and wait for
+  the other forever. The standard cure is a global lock order, such as sorting by a stable id,
+  applied everywhere including audits. Locks also only protect checks made inside them: a
+  balance test performed before locking is stale by the time the money moves. Finally, validate
+  everything first and mutate afterwards so that an exception never leaves half a transfer.
+mistakes:
+  - Locking in the order the arguments arrive, which looks harmless until two requests cross.
+  - Using `RLock` to hide the same-tenant case instead of rejecting a meaningless transfer.
+  - Checking the balance before acquiring the locks because it "avoids contention".

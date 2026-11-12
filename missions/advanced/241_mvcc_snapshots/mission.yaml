@@ -1,0 +1,40 @@
+title: Ledger Snapshot Reads
+category: Storage
+difficulty: 5
+xp: 300
+story: |
+  Kestrel Pay's ledger store keeps several versions of each account row so reporting jobs can
+  read a consistent picture while payments keep landing. After a refactor, auditors see rows
+  that were deleted in their own transaction, two concurrent payments both succeed on the same
+  balance, and the vacuum job erased history that a long report was still reading.
+description: |
+  `MVCCStore` implements snapshot isolation. `begin()` captures `snapshot = clock`; `commit()`
+  gives the transaction the next commit timestamp. A version is visible to a transaction when
+  its creator is that transaction or committed at or before the snapshot, and it has not been
+  deleted by the transaction itself or by anyone who committed at or before the snapshot.
+  `put` and `delete` raise `WriteConflict` (first writer wins) when another transaction already
+  holds or has committed a newer change to the row. `abort` undoes deletes. `vacuum()` removes
+  versions no snapshot can see anymore and returns how many it dropped.
+  There are 4 bugs.
+hints:
+  - |
+    Write a tiny scenario for each symptom: read right after a commit, delete then read in
+    the same transaction, two writers on one row, and vacuum with an old reader open.
+  - |
+    Snapshots compare commit timestamps against the snapshot number, inclusively. Think
+    about which transactions count as "someone else" and which snapshot bounds garbage collection.
+  - |
+    Use `ts <= snapshot`, treat a deleter equal to `txn.id` as deleted, let an active
+    deleter conflict, and compute the vacuum horizon with `min` over active snapshots.
+tags: [mvcc, snapshot-isolation, transactions, storage]
+lesson: |
+  MVCC lets readers and writers avoid blocking each other by keeping old versions around and
+  deciding visibility with commit timestamps. The rules are tiny but unforgiving: a boundary
+  off by one hides committed data, forgetting your own deletes breaks read-your-writes, and
+  checking conflicts only against committed changes lets two in-flight writers overwrite each
+  other. Garbage collection must use the oldest active snapshot as its horizon, because that
+  reader may still need the version everyone else has moved past.
+mistakes:
+  - Using the newest active snapshot as the vacuum horizon, which frees versions an older reader needs.
+  - Only checking for conflicts against committed deleters and forgetting transactions still in flight.
+  - Treating the snapshot comparison as strict, so a reader never sees the commit that just happened.

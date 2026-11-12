@@ -1,0 +1,38 @@
+title: SMS Throttle
+category: Async
+difficulty: 4
+xp: 300
+story: |
+  Cobalt Messaging resells SMS capacity and caps each tenant with a leaky bucket so a noisy
+  customer cannot exhaust the carrier quota. Since the rewrite, tenants who were idle all night
+  fire thousands of messages at once, the limiter sometimes waits for no reason, and a refused
+  non-blocking send still eats into the allowance.
+description: |
+  `LeakyBucket(capacity, leak_rate, clock, sleep)` tracks a `level` that drains continuously at
+  `leak_rate` units per second and never goes below zero. `acquire(cost)` waits (using the
+  injected `sleep`) until `level + cost` fits within `capacity`, serving callers in arrival order;
+  an exact fit is admitted immediately. `try_acquire` is the non-blocking variant that leaves
+  the bucket untouched when it refuses. `retry_after` reports the wait without consuming. Costs
+  outside `(0, capacity]` are rejected. `TenantThrottle` keeps one bucket per tenant.
+  There are 4 bugs.
+hints:
+  - |
+    Print `bucket.level` after idle periods, after consecutive acquires, and after a refused
+    `try_acquire`. Record every sleep duration with the fake clock.
+  - |
+    A leak calculation has three jobs: subtract elapsed time once, never go negative, and
+    remember when it last ran. Inclusive boundaries matter when a request exactly fills the bucket.
+  - |
+    Clamp with `max(0.0, ...)`, assign `self._last = now`, test `overflow <= 0`, and check
+    capacity before adding to the level in `try_acquire`.
+tags: [rate-limiting, leaky-bucket, asyncio, clock-injection]
+lesson: |
+  A leaky bucket is a counter plus a timestamp, and both must be maintained together: each
+  drain subtracts the time since the previous drain and then moves the timestamp forward, or
+  elapsed time is counted repeatedly. The level has a floor of zero, otherwise idle time becomes
+  stored credit and the limiter allows exactly the bursts it exists to prevent. Injecting the
+  clock and the sleep function makes these timing rules testable without waiting.
+mistakes:
+  - Letting the level go negative so that quiet periods accumulate burst credit.
+  - Mutating state in a non-blocking check before knowing whether the request is allowed.
+  - Using a strict comparison so a request that exactly fits is made to wait.

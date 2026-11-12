@@ -1,0 +1,40 @@
+title: Rolling Update Planner
+category: Deployment
+difficulty: 5
+xp: 300
+story: |
+  Cormorant Platform is writing a dry-run tool that shows what a Kubernetes-style rolling update
+  would do before anyone clicks deploy. Reviewers noticed it allows more surge than a percentage
+  setting means, permits downtime when the operator asked for none, and gets stuck with a
+  "maxSurge 0, maxUnavailable 0" configuration that Kubernetes happily accepts.
+description: |
+  `resolve_limits(replicas, max_surge, max_unavailable)` converts ints or `"NN%"` strings into pod
+  counts: surge percentages round UP, unavailable percentages round DOWN, and if both end up
+  zero then one pod is allowed to be unavailable (otherwise no progress is possible).
+  `plan_rollout` returns a list of `Step(old, new, ready)` for each rollout round. A round first
+  creates new pods within `replicas + surge`, then removes old pods while the number of READY
+  pods stays at least `replicas - unavailable`. Pods created in a round only become ready
+  afterwards. `check_plan` validates a plan against the limits.
+  There are 4 bugs.
+hints:
+  - |
+    Compare `resolve_limits(10, "25%", "25%")` with what the Kubernetes documentation says, and
+    run `check_plan` on `plan_rollout(5, 0, 0)` and on a few other combinations.
+  - |
+    Surge and unavailability round in opposite directions on purpose. Think about which pods
+    count as "available" at the moment old pods are removed.
+  - |
+    Round surge up and unavailable down, set `unavailable = 1` when both are zero, and base the
+    number of removable old pods on `old + ready_new`, not on pods created this round.
+tags: [rolling-update, kubernetes, deployment, planning]
+lesson: |
+  Rolling updates trade capacity for safety using two knobs. Rounding is chosen to protect the
+  service: surge rounds up so the rollout can always add a pod, unavailability rounds down so a
+  percentage never allows more downtime than requested. When both knobs resolve to zero the
+  controller must still progress, so it permits one unavailable pod. Most importantly, a newly
+  created pod is not capacity until it is ready, so counting it when deciding how many old pods
+  can be deleted silently breaks the availability guarantee.
+mistakes:
+  - Using the same rounding direction for both percentages.
+  - "Treating `maxSurge: 0, maxUnavailable: 0` as valid without a progress rule."
+  - Counting pods that were just created as available when deleting old ones.

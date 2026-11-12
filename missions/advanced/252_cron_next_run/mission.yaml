@@ -1,0 +1,38 @@
+title: Cron Next Run
+category: Scheduling
+difficulty: 5
+xp: 300
+story: |
+  Gantry Scheduler replaced a third-party cron library with its own, and the first week
+  went badly: the Monday report ran on Sundays, a job set for "the 13th or Fridays" almost never
+  ran, the same job fired twice when the scheduler woke up a few milliseconds late, and a
+  "08-18/5" window skipped its last hour.
+description: |
+  `CronSpec(expr)` parses `minute hour day month weekday` with `*`, lists, ranges and steps
+  (`*/15`, `10-30/5`, `5/20`). Weekdays follow cron: 0 or 7 is Sunday, 1 is Monday. When both the
+  day-of-month and weekday fields are restricted, a day matches if EITHER matches. Range ends are
+  inclusive. `next_run(spec, after)` returns the first matching minute strictly later than
+  `after` (seconds are ignored), searching across months and years. `upcoming` lists several.
+  There are 4 bugs.
+hints:
+  - |
+    Compare `upcoming` against a calendar for 2025: look at a Sunday job, a "13th or Friday" job,
+    a job reference time that falls exactly on a match, and the last value of a stepped range.
+  - |
+    Python's `datetime.weekday()` starts the week on Monday, cron starts on Sunday. Think about
+    what "strictly after" means when the input has seconds. Check `range()`'s end.
+  - |
+    Use `(moment.weekday() + 1) % 7`, return `day_ok or weekday_ok`, start the search one minute
+    after the truncated time, and iterate `range(start, end + 1, step)`.
+tags: [cron, datetime, scheduling, parsing]
+lesson: |
+  Cron looks simple until the details collide. Its weekday numbering differs from Python's, the
+  classic day-of-month/day-of-week rule is an OR rather than an AND, and "next run" must be
+  strictly in the future or a job fires repeatedly for the same minute. Range syntax is inclusive
+  while Python's `range` is not. Schedulers that skip forward by whole months, days and hours
+  instead of scanning minute by minute stay fast, but each skip must land on the start of the
+  next unit.
+mistakes:
+  - Using Python's weekday numbers directly because both use small integers.
+  - Combining the day-of-month and weekday fields with AND when both are restricted.
+  - Returning the current minute when it matches, which makes the scheduler fire twice.

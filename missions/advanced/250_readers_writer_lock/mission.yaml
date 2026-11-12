@@ -1,0 +1,40 @@
+title: Config Store Read/Write Lock
+category: Concurrency
+difficulty: 5
+xp: 300
+story: |
+  Nimbus Edge serves feature configuration from memory: thousands of request threads read it and
+  a deploy hook occasionally rewrites it. Since the custom reader-writer lock replaced a plain
+  mutex, config pushes can wait forever behind a stream of readers, some reader threads stay
+  asleep after a push completes, and a stray double release once let a writer in with readers
+  still active.
+description: |
+  `RWLock` allows many concurrent readers or one writer. Writers have preference: while a writer
+  is waiting, new readers queue behind it. `acquire_read`/`acquire_write` accept a timeout and
+  return `False` when they give up; `release_read`/`release_write` raise `RuntimeError` when
+  there is nothing to release. Every state change that can unblock someone must wake the right
+  waiters, including a writer that gives up. `reading()` and `writing()` are context managers.
+  `ConfigStore` guards a dict and a version number with the lock.
+  There are 4 bugs.
+hints:
+  - |
+    Use `waiting_readers` and `waiting_writers` in a thread test: hold a read lock, start a writer,
+    then try another read. Then let writers leave in different ways (finish, time out).
+  - |
+    A `Condition` only wakes threads you notify, and `notify()` wakes one of them. Predicates for
+    waiting must mention every condition that should block the thread.
+  - |
+    Make readers wait while `waiting_writers` is non-zero, use `notify_all()` in `release_write`
+    and when a writer times out, and raise when `_readers` is already zero.
+tags: [threading, rwlock, condition, starvation]
+lesson: |
+  A reader-writer lock is a small state machine over reader count, writer flag and waiting
+  writers. Without writer preference, a steady flow of overlapping readers keeps the count above
+  zero and the writer starves. Each transition must notify exactly the threads whose predicate
+  may have become true: waking only one reader after a write strands the others, and a writer
+  that times out has to wake the readers it was holding back. Unbalanced releases corrupt the
+  counts silently, so they should fail loudly.
+mistakes:
+  - Calling `notify()` after a write and assuming each woken reader will wake the next one.
+  - Forgetting that a timed-out writer was the reason readers were blocked.
+  - Clamping the reader count at zero with `max(0, n - 1)` instead of raising on a bad release.

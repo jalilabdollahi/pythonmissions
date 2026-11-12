@@ -1,0 +1,38 @@
+title: Report Query Builder
+category: Security
+difficulty: 4
+xp: 300
+story: |
+  Halcyon Metrics lets customers slice their own invoice data through a reporting endpoint, and
+  the new query builder shipped after a quick review. A pentester sorted by an invented
+  direction and read another table, a support agent searched notes for "50%" and got every row,
+  and a filter for rows with no note returned nothing at all.
+description: |
+  `build_select(table, columns, where, order_by, limit)` returns `(sql, params)` for a SELECT.
+  Table and column names must come from the `SCHEMA` allow-list, values are always bound as
+  `?` parameters, comparison operators come from a fixed map, sort direction must be `asc` or
+  `desc`, and `limit` must be a positive integer capped at `MAX_LIMIT` (default `DEFAULT_LIMIT`).
+  `eq`/`ne` with `None` mean `IS NULL`/`IS NOT NULL`. `contains` and `prefix` treat the user's
+  text literally. `run_report` executes the statement on a sqlite3 connection.
+  There are 4 bugs.
+hints:
+  - |
+    Try each odd input against a real sqlite3 connection: a weird sort direction, a note
+    filter of None, a search for "50%", and a string limit.
+  - |
+    Parameters only protect values. Every identifier or keyword you format into the SQL text
+    needs an allow-list or a type check. NULL and LIKE have their own SQL semantics.
+  - |
+    Map the direction through `DIRECTIONS`, emit `IS NULL` for `None`, escape `%`, `_` and the
+    backslash in LIKE patterns (with `ESCAPE`), and validate `limit` before formatting it.
+tags: [sql, injection, allow-list, sqlite]
+lesson: |
+  Placeholders defend values, but SQL has parts that cannot be parameterized: table names,
+  column names, sort directions and LIMIT. Those must be validated against a fixed allow-list
+  or coerced to the right type before they touch the query text. Semantics matter as well as
+  syntax: `= NULL` is never true, and `%` or `_` typed by a user are wildcards unless escaped,
+  so "safe" queries can still leak or return the wrong rows.
+mistakes:
+  - Believing that using `?` placeholders makes the whole statement injection proof.
+  - Stripping quotes or semicolons from identifiers instead of checking them against an allow-list.
+  - Escaping LIKE input but forgetting the `ESCAPE` clause, so the backslashes mean nothing.

@@ -1,0 +1,39 @@
+title: Build Farm Job Queue
+category: Scheduling
+difficulty: 4
+xp: 300
+story: |
+  Anvil CI runs thousands of jobs a day on a shared build farm, and low-priority nightly
+  jobs used to wait forever behind a steady stream of urgent ones, so the queue gained aging.
+  Since then retried jobs jump to the back of the line, hotfixes get overtaken by ancient batch
+  work, jobs scheduled for later run immediately, and ties are resolved in the wrong order.
+description: |
+  `AgingQueue(clock, aging_rate, max_boost)` ranks jobs by `priority - boost` where lower is
+  more urgent and `boost = min(max_boost, waited * aging_rate)`. Among equal effective
+  priorities the job that was queued first wins. A job is only eligible once its `not_before`
+  time has arrived. `pop` removes the best eligible job, `requeue` puts a failed job back and
+  it keeps the wait time it has already accumulated. `peek`, `ranking`, `cancel` and `drain`
+  are helpers.
+  There are 4 bugs.
+hints:
+  - |
+    Use `ranking()` at different clock times and check the numbers by hand: an old priority 10
+    job after 6 seconds, a job after 1000 seconds, and a requeued job.
+  - |
+    Think about what aging is allowed to do, which field defines "how long has this job waited",
+    and how `min` treats two keys that compare equal on the first element.
+  - |
+    Cap the boost with `min(max_boost, ...)`, sort by `(effective, seq)`, leave `enqueued_at`
+    alone in `requeue`, and filter on `not_before <= now`.
+tags: [scheduling, priority-queue, starvation, aging]
+lesson: |
+  Strict priority queues starve low-priority work, and aging fixes that by slowly raising the
+  urgency of everything that waits. The fix needs guard rails: a cap, so old batch work cannot
+  outrank genuinely critical jobs, and a deterministic tie-break, so equal jobs run in arrival
+  order. Age belongs to the job, not to its most recent enqueue, otherwise retries restart from
+  zero and the very jobs that fail the most are the ones that never catch up. Because priorities
+  change with time, the order must be recomputed at pop time instead of frozen into a heap key.
+mistakes:
+  - Letting the boost grow without limit, which turns the lowest priority into the highest.
+  - Resetting the enqueue time when a job is retried.
+  - Ordering ties with `-seq`, which silently makes the queue LIFO for equal jobs.
