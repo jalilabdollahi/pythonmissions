@@ -1,0 +1,30 @@
+title: Page Turner
+category: Iteration
+difficulty: 3
+xp: 200
+story: |
+  Sable Cloud's inventory exporter walks a paginated REST API for servers. Finance noticed the
+  export is always missing the last handful of machines, and a test run with `limit=0` still
+  hammered the API with real requests.
+description: |
+  `fetch_all(client, limit=None)` repeatedly calls `client(token)` starting with `token=None`.
+  Each response is `{"items": [...], "next_token": str or None}`; the last page has `next_token` equal to `None`.
+  The function returns `(items, pages_requested)`. With a `limit`, it stops requesting as soon as enough
+  items were collected and returns at most `limit` items. A limit of 0 returns `([], 0)` without any request.
+  There are 3 bugs.
+hints:
+  - |
+    Hint 1: Use a fake client with three pages and compare the number of returned items with what the pages hold. Then add a limit that falls in the middle of a page.
+  - |
+    Hint 2: Process the page you just received before looking at its `next_token`. A limit is a promise about the size of the result and about the number of requests.
+  - |
+    Hint 3: Loop `while True`: request, count, extend, check the limit, then stop if `next_token is None`. Trim with `items[:limit]` and return early for `limit == 0`.
+tags: [pagination, loops, api, off-by-one]
+lesson: |
+  Pagination loops fail at the boundaries. The last page is the one whose `next_token` is empty, and it still contains data, so the
+  loop must handle the page first and decide about continuing afterwards. Checking the token before processing silently skips exactly the
+  final page. A limit has to be enforced in two ways: stop requesting when it is reached, and trim the surplus from the final page.
+  Do not test limits with truthiness (`if limit:`) because zero is a valid and meaningful value.
+mistakes:
+  - Appending an extra empty request at the end to collect the last page.
+  - Using `if limit:` so that zero is treated like "no limit".

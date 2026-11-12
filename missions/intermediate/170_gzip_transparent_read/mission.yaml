@@ -1,0 +1,29 @@
+title: Rotated Log Reader
+category: Archives
+difficulty: 3
+xp: 200
+story: |
+  Teal Observability merges logs from many hosts, where some files are plain text and some were compressed by logrotate,
+  often without a `.gz` suffix once an old script renamed them. The level counter either crashes with a
+  `TypeError` on the compressed ones, treats gzip bytes as text, or dies on a blank line.
+description: |
+  `open_log(path)` returns a text-mode file object for a plain or gzip-compressed log, detecting compression from the file's
+  first two bytes (`1f 8b`), not from its name. `count_levels(paths)` reads every log and returns a dict counting the level word
+  (the second whitespace-separated token) of each non-blank line, for example `2024-05-01T10:00:00 ERROR disk full` counts `ERROR`.
+  There are 3 bugs.
+hints:
+  - |
+    Hint 1: Create a gzip file called `app.log.1` and a plain one called `old.gz`. Read both with `count_levels`. Add a blank line to one of them.
+  - |
+    Hint 2: A file name proves nothing, the magic number does. `gzip.open` defaults to binary mode, so ask for text. A blank line has no second token.
+  - |
+    Hint 3: Read two bytes with `open(path, "rb")` and compare with `b"\x1f\x8b"`, call `gzip.open(path, "rt", encoding="utf-8")`, and skip lines with fewer than two tokens.
+tags: [gzip, archives, text-mode, magic-numbers]
+lesson: |
+  Extensions are conventions; the first bytes of a file are facts. Gzip files always start with `1f 8b`, so sniffing them makes a reader robust to renamed
+  logs. `gzip.open(path)` returns bytes by default, which then breaks string operations, so request text mode explicitly with `"rt"` and an encoding.
+  Once both kinds of file return text lines, the downstream code stays unaware of compression. Parsers should also defend against short or blank lines, which
+  appear at the ends of real logs.
+mistakes:
+  - Trying the plain open first and catching `UnicodeDecodeError` to guess compression.
+  - Decoding each line by hand in the counting code, which spreads the compression concern to every caller.

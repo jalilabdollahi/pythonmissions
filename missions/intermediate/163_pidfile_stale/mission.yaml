@@ -1,0 +1,30 @@
+title: Ghost Daemon
+category: Files
+difficulty: 3
+xp: 200
+story: |
+  The Cinder queue daemon refuses to start after every host reboot, claiming it is "already running".
+  The pidfile survived the reboot and nobody removes it. Worse, when a second instance was refused it
+  deleted the first one's pidfile on exit.
+description: |
+  Pidfile helpers. `read_pid(path)` returns the integer stored in the file, or `None` if the file is missing or does not hold a number.
+  `acquire(path, pid, is_alive)` writes `pid` into the file; if the file names a process for which `is_alive(pid)` is true it raises
+  `AlreadyRunning`, but a stale pidfile (dead process or unreadable content) is simply overwritten. `release(path, pid)` deletes the file only
+  when it still contains `pid`. `status(path, is_alive)` returns `"running"`, `"stale"` or `"stopped"`.
+  There are 3 bugs.
+hints:
+  - |
+    Hint 1: Create a pidfile with a dead pid, one containing `garbage`, and one with another daemon's pid. Call `acquire`, `status` and `release` on them.
+  - |
+    Hint 2: A pidfile existing is not proof that the process lives, so ask `is_alive`. Converting text with `int()` can raise `ValueError`. Releasing must check ownership first.
+  - |
+    Hint 3: `if existing is not None and is_alive(existing): raise ...`, catch `ValueError` in `read_pid`, and in `release` compare `read_pid(path) == pid` before `os.remove`.
+tags: [files, pidfile, stale-lock, daemon]
+lesson: |
+  A pidfile is a claim, not a proof. After a crash or reboot it keeps naming a process that no longer exists, so a correct startup
+  checks whether that pid is alive and treats dead or unreadable entries as stale. Parsing external files must tolerate garbage: `int()` raises
+  `ValueError` on partial writes. On shutdown only remove the file if it still belongs to you, otherwise a refused second instance
+  removes the pidfile of the healthy first one and the next start-up races. Injecting `is_alive` keeps this logic testable without real processes.
+mistakes:
+  - Calling `os.kill(pid, 0)` directly in the logic, which makes tests depend on real processes.
+  - Deleting the pidfile in a `finally` block of every instance, including those that never acquired it.

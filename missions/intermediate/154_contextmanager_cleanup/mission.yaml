@@ -1,0 +1,30 @@
+title: Borrowed Environment
+category: Context Managers
+difficulty: 3
+xp: 200
+story: |
+  The Quill test harness temporarily overrides environment variables such as `REGION` and
+  `DEBUG` for each scenario. One failing scenario now poisons every test after it, and a variable that
+  did not exist before the test suddenly reads as the string "None" afterwards.
+description: |
+  `temporary_env(env, **overrides)` is a `@contextmanager` that applies overrides to the mapping `env`
+  (usually `os.environ`), yields `env`, and then restores it exactly: changed variables get their old value
+  back and variables that did not exist before are removed again. This must happen even if the block raises.
+  `working_directory(path)` temporarily changes into `path` and returns to the directory the caller was in.
+  There are 3 bugs.
+hints:
+  - |
+    Hint 1: Raise inside a `with temporary_env(...)` block and inspect the mapping afterwards. Also override a variable that was never set.
+  - |
+    Hint 2: Code after `yield` is skipped when the block raises unless it is in `finally`. A missing variable must be deleted rather than assigned `None`. For `working_directory`, when is the previous directory read?
+  - |
+    Hint 3: `try: yield env` / `finally: restore`. In restore, `env.pop(key, None)` when the old value was `None`. Read `os.getcwd()` before calling `os.chdir`.
+tags: [contextmanager, try-finally, environment, cleanup]
+lesson: |
+  With `@contextmanager`, the generator is resumed after the `with` block, and an exception in the block is re-raised at the `yield`
+  line. Anything written after the `yield` without `try/finally` therefore never runs on failure, which is exactly when a clean state matters.
+  Restoration must also be faithful: "no value" is different from the value `None`, so delete keys that did not exist.
+  And remember to capture the state you want to restore before you change it, as with the working directory.
+mistakes:
+  - Wrapping only the setup part in try/finally and leaving the restore after the yield.
+  - Restoring a missing variable with an empty string, which is still a set variable.

@@ -1,0 +1,29 @@
+title: Probe Runner
+category: Subprocess
+difficulty: 3
+xp: 200
+story: |
+  Vireo Networks' deploy gate runs small probe scripts in child Python processes and decides whether a
+  release can proceed. Last night a probe crashed with exit code 3 and no output, yet the gate said
+  "healthy", and another probe that merely printed a deprecation warning blocked the release.
+description: |
+  `run_probe(code)` runs the Python source `code` in a child interpreter (`sys.executable -c code`) and returns a dict:
+  `ok` (True only when the exit code is 0), `code` (exit code), `stdout` and `stderr` as stripped text.
+  `gate(probes)` runs every probe and returns the names of the failed ones in input order.
+  There are 3 bugs.
+hints:
+  - |
+    Hint 1: Run `import sys; sys.exit(3)` and `import sys; sys.stderr.write("warn")` through `run_probe` and compare `ok` with what you expect.
+  - |
+    Hint 2: The only reliable success signal of a process is its return code. Look at what type `stdout` has and what it contains at the end.
+  - |
+    Hint 3: Pass `capture_output=True, text=True`, set `ok = result.returncode == 0` and `.strip()` the streams.
+tags: [subprocess, returncode, text-mode, stderr]
+lesson: |
+  A child process communicates success through its exit code, not through whether it wrote to stderr: many healthy tools print warnings,
+  and many failing ones exit non-zero silently. Without `text=True` (or `encoding=`) `subprocess.run` returns `bytes`, which then
+  fail string comparisons in surprising ways. Output usually ends with a newline, so strip it before comparing. Using `sys.executable` for the
+  child makes the probe independent from whatever `python` happens to be on the PATH.
+mistakes:
+  - Treating any stderr output as failure.
+  - Decoding with `.decode()` on only one of the two streams.

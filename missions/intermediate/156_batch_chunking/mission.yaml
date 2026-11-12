@@ -1,0 +1,29 @@
+title: Batch Uploader
+category: Generators
+difficulty: 3
+xp: 200
+story: |
+  Quarry Analytics tags cloud instances through an API that accepts at most 25 IDs per request.
+  The tagging job reports success, yet every fleet whose size is not a multiple of 25 has a few untagged machines,
+  and the audit script that collects all batches finds a pile of empty lists.
+description: |
+  `chunked(items, size)` is a generator that yields lists of at most `size` items from any iterable, in order.
+  The last batch may be shorter. Each yielded batch must be an independent list. A `size` below 1 raises `ValueError`.
+  `push_in_batches(ids, send, size)` calls `send(batch)` for every batch and returns how many ids were sent in total.
+  There are 3 bugs.
+hints:
+  - |
+    Hint 1: Chunk 7 items with size 3 and look at the number of items you get back. Then wrap the result in `list(...)` and print it. Finally try `size=0`.
+  - |
+    Hint 2: After the loop ends there can be items left in the current batch. Also `clear()` empties the very list object you have already yielded.
+  - |
+    Hint 3: Start a new list with `batch = []` after each yield, `if batch: yield batch` after the loop, and raise at the top for `size < 1`.
+tags: [generators, batching, chunking, edge-cases]
+lesson: |
+  Chunking code has two classic bugs. The leftover items after the loop need an explicit final yield, otherwise the tail of the data is
+  dropped without any error. And a generator that yields a list then calls `clear()` on it hands the consumer a reference that will be emptied later,
+  so always start a fresh list. Validating `size` early turns an infinite or silent no-op into an immediate, clear exception.
+  Python 3.12 has `itertools.batched`, but older runtimes and ops scripts still need this pattern.
+mistakes:
+  - Slicing with `range(0, len(items), size)`, which fails for generators and other non-sequences.
+  - Yielding `tuple(batch)` while still keeping the clear() call, which hides the aliasing bug only in some tests.

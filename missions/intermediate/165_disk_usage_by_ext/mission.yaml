@@ -1,0 +1,29 @@
+title: Space Hogs by Extension
+category: Files
+difficulty: 3
+xp: 200
+story: |
+  Granite Media's build servers keep running out of disk. Someone wrote a quick `os.walk` script to find out which file
+  types are responsible, but it crashes on the first subdirectory and, when it does work, reports
+  `.LOG` and `.log` as different problems and files like `Makefile` under their own name.
+description: |
+  `usage_by_extension(top)` walks the directory tree below `top` and returns `{extension: total_bytes}`.
+  Extensions are lower-case and include the dot (`.log`). Files without an extension are counted under `"(none)"`.
+  `top_extensions(totals, n)` returns the `n` largest `(extension, bytes)` pairs, biggest first, ties by extension name.
+  There are 3 bugs.
+hints:
+  - |
+    Hint 1: Create a file inside a nested folder and run the function. Then add `A.LOG`, `b.log` and a file called `Makefile`.
+  - |
+    Hint 2: `os.walk` yields `(dirpath, dirnames, filenames)`; filenames are relative to `dirpath`, not to the starting folder. `os.path.splitext` splits at the last dot. Normalize case.
+  - |
+    Hint 3: `os.path.join(dirpath, name)`, `.lower()` on the extension, and replace an empty extension with `"(none)"`.
+tags: [files, os.walk, splitext, paths]
+lesson: |
+  `os.walk` hands you the current directory in the first tuple element and bare file names in the third. Joining names to the top-level
+  directory works only for files that sit directly in it, so deeper files raise `FileNotFoundError`. `os.path.splitext` is the safe way to get an
+  extension (it treats `Makefile` and `.bashrc` as having none), but you must decide how to normalise: lower-casing prevents `.LOG` and `.log`
+  from being counted separately, and an explicit bucket name makes extensionless files visible in reports instead of an empty-string key.
+mistakes:
+  - Using `name.split(".")[-1]`, which returns the whole name for files without a dot.
+  - Calling `os.path.getsize(name)` with the bare name and relying on the current directory.

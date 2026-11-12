@@ -1,0 +1,29 @@
+title: Used-Up Iterators
+category: Generators
+difficulty: 3
+xp: 200
+story: |
+  The Ledgerline reliability team built a small report over deploy logs using generators to save
+  memory. The weekly summary now says "0 errors" while the raw log is full of them, and the stats
+  function crashes with `max() arg is an empty sequence` on perfectly good data.
+description: |
+  `latency_summary(lines)` parses lines such as `GET /pay 120` into milliseconds and returns a dict with
+  `count`, `min` and `max` (all `None`/0 for no data). `error_report(path)` returns `(total_lines, error_lines)` for a log file,
+  where an error line contains the text `ERROR`. `recent_failures(events)` returns the list of events whose `ok` is False.
+  Inputs may be one-shot iterators. There are 3 bugs.
+hints:
+  - |
+    Hint 1: Pass a generator expression to `latency_summary` and to `recent_failures`. What does each call to `sum`, `max` or `any` do to it?
+  - |
+    Hint 2: A generator or file object can be iterated only once. Anything you need twice must be turned into a list (or read into memory) first.
+  - |
+    Hint 3: Use `list(...)` for the parsed values and the failed events, and read the file once with `read().splitlines()`.
+tags: [generators, iterators, exhaustion, lists]
+lesson: |
+  Generators, `map`, `filter` and open files are one-shot iterators: once consumed they stay empty. Calling `sum(1 for _ in values)`
+  and then `max(values)` means the second call sees nothing. Even `any(failed)` consumes the first matching item, which
+  silently drops data. When you need several passes, materialize the data with `list(...)`, or restructure to a single pass. Laziness
+  is a memory optimization, so apply it deliberately and remember what it costs.
+mistakes:
+  - Re-creating the generator expression every time instead of storing the data once.
+  - Calling `iter()` on a generator and expecting a fresh copy.

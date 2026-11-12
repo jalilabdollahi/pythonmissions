@@ -1,0 +1,29 @@
+title: Rolling Logs
+category: Files
+difficulty: 3
+xp: 200
+story: |
+  The Basil audit service rotates `audit.log` into numbered backups. During an incident review the
+  security team found that `audit.log.2` and `audit.log.3` held the same text, and that three days of
+  history had vanished after a single rotation.
+description: |
+  `needs_rotation(path, max_bytes)` is true when the file exists and has reached `max_bytes` (size greater than or equal).
+  `rotate(path, keep)` shifts `path.(keep-1)` to `path.keep`, ..., `path.1` to `path.2`, then `path` to `path.1`, so that
+  `keep` backups exist and the oldest one is dropped. Afterwards a fresh, empty `path` exists. `maybe_rotate` rotates only when needed and
+  reports whether it did. There are 3 bugs.
+hints:
+  - |
+    Hint 1: Create `log`, `log.1`, `log.2`, `log.3` with distinct contents and rotate. Then compare the text of each file with what you expect.
+  - |
+    Hint 2: Renaming `.1` to `.2` first destroys the old `.2` before it is moved. Move the oldest backups first. Also check the file size comparison and what exists after the rotation.
+  - |
+    Hint 3: Loop `for i in range(keep - 1, 0, -1)`, compare with `>=`, and recreate the live file with `open(path, "w").close()`.
+tags: [files, log-rotation, rename, ordering]
+lesson: |
+  Rotation is a chain of renames, and the order matters: each file moves into a slot that must already be free, so you start with the
+  oldest backup and work towards the newest. Going upwards overwrites data that has not been moved yet, which is exactly how history
+  disappears. The size trigger should be a deliberate boundary (a file that has reached the limit is full), and the writer expects a fresh
+  live file afterwards, because processes that reopen the log by name would otherwise fail or recreate it with other permissions.
+mistakes:
+  - Copying instead of renaming, which is slow and leaves a window where lines are duplicated or lost.
+  - Deleting all old backups first and only keeping the newest one.

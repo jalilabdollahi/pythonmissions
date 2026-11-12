@@ -1,0 +1,29 @@
+title: Bundle Inspector
+category: Archives
+difficulty: 3
+xp: 200
+story: |
+  Delphine Labs ships offline deployment bundles as zip files holding wheels and jars. The release checklist script
+  reports 14 files in a bundle that contains 9, misses `Legacy-Driver.JAR` because of its capital letters, and
+  claims a 3 MB bundle is only 900 KB.
+description: |
+  `inventory(zip_path)` opens a zip archive and returns `{"artifacts": [...], "files": n, "total_size": bytes}`.
+  `artifacts` lists the sorted entry names ending with `.whl` or `.jar` in any letter case. `files` counts real files only,
+  not directory entries. `total_size` is the sum of the uncompressed sizes of the files.
+  There are 3 bugs.
+hints:
+  - |
+    Hint 1: Write a zip with a folder entry, a `Lib.JAR`, a repeated-text file and compare the three numbers with what you put in.
+  - |
+    Hint 2: `ZipInfo` objects have `is_dir()`, `file_size` and `compress_size`. Names in a zip keep their original capitalisation.
+  - |
+    Hint 3: Iterate `infolist()`, skip `is_dir()`, sum `file_size`, and test `name.lower().endswith((".whl", ".jar"))`.
+tags: [zipfile, archives, extensions, zipinfo]
+lesson: |
+  A zip archive stores entries for directories as well as files; their names end with a slash and their size is zero, so a naive `len(namelist())` overcounts.
+  `ZipInfo` also exposes two sizes: `file_size` is the original size, `compress_size` what is stored. Reports about "how big is this bundle"
+  want the first. When you filter by extension remember that file systems and build tools produce `.JAR`, `.Whl` and similar names, so compare in lower
+  case with `endswith`, which also prevents matches such as `app.jar.sha1`.
+mistakes:
+  - Using `".jar" in name`, which also matches `app.jar.sha1`.
+  - Counting `len(zf.namelist())` as the number of files.

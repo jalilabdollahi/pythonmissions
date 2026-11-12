@@ -1,0 +1,30 @@
+title: Deploy Lock Guard
+category: Context Managers
+difficulty: 3
+xp: 200
+story: |
+  Two engineers at Pelican Cloud ran the release script at the same time and both pushed to
+  production. A lock file was added, but now a failed deploy leaves the lock behind, so every later
+  release is refused, and the error from the failed deploy never even shows up in the logs.
+description: |
+  `DeployLock(path, owner)` is a context manager that creates `path` exclusively on entry (raising `LockHeld`
+  if it already exists) and writes the owner name into it. On exit the lock file is always removed, whether the block
+  succeeded or raised, and exceptions from the block are never swallowed. `with DeployLock(...) as lock` gives
+  access to the lock object. A failed acquisition must never remove somebody else's lock.
+  There are 3 bugs.
+hints:
+  - |
+    Hint 1: Raise an exception inside a `with DeployLock(...)` block. Does it propagate? Is the file still there afterwards? Then try `as lock`.
+  - |
+    Hint 2: `__exit__` receives the exception info, and its return value decides whether the exception is suppressed. `__enter__` provides the value after `as`.
+  - |
+    Hint 3: Release in every case, `return False` from `__exit__`, and `return self` from `__enter__`.
+tags: [context-manager, dunder, cleanup, locking]
+lesson: |
+  A class-based context manager has two contracts. `__enter__` returns the object bound by `as`, so forgetting `return self` gives
+  you `None`. `__exit__` must release resources unconditionally, because the error path is exactly when cleanup matters, and it must
+  return a falsy value so exceptions keep propagating; returning True hides bugs and turns failures into silent successes.
+  Also be careful in `__enter__` itself: if acquiring fails, you do not own the resource and must not release it.
+mistakes:
+  - Releasing the lock only when `exc_type is None`.
+  - Returning True from `__exit__` to "avoid noisy tracebacks".

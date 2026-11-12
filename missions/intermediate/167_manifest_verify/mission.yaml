@@ -1,0 +1,29 @@
+title: Checksum Audit
+category: Hashing
+difficulty: 3
+xp: 200
+story: |
+  Aurora Mirrors publishes package files together with a `SHA256SUMS` manifest. The verification step
+  keeps flagging healthy large files as corrupted, accepts manifests written by tools that use upper-case hex, and
+  aborts the whole audit when a single listed file has gone missing.
+description: |
+  `file_digest(path, chunk_size)` returns the lowercase SHA-256 hex digest of a file, reading it `chunk_size` bytes at a time.
+  `verify_manifest(root, manifest_text, chunk_size)` checks every line `<hexdigest>  <relative path>` of the manifest against the
+  files under `root` and returns `{"ok": [...], "mismatch": [...], "missing": [...]}` with the paths in manifest order.
+  Digest comparison ignores hex case. Blank lines are skipped. There are 3 bugs.
+hints:
+  - |
+    Hint 1: Hash a file that is bigger than `chunk_size` and compare with `hashlib.sha256(data).hexdigest()`. Then list a file in the manifest that does not exist.
+  - |
+    Hint 2: A hash object accumulates data through `update()`; creating a new one per chunk keeps only the last chunk. Hex digests of the same bytes may be written in either case.
+  - |
+    Hint 3: Create `h = hashlib.sha256()` once, call `h.update(chunk)` in the loop, compare `.lower()` values, and catch `FileNotFoundError` per file.
+tags: [hashing, sha256, chunked-io, manifest]
+lesson: |
+  Hashing big files in chunks keeps memory flat, but the hash object must live across the whole loop: each `update()` adds to the same running state.
+  Re-creating it for every chunk silently produces the digest of the final chunk only, which fails verification for every file larger than one chunk.
+  Digests are case-insensitive hex, so normalise before comparing. And an audit tool should report per-file problems, such as a missing file,
+  in its result instead of dying on the first one, otherwise one gap hides all the other findings.
+mistakes:
+  - Reading the whole file with `read()` to avoid the loop, which defeats the purpose for multi-gigabyte artifacts.
+  - Comparing digests with `is` or on mixed-case strings.

@@ -1,0 +1,30 @@
+title: Stopwatch Decorator
+category: Decorators
+difficulty: 3
+xp: 200
+story: |
+  The Fennel data platform records how long each pipeline stage takes. After the team added a
+  `@timed` decorator, every stage started returning `None`, and the dashboards showed one stage that
+  took three days because the numbers kept growing between runs.
+description: |
+  `timed(sink, clock)` is a decorator factory. Each call of the decorated function appends
+  `(function_name, elapsed_seconds)` to `sink` and returns whatever the function returned.
+  Elapsed time is measured from the start of that call with a monotonic clock
+  (`clock` defaults to `time.perf_counter`, resolved when `timed` is called, and may be injected).
+  There are 3 bugs.
+hints:
+  - |
+    Hint 1: Call a decorated function twice and compare the two recorded durations. Also check the value it returns.
+  - |
+    Hint 2: Where is `start` assigned: when the function is decorated or when it is called? And `time.time()` can jump backwards when NTP corrects the clock.
+  - |
+    Hint 3: Move `start = clock()` into the wrapper, return the function result, and default to `time.perf_counter`.
+tags: [decorators, timing, monotonic, closures]
+lesson: |
+  A decorator body runs once at decoration time, while the wrapper runs on every call, so per-call state like a start timestamp must be
+  taken inside the wrapper. The wrapper must also return the wrapped function's result, otherwise adding instrumentation breaks the program.
+  For measuring durations use a monotonic clock such as `time.perf_counter` or `time.monotonic`: wall-clock `time.time` can step backwards
+  and produce negative durations. Accepting the clock as a parameter keeps tests deterministic.
+mistakes:
+  - Taking the start time in the outer function and "fixing" negative values with abs().
+  - Printing the result inside the wrapper instead of returning it.

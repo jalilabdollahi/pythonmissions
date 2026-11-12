@@ -1,0 +1,29 @@
+title: Quoting Trouble
+category: Subprocess
+difficulty: 3
+xp: 200
+story: |
+  Cobalt Hosting's support console shells out to a helper to measure customer-supplied names.
+  A customer named a project `a;b` and the console tried to run a command called `b`. Another
+  customer used a quote in a name and the helper died with a syntax error.
+description: |
+  Each function measures the length of text given by the caller by running a child Python process (`sys.executable`).
+  `measure(arg)` returns the length of a single argument exactly as given. `measure_many(args)` returns the list
+  of lengths, one per argument. `measure_inline(text)` returns the length of `text`, whatever characters it holds
+  (spaces, semicolons, quotes). There are 3 bugs.
+hints:
+  - |
+    Hint 1: Call each function with `"my report.txt"`, `"a;b"` and `"it's"` and see which ones go wrong.
+  - |
+    Hint 2: Strings that are built and then re-split by a shell or by `str.split` lose the original argument boundaries. Never paste user text into source code either.
+  - |
+    Hint 3: Pass a list to `subprocess.run` without `shell=True`, use `list(args)`, and hand the text to the child through `sys.argv`.
+tags: [subprocess, shell-injection, argv, quoting]
+lesson: |
+  Every string that goes through a shell is parsed again: spaces split it into several arguments, and characters like `;`, `&` or `$`
+  gain special meaning, which is the basis of command injection. The safe approach is to build an argument list and run it
+  without a shell, so each element arrives as exactly one argument. Do not rebuild the list by joining and splitting either.
+  The same rule applies to code: interpolating user text into a script is injection too, so pass data as arguments, not as source.
+mistakes:
+  - Wrapping the argument in extra quotes, which breaks as soon as the value contains a quote.
+  - Using `shlex.quote` while still passing `shell=True` and calling it done on every platform.

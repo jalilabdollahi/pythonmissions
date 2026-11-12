@@ -1,0 +1,30 @@
+title: Wrong Pager Route
+category: Alerting
+difficulty: 3
+xp: 200
+story: |
+  At Marlow Streaming the database team kept getting woken up for CDN alerts, while payment
+  incidents landed in a Slack channel nobody reads. The routing tree was rewritten last week
+  and now alerts go to surprising places.
+description: |
+  `pick_receiver(labels, routes, default)` returns the receiver of the first route whose `match`
+  dict is fully satisfied by the alert labels (every key/value pair must be present and equal).
+  A route with an empty `match` matches everything. If no route matches, the `default` receiver is returned.
+  `route_alerts(alerts, routes, default)` groups alert names by receiver into a dict.
+  There are 3 bugs.
+hints:
+  - |
+    Hint 1: Create two routes that could both match one alert and see which receiver wins. Then try an alert that matches nothing.
+  - |
+    Hint 2: A route needs all of its matchers to pass, not any of them. Routing trees are evaluated top to bottom and stop at the first hit.
+  - |
+    Hint 3: Use `all(...)` in the matcher, return as soon as a route matches, and return `default` after the loop.
+tags: [alerting, routing, all-any, first-match]
+lesson: |
+  Alertmanager style routing is a short, ordered rule list: the first rule that matches decides, so evaluating all rules and keeping
+  the last hit silently reverses your priorities. A rule with several matchers is an AND, which is `all(...)`; using `any(...)` turns
+  a precise rule into a broad one. And every router needs a catch-all, otherwise an unmatched alert returns `None` and is lost with
+  no trace. Those three habits (first match, all matchers, explicit default) prevent most routing surprises.
+mistakes:
+  - Reordering the routes to compensate instead of fixing the evaluation logic.
+  - Treating a missing label as a match because `labels.get(k)` returns None.
