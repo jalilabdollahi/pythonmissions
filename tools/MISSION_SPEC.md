@@ -32,11 +32,11 @@ description: |
   and "There are N bugs." Do NOT say how to fix them.
 hints:
   - |
-    Hint 1: points at the area / symptom.
+    Points at the area or symptom.
   - |
-    Hint 2: names the concept or stdlib tool.
+    Names the concept or stdlib tool.
   - |
-    Hint 3: nearly gives the fix.
+    Nearly gives the fix. (No "Hint N:" prefix; the UI numbers hints.)
 tags: [tag1, tag2, tag3]
 lesson: |
   3-5 sentences teaching the concept behind the bug and why it matters in real ops work.
