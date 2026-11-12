@@ -1,28 +1,31 @@
 # PythonMissions 🐍⚔️
 
-![platform](https://img.shields.io/badge/platform-Linux%20%7C%20macOS%20-blue)
-![shell](https://img.shields.io/badge/shell-bash-brightgreen)
-![python](https://img.shields.io/badge/python-learning-3776AB)
+![platform](https://img.shields.io/badge/platform-Linux%20%7C%20macOS-blue)
+![python](https://img.shields.io/badge/python-3.10%2B-3776AB)
+![missions](https://img.shields.io/badge/missions-300-brightgreen)
 
 > **Learn Python for DevOps by fixing broken scripts.**
 
-PythonMissions is a fully local, game-based Python troubleshooting platform with a terminal UI. Each mission drops you into a realistic broken script, asks you to diagnose the problem, fix it in a sandbox, and prove your work with tests.
+PythonMissions is a fully local, game-based Python troubleshooting platform with a terminal UI.
+Each mission drops you into a realistic broken script: a config loader, a log parser, a
+rate limiter, a deployment orchestrator. You diagnose the problem, fix it in a sandbox, and
+prove your work with tests.
 
-**15 progressive missions across 3 difficulty bands — from basic Python syntax to concurrent DevOps tooling.**  
-No cloud. No lab costs. Just code, tests, and practice.
+**300 unique missions across 3 difficulty bands, from Python basics to distributed-systems internals.**
+No cloud. No network. No lab costs. Just code, tests, and practice.
 
 ---
 
 ## ✨ Features
 
-- 🐍 **15 missions** across beginner, intermediate, and advanced levels
-- 🧪 **Test-driven validation** — every fix is checked with mission-specific pytest tests
-- 🧰 **Sandbox workflow** — players edit a safe copy under `sandbox/current`
-- 💡 **Progressive hints** — reveal help only when needed
-- 📖 **Post-level lessons** — debrief and common mistakes after a successful mission
-- 🏆 **XP and rank progression** — move from Intern to Principal Engineer
-- ▶️ **Game-style launcher** — `install.sh` and `play.sh` flow like the other missions projects
-- 💾 **Persistent progress** — saved under `~/.pythonmissions/progress.json`
+- 🐍 **300 missions**, each built around a different concept. No two are alike.
+- 🧪 **Test-driven validation.** Every fix is checked with mission-specific pytest tests.
+- 🧰 **Per-mission sandbox.** You edit `sandbox/<mission>/broken.py`. Your edits survive quitting, and the real mission files stay untouched.
+- 💡 **Three progressive hints** per mission.
+- 📖 **Debrief after every mission**, with a lesson on the concept and its common mistakes.
+- 🏆 **XP and 7 ranks**, from Intern to Distinguished Engineer.
+- 🗺️ **Mission browser** to replay or jump to any mission.
+- 💾 **Persistent progress** in `~/.pythonmissions/progress.json`.
 
 ---
 
@@ -30,78 +33,50 @@ No cloud. No lab costs. Just code, tests, and practice.
 
 ```bash
 cd pythonmissions
-./install.sh
+./install.sh     # creates ./venv (rebuilds it if broken) and installs deps
 ./play.sh
 ```
 
-If you already installed dependencies, you can launch directly with:
+| Command | What it does |
+|---------|--------------|
+| `./play.sh` | Start or continue the campaign |
+| `./play.sh --reset` | Wipe progress and sandbox edits |
+| `./play.sh --validate` | Check every mission (solution passes, broken fails) |
 
-```bash
-./play.sh
-```
-
-Reset progress:
-
-```bash
-./play.sh --reset
-```
+Requirements: **Python 3.10+** and a terminal editor (`$VISUAL`/`$EDITOR`, `nano`, `vim`, or `code --wait`).
 
 ---
 
-## 📋 Prerequisites
-
-| Tool | Install |
-|------|---------|
-| Python **3.9+** | `brew install python@3.11` |
-| pip / venv support | usually included with Python |
-| A terminal editor | `nano`, `vim`, `vi`, or your `$EDITOR` |
-
----
-
-## 🎮 How to Play
-
-1. **Run** `./play.sh`
-2. **Enter your name** the first time you launch the game
-3. **Start at mission 1 automatically** — progression moves from easy to hard
-4. **Press `E`** to open the mission file in your editor
-5. **Fix the bug** in the sandbox copy
-6. **Press Enter** to run `Check` and validate your solution
-7. **Read the debrief** and move to the next level
-
-The real mission source files stay untouched. The active editable copy is created under `sandbox/current/`.
-
----
-
-## 🎯 In-Game Commands
+## 🎯 In-Game Keys
 
 | Key | Action |
 |-----|--------|
-| `Enter` | Check the current solution |
-| `E` | Edit the current mission file |
-| `H` | Show the next hint |
-| `R` | Reset the sandbox copy to the original broken version |
-| `P` | Show progress |
-| `S` | Show the solution |
-| `Q` | Quit the game |
+| `Enter` | Check your fix (runs the tests) |
+| `E` | Open `broken.py` in your editor |
+| `H` | Reveal the next hint |
+| `R` | Restore the original broken file |
+| `M` | Mission browser (replay or jump) |
+| `P` | Progress overview |
+| `S` | Show the solution (recorded) |
+| `N` | Next mission (after completing the current one) |
+| `Q` | Quit |
+
+You can also edit the file in any IDE. The path is shown on the mission screen.
 
 ---
 
-## 🗺️ Learning Path — 15 Missions · 3 Levels · 3,000 XP
+## 🗺️ Learning Path: 300 Missions · 56,000 XP
 
-| Level | Missions | XP Each | Focus |
+| Level | Missions | XP each | Focus |
 |-------|----------|---------|-------|
-| 🟢 Beginner | 5 | 100 | Variables, env vars, file I/O, argparse, string formatting |
-| 🟡 Intermediate | 5 | 200 | Regex, requests, JSON, subprocess, YAML |
-| 🔴 Advanced | 5 | 300 | Decorators, concurrency, tailing logs, deploy logic, webhooks |
+| 🟢 Beginner | 001–120 | 100 | Types, strings, collections, loops, functions, files, classes, dates, CLI basics |
+| 🟡 Intermediate | 121–220 | 200 | Parsing, config, metrics, caching, decorators, generators, subprocess, archives, security, threads, asyncio, sqlite |
+| 🔴 Advanced | 221–300 | 300 | Distributed systems, CRDTs, storage engines, async pools, load balancing, deployments, observability, IaC, metaprogramming |
 
-Ranks:
+Ranks: Intern (0) → Junior DevOps (1,000) → DevOps Engineer (3,000) → Senior DevOps (8,000) →
+Staff Engineer (16,000) → Principal Engineer (28,000) → Distinguished Engineer (45,000).
 
-- `0 XP` → Intern
-- `200 XP` → Junior DevOps
-- `500 XP` → DevOps Engineer
-- `1000 XP` → Senior DevOps
-- `1500 XP` → Staff Engineer
-- `2000 XP` → Principal Engineer
+The full list of mission concepts is in [`tools/mission_catalog.txt`](tools/mission_catalog.txt).
 
 ---
 
@@ -109,71 +84,42 @@ Ranks:
 
 ```text
 pythonmissions/
-├── main.py
-├── install.sh
-├── setup.sh
-├── play.sh
-├── requirements.txt
+├── main.py                  # entry point
+├── install.sh / play.sh     # launcher scripts
 ├── engine/
-│   ├── missions.py
-│   ├── progress.py
-│   ├── runner.py
-│   ├── sandbox.py
-│   └── ui.py
+│   ├── missions.py          # loads mission.yaml (bad files are skipped, not fatal)
+│   ├── progress.py          # XP, ranks, saved progress
+│   ├── runner.py            # editor + pytest runner
+│   ├── sandbox.py           # per-mission editable copies
+│   └── ui.py                # Rich terminal UI
 ├── missions/
-│   ├── beginner/
-│   │   ├── 001_hello_devops/
-│   │   ├── 002_env_secrets/
-│   │   ├── 003_read_logfile/
-│   │   ├── 004_parse_args/
-│   │   └── 005_format_output/
-│   ├── intermediate/
-│   │   ├── 006_parse_logs/
-│   │   ├── 007_health_check/
-│   │   ├── 008_json_config/
-│   │   ├── 009_run_commands/
-│   │   └── 010_yaml_config/
-│   └── advanced/
-│       ├── 011_retry_logic/
-│       ├── 012_bulk_requests/
-│       ├── 013_tail_logs/
-│       ├── 014_deploy_check/
-│       └── 015_webhook_alert/
-└── sandbox/
-    └── current/              ← active editable mission copy
+│   ├── beginner/001_…120_…
+│   ├── intermediate/121_…220_…
+│   └── advanced/221_…300_…
+├── tests/test_engine.py     # engine tests
+├── tools/
+│   ├── MISSION_SPEC.md      # how to write a mission
+│   ├── mission_catalog.txt  # one unique concept per mission
+│   └── validate_missions.py # content validator
+└── sandbox/                 # your edits (git-ignored)
 ```
 
 Each mission directory contains:
 
-- `mission.yaml` — mission metadata, story, hints
-- `broken.py` — intentionally broken source
-- `original.py` — reset source
-- `test_mission.py` — validation tests
-- `solution.py` — reference solution
+- `mission.yaml`: title, story, brief, 3 hints, lesson, common mistakes
+- `broken.py`: the buggy script you fix
+- `solution.py`: the reference fix
+- `test_mission.py`: the tests your fix must pass
 
 ---
 
-## 🔄 Resetting Progress
+## 🛠️ Contributing Missions
 
-Reset from the launcher:
+1. Pick an unused concept, or add one to `tools/mission_catalog.txt`.
+2. Follow `tools/MISSION_SPEC.md`.
+3. Run `./play.sh --validate --only <NNN>`. It must report 0 errors.
 
-```bash
-./play.sh --reset
-```
-
-Reset the active mission sandbox from inside the game with `R`.
-
----
-
-## 🎓 After Each Level
-
-When you solve a mission, PythonMissions:
-
-- runs the tests
-- awards XP
-- shows a short debrief
-- shows common mistakes
-- then advances to the next mission
+Run the engine tests with `./venv/bin/python -m pytest tests`.
 
 ---
 

@@ -1,0 +1,309 @@
+# PythonMissions catalog: one line per mission, every concept unique.
+# Format: NNN | slug | category | concept and the bug(s) to plant
+# Levels: 001-120 beginner (100 XP), 121-220 intermediate (200 XP), 221-300 advanced (300 XP)
+
+## BEGINNER
+001 | hello_devops | Basics | status banner prints host and port; str + int concatenation TypeError
+002 | case_sensitive_names | Basics | NameError from Hostname vs hostname case mismatch in a deploy summary
+003 | nodes_needed_division | Numbers | compute nodes needed for N pods with K per node; / vs // and missing ceiling
+004 | env_var_default | Environment | os.environ["X"] KeyError for optional setting; needs .get with default
+005 | env_bool_flag | Environment | DEBUG="false" string treated as truthy; parse boolean env flags properly
+006 | env_port_cast | Environment | PORT read from env is a str, compared/added as int
+007 | replica_range_off_by_one | Loops | range(1, n) skips the last replica when generating pod names
+008 | last_item_index | Lists | servers[len(servers)] IndexError when picking newest backup; use [-1] and handle empty
+009 | strip_trailing_newlines | Strings | hostnames read from a file keep trailing "\n", so membership checks fail
+010 | split_maxsplit_kv | Strings | parse "KEY=value=with=equals" lines; split("=") instead of split("=", 1)
+011 | dict_get_labels | Dicts | missing label key raises KeyError; use .get with sensible default
+012 | mutable_default_tags | Functions | def add_tag(tag, tags=[]) leaks tags between calls
+013 | is_vs_equals | Basics | comparing environment strings with `is` instead of ==
+014 | float_threshold_compare | Numbers | disk usage float sums compared with ==; use math.isclose / tolerance
+015 | case_insensitive_env | Strings | "PROD" vs "prod" comparison; normalize with .lower()/.casefold()
+016 | percent_format_spec | Formatting | wrong f-string format spec for percentage with one decimal
+017 | table_column_padding | Formatting | ljust/rjust misuse misaligns a service status table
+018 | join_ints | Strings | ",".join(ports) with ints raises TypeError
+019 | append_vs_extend | Lists | append(list) creates a nested list of hosts instead of extend
+020 | list_alias_copy | Lists | modifying an alias mutates the shared default config list; needs a copy
+021 | sort_returns_none | Lists | hosts = hosts.sort() leaves None
+022 | numeric_string_sort | Lists | build numbers sorted as strings ("10" < "9"); sort with key=int
+023 | top_n_descending | Lists | top 3 CPU consumers sorted ascending; needs reverse=True and slice
+024 | dict_items_iteration | Dicts | iterating a dict yields only keys; unpacking fails; use .items()
+025 | dict_mutation_during_iteration | Dicts | deleting expired keys while iterating raises RuntimeError
+026 | ordered_dedupe | Sets | dedupe IP list with set() loses order; must preserve first-seen order
+027 | set_difference_inventory | Sets | hosts missing from monitoring computed with union instead of difference
+028 | tuple_immutable_config | Tuples | trying to modify a tuple of defaults; build a new tuple/list
+029 | rsplit_host_port | Strings | "host:port" parsing breaks for "[::1]:8080"-style input; use rsplit(":", 1) and strip brackets
+030 | retry_counter_loop | Loops | while loop never increments attempts; must stop after max attempts
+031 | continue_vs_break | Loops | skipping comment lines uses break, so later config lines are lost
+032 | for_else_search | Loops | searching for a free port; for/else logic inverted
+033 | nested_loop_indent | Loops | port scan matrix results appended at wrong indentation level
+034 | enumerate_line_numbers | Loops | error report line numbers start at 0; enumerate(start=1)
+035 | zip_length_mismatch | Loops | zip(hosts, ips) silently truncates; must detect mismatch and raise ValueError
+036 | countdown_range | Loops | deploy countdown range(10, 0) without step -1 produces nothing
+037 | or_precedence_bug | Logic | `if status == "ok" or "warn"` is always true
+038 | substring_vs_exact | Logic | `"err" in level` matches "error"/"terror"; need exact match against a set
+039 | zero_is_falsy | Logic | `if not value` treats 0 replicas as missing; use `is None`
+040 | missing_return_branch | Functions | function forgets to return in one branch, caller gets None
+041 | print_instead_of_return | Functions | helper prints the URL instead of returning it
+042 | unbound_local_counter | Functions | incrementing a global counter inside a function raises UnboundLocalError; refactor to return value
+043 | shadowed_builtin | Functions | variable named `max`/`list` shadows builtin and breaks a later call
+044 | swapped_arguments | Functions | timeout and retries passed positionally in wrong order; use keyword args
+045 | kwargs_forwarding | Functions | wrapper drops **kwargs, so options never reach the inner function
+046 | count_log_lines | Files | counting lines with f.readline() reads only one line
+047 | append_mode_audit | Files | audit log opened with "w" overwrites history; should append
+048 | flush_before_read | Files | writing then reading a file before it is closed returns empty content; use with blocks
+049 | utf8_encoding | Files | reading a UTF-8 changelog without encoding / wrong encoding argument
+050 | optional_config_file | Files | missing optional config should return defaults instead of crashing
+051 | pathlib_join | Paths | paths glued with + lose the separator; use pathlib / operator
+052 | log_suffix_filter | Paths | endswith("log") matches "catalog"; filter by Path.suffix == ".log"
+053 | unit_name_stem | Paths | extract service name from "nginx.service" with wrong slicing; use Path.stem
+054 | makedirs_exist_ok | Paths | creating a release dir fails if it exists; exist_ok/parents
+055 | csv_header_skip | CSV | header row counted as data when summing request counts
+056 | csv_string_numbers | CSV | DictReader values are strings, so sum concatenates; convert to int
+057 | json_load_vs_loads | JSON | json.load used on a string instead of json.loads
+058 | json_stable_dump | JSON | output must be deterministic: sort_keys and indent missing
+059 | json_nested_safe_get | JSON | nested key access crashes when "resources" section is absent
+060 | parse_cpu_float | Numbers | int("12.5") ValueError while parsing CPU percentages
+061 | narrow_except | Errors | bare except swallows TypeError; only ValueError should be handled
+062 | finally_cleanup | Errors | lock flag not reset when deploy step raises; use try/finally
+063 | custom_exception | Errors | define ConfigError(Exception) and raise it with a clear message
+064 | exception_message | Errors | uses e.message (Py2) instead of str(e) when formatting errors
+065 | replace_not_assigned | Strings | s.replace(...) result discarded; strings are immutable
+066 | extension_slicing | Strings | getting artifact extension with off-by-one slicing; use rpartition/Path.suffix
+067 | startswith_tuple | Strings | multiple prefix checks done wrong; startswith accepts a tuple
+068 | find_minus_one | Strings | str.find returns -1 which is truthy; use `in` or check >= 0
+069 | split_whitespace_words | Strings | split(" ") yields empty strings on double spaces; use split()
+070 | port_string_validation | Validation | isdigit check plus range 1-65535 missing; empty/negative inputs
+071 | service_name_normalize | Strings | capitalize vs lower vs replace for normalizing service names to kebab-case
+072 | dedent_generated_config | Strings | indented triple-quoted template breaks config; textwrap.dedent
+073 | ternary_label_swap | Logic | conditional expression returns "UP" and "DOWN" swapped
+074 | chained_comparison | Logic | `0 < x > 100` instead of `0 < x < 100` for valid percentage
+075 | round_robin_modulo | Numbers | round-robin index uses % (len + 1), occasionally IndexError
+076 | clock_skew_abs | Numbers | skew check without abs() misses negative drift
+077 | round_half_up_billing | Numbers | round() uses banker's rounding; billing needs Decimal ROUND_HALF_UP
+078 | max_with_key | Builtins | max(dict) returns alphabetically largest key, not most free memory; use key=
+079 | sum_with_condition | Builtins | counting errors with sum(...) adds the wrong values
+080 | any_vs_all | Builtins | cluster healthy uses any() instead of all(); degraded uses all() instead of any()
+081 | comprehension_filter | Comprehensions | list comprehension keeps stopped containers (inverted condition)
+082 | invert_mapping | Comprehensions | invert service->port dict; must detect duplicate ports
+083 | flatten_nested_list | Comprehensions | flattening list of subnet IP lists with wrong comprehension order
+084 | counter_status_codes | Collections | manual counting buggy; use Counter.most_common
+085 | defaultdict_grouping | Collections | grouping hosts by region raises KeyError; defaultdict(list)
+086 | namedtuple_fields | Collections | namedtuple fields accessed by wrong index/name
+087 | dataclass_default_factory | Classes | dataclass with list default; needs field(default_factory=list)
+088 | init_missing_self | Classes | __init__ assigns locals instead of self attributes
+089 | shared_class_attribute | Classes | class-level list shared between Server instances
+090 | method_missing_self | Classes | method defined without self parameter
+091 | str_dunder | Classes | __str__ returns a tuple / wrong format for a Deployment object
+092 | eq_dunder | Classes | two identical Endpoint objects compare unequal; implement __eq__
+093 | property_getter | Classes | computed uptime property called like a method / missing @property
+094 | super_init | Classes | subclass __init__ forgets super().__init__ so base attributes missing
+095 | classmethod_factory | Classes | Server.from_string uses hard-coded class instead of cls / missing @classmethod
+096 | staticmethod_validator | Classes | validator method missing @staticmethod decorator
+097 | enum_compare | Classes | comparing Enum member to raw string; use .value or Enum(value)
+098 | strptime_format | Dates | wrong strptime format for log timestamps (%m vs %M, %H vs %I)
+099 | cert_expiry_days | Dates | timedelta.seconds used instead of .days / total_seconds for cert expiry
+100 | naive_aware_datetime | Dates | comparing naive and aware datetimes; use timezone.utc
+101 | format_duration | Dates | seconds to HH:MM:SS with wrong divmod order and no zero-padding
+102 | seeded_canary_pick | Random | canary host selection not reproducible; use random.Random(seed)
+103 | sort_multi_key | Lists | sort incidents by priority desc then name asc; key tuple wrong
+104 | bytes_decode | Bytes | command output bytes compared to str; decode
+105 | basic_auth_base64 | Bytes | building Basic auth header; b64encode needs bytes and decode result
+106 | sha256_checksum | Hashing | uses digest() instead of hexdigest(); file opened in text mode
+107 | human_readable_size | Numbers | bytes to KiB/MiB/GiB loop with wrong unit progression and >= boundary
+108 | ip_validation | Network | validate IPs with ipaddress; ValueError not caught; v6 support
+109 | cidr_membership | Network | check if IP belongs to subnet; string prefix check instead of ip_network
+110 | url_parse_parts | Network | extract scheme/host/port with split instead of urllib.parse; default ports
+111 | query_string_build | Network | query string built by hand without encoding; use urlencode
+112 | regex_match_vs_search | Regex | re.match only matches at line start; need re.search
+113 | regex_raw_string | Regex | "\b" without raw string becomes backspace; use r"..."
+114 | semver_tuple_compare | Versions | versions compared as strings; convert to tuple of ints
+115 | argparse_int_type | CLI | argparse --replicas missing type=int
+116 | argparse_store_true | CLI | --dry-run defined as requiring a value; use action="store_true"
+117 | exit_code_return | CLI | main returns 0 even when checks fail; return 1 on failure
+118 | logging_level_config | Logging | logger level too high so warnings never appear; levels misused
+119 | assert_for_validation | Errors | input validation uses assert (stripped with -O); raise ValueError instead
+120 | shlex_split | Strings | command line split with str.split breaks quoted args; use shlex.split
+
+## INTERMEDIATE
+121 | nginx_log_named_groups | Regex | parse nginx access log with named groups; greedy pattern and missing optional fields
+122 | multiline_log_levels | Logs | count log levels while skipping stack-trace continuation lines
+123 | error_rate_ratio | Metrics | 5xx error rate: wrong denominator and integer rounding
+124 | configparser_types | Config | configparser getint/getboolean and fallback misuse
+125 | deep_merge_overrides | Config | shallow dict.update loses nested defaults; implement recursive merge
+126 | dotenv_parser | Config | .env parser: quotes, comments, `export ` prefix, values containing '='
+127 | template_substitution | Config | string.Template substitute vs safe_substitute and missing keys reporting
+128 | config_validation_errors | Validation | validate required keys and types, collect all errors instead of stopping at first
+129 | semver_bump | Versions | bump major/minor/patch must reset lower parts; pre-release handling
+130 | service_start_order | Graphs | topological sort of service dependencies with cycle detection
+131 | cron_field_match | Scheduling | match "*/5", "1-5", "1,15" cron minute fields
+132 | duration_parser | Parsing | "1h30m15s" to seconds; regex misses units, wrong multipliers
+133 | k8s_memory_quantity | Parsing | "512Mi", "2Gi", "1G" parsing; binary vs decimal suffixes
+134 | k8s_cpu_quantity | Parsing | "250m", "1.5", "2" CPU quantities summed as millicores
+135 | port_range_expand | Parsing | "8000-8003,9000" expansion inclusive end, dedupe and sort
+136 | hostlist_expand | Parsing | "web[01-03].dc1" expansion preserving zero padding
+137 | inventory_var_precedence | Config | host vars must override group vars which override all-vars
+138 | sliding_window_counter | Metrics | requests in last 60s with deque; stale entries not evicted
+139 | moving_average | Metrics | moving average over last N samples; window off-by-one and early values
+140 | percentile_nearest_rank | Metrics | p50/p95/p99 nearest-rank with wrong index and unsorted data
+141 | histogram_buckets | Metrics | cumulative histogram buckets (le) and +Inf bucket
+142 | prometheus_exposition | Metrics | render metrics text format with sorted, escaped labels
+143 | statsd_line_parse | Metrics | parse "name:1|c|@0.1"; sample rate scaling and gauges
+144 | sla_downtime_overlap | Reliability | SLA from overlapping outage windows double-counts downtime
+145 | merge_maintenance_windows | Scheduling | merge overlapping/adjacent maintenance windows; unsorted input
+146 | alert_dedup_window | Alerting | dedupe alerts by fingerprint within a time window
+147 | alert_routing | Alerting | first matching route wins; label matchers and default receiver
+148 | backoff_calculator | Resilience | exponential backoff with cap and injectable jitter
+149 | retry_decorator | Resilience | retry decorator retries all exceptions and loses metadata; functools.wraps
+150 | timing_decorator | Decorators | timing decorator drops return value and uses time.time
+151 | ttl_cache | Caching | TTL cache with injectable clock; expiry boundary and stale reads
+152 | lru_cache_ordereddict | Caching | LRU with OrderedDict; get() does not refresh recency, wrong eviction end
+153 | context_manager_class | Context Managers | __exit__ returns True and swallows exceptions; resource not released
+154 | contextmanager_cleanup | Context Managers | @contextmanager without try/finally skips cleanup on error
+155 | exhausted_generator | Generators | generator consumed twice; second pass sees nothing
+156 | batch_chunking | Generators | chunked iterator drops last partial batch
+157 | groupby_unsorted | Itertools | itertools.groupby on unsorted data splits groups
+158 | api_pagination | Iteration | paginate a fake API client until next_token is None; skips last page
+159 | subprocess_check | Subprocess | run command (sys.executable -c ...); check returncode, capture text
+160 | subprocess_args_list | Subprocess | shell string with user input; build an argument list instead
+161 | subprocess_timeout | Subprocess | long command must hit timeout and return a status instead of crashing
+162 | atomic_write | Files | atomic file write via temp file in same dir + os.replace
+163 | pidfile_stale | Files | pidfile handling: stale pid detection and cleanup
+164 | rotate_by_size | Files | log rotation renames .1 .2 .3 in wrong order, overwriting backups
+165 | disk_usage_by_ext | Files | os.walk total size per extension; joins wrong path
+166 | find_old_files | Files | files older than N days using mtime and injected now; comparison inverted
+167 | manifest_verify | Hashing | verify sha256 manifest reading in chunks; reports wrong mismatches
+168 | tar_backup_exclude | Archives | tarfile backup excludes patterns and uses relative arcnames
+169 | zip_artifact_filter | Archives | list .whl/.jar entries in zip artifacts; directory entries included
+170 | gzip_transparent_read | Archives | read .gz and plain logs transparently in text mode
+171 | recursive_glob | Files | glob "**" without recursive / rglob misuse
+172 | ignore_patterns | Files | gitignore-like fnmatch patterns, negation with "!"
+173 | config_diff | Config | compute added/removed/changed keys between two dicts
+174 | unified_diff_report | Config | difflib.unified_diff with lineterm and file labels
+175 | deep_get_path | Config | "spec.containers.0.image" path lookup through dicts and lists
+176 | flatten_config | Config | flatten nested config to dotted keys; lists and empty dicts
+177 | env_to_nested | Config | APP__DB__HOST env vars into nested dict with prefix stripping and type coercion
+178 | secret_masking | Security | mask tokens/passwords in log lines keeping last 4 chars
+179 | password_policy | Security | password policy checks with off-by-one length and character classes
+180 | token_payload_decode | Security | base64url decode of JWT-like payload with missing padding
+181 | webhook_hmac | Security | HMAC signature verification with compare_digest and bytes handling
+182 | http_status_classes | HTTP | classify status codes into 2xx/3xx/4xx/5xx with wrong ranges
+183 | case_insensitive_headers | HTTP | header lookup must be case-insensitive; multi-value headers
+184 | urljoin_pitfalls | HTTP | urljoin drops base path without trailing slash
+185 | health_check_runner | HTTP | health checks with injected fetch function; timeouts and status mapping
+186 | token_bucket | Resilience | token bucket refill math with injected clock; overflow capacity
+187 | circuit_breaker | Resilience | closed/open/half-open transitions and failure counting
+188 | queue_workers | Concurrency | queue.Queue workers with sentinel shutdown and task_done
+189 | thread_safe_counter | Concurrency | race on shared counter; protect with Lock
+190 | threadpool_results | Concurrency | ThreadPoolExecutor: results order and exceptions from futures lost
+191 | asyncio_gather | Async | async health checks: missing await and sequential awaits
+192 | asyncio_semaphore | Async | concurrency limit with asyncio.Semaphore not applied
+193 | asyncio_wait_for | Async | per-check timeout with asyncio.wait_for and TimeoutError handling
+194 | json_log_formatter | Logging | custom logging.Formatter emitting JSON lines with extra fields
+195 | duplicate_log_handlers | Logging | adding a handler on every call duplicates output lines
+196 | argparse_subcommands | CLI | subparsers dispatch with set_defaults(func=...)
+197 | exit_code_mapping | CLI | map exception types to exit codes; subclass order matters
+198 | nested_dataclass_load | Data Models | build nested dataclasses from dict, ignore unknown keys
+199 | plugin_registry | Patterns | decorator-based plugin registry returns None instead of the class
+200 | abstract_backend | Patterns | ABC storage backend; missing abstract method and wrong signature
+201 | custom_iterator | Patterns | iterator class: __iter__/__next__ and StopIteration
+202 | stable_multi_sort | Algorithms | multi-pass stable sort of incidents in the wrong order
+203 | heapq_top_k | Algorithms | top-k slowest endpoints with heapq; min-heap logic inverted
+204 | bisect_severity | Algorithms | bisect thresholds to severity levels; bisect_left vs bisect_right
+205 | ring_buffer | Collections | last-N log lines with deque(maxlen)
+206 | counter_capacity_diff | Collections | Counter subtraction and negative counts for capacity planning
+207 | chainmap_layers | Config | ChainMap precedence order reversed (cli > env > file > defaults)
+208 | reduce_merge | Functional | functools.reduce merge without initializer mutates first dict
+209 | closure_late_binding | Functional | lambdas created in a loop all capture the last value
+210 | decimal_cost_report | Numbers | cloud cost report with Decimal and quantize instead of float
+211 | zoneinfo_windows | Dates | convert maintenance window to UTC with zoneinfo; DST handling
+212 | epoch_iso_convert | Dates | epoch <-> ISO-8601 UTC conversion with local-time mistake
+213 | copytree_ignore | Files | shutil.copytree with ignore_patterns and dirs_exist_ok
+214 | csv_writer_quoting | CSV | writing CSV report: newline="" and quoting fields with commas
+215 | sqlite_inventory | Databases | sqlite3 parameterized queries and missing commit
+216 | sqlite_migrations | Databases | apply schema migrations in order once, track applied versions
+217 | junit_xml_summary | Parsing | parse JUnit XML with ElementTree; failures vs errors vs skipped
+218 | html_status_page | Web | generate status page; html.escape missing for service names
+219 | email_alert_message | Messaging | build EmailMessage with proper headers and multiple recipients
+220 | binary_header_struct | Parsing | parse binary packet header with struct; byte order and sizes
+
+## ADVANCED
+221 | consistent_hash_ring | Distributed Systems | consistent hashing with virtual nodes; wrap-around and removal
+222 | leader_election | Distributed Systems | Raft-style vote granting: term checks and one vote per term
+223 | vector_clocks | Distributed Systems | vector clock merge and happens-before/concurrent detection
+224 | lamport_ordering | Distributed Systems | Lamport timestamps with tie-breaking by node id
+225 | gossip_membership | Distributed Systems | membership merge by incarnation number and suspect/dead states
+226 | crdt_counters | Distributed Systems | G-Counter and PN-Counter merge semantics
+227 | crdt_or_set | Distributed Systems | observed-remove set add/remove/merge with unique tags
+228 | merkle_sync | Distributed Systems | Merkle tree to find differing key ranges between replicas
+229 | bloom_filter | Data Structures | Bloom filter sizing formulas and independent hash functions
+230 | count_min_sketch | Data Structures | count-min sketch width/depth and estimate as min across rows
+231 | fencing_tokens | Distributed Systems | lease-based lock with fencing tokens and stale writer rejection
+232 | lease_renewal | Distributed Systems | leader lease renewal timing and expiry boundary with injected clock
+233 | two_phase_commit | Transactions | 2PC coordinator: abort on any no vote, rollback prepared participants
+234 | saga_compensation | Transactions | saga runs compensations only for completed steps in reverse order
+235 | transactional_outbox | Messaging | outbox relay at-least-once with idempotent consumer
+236 | idempotency_keys | APIs | idempotency store: same key + different payload must conflict
+237 | event_snapshot_replay | Event Sourcing | rebuild aggregate from snapshot plus newer events only
+238 | cqrs_projection | Event Sourcing | projection ignores duplicate and out-of-order events by version
+239 | wal_replay | Storage | write-ahead log replay with checksums and truncated tail
+240 | lsm_compaction | Storage | merge sorted runs: newest wins, tombstones dropped at last level
+241 | mvcc_snapshots | Storage | MVCC visibility rules for snapshot reads
+242 | safe_query_builder | Security | parameterized SQL builder with identifier allow-list
+243 | connection_pool | Concurrency | thread-safe pool with Condition, max size and release on error
+244 | async_pool_cancellation | Async | asyncio pool leaks slots when a task is cancelled
+245 | async_pipeline_shutdown | Async | asyncio.Queue producer/consumer with graceful shutdown
+246 | async_retry_cancel | Async | async retry must not swallow CancelledError
+247 | async_leaky_bucket | Async | async rate limiter with injectable clock and sleep
+248 | fail_fast_gather | Async | cancel sibling tasks when one fails; return_exceptions misuse
+249 | lock_ordering_deadlock | Concurrency | consistent lock ordering for quota transfers between tenants
+250 | readers_writer_lock | Concurrency | RW lock with writer preference; reader count bugs
+251 | crash_loop_backoff | Orchestration | supervisor restart policy with backoff reset and crash-loop detection
+252 | cron_next_run | Scheduling | compute next run datetime for a simple cron spec
+253 | priority_aging_queue | Scheduling | priority queue with aging so low-priority jobs are not starved
+254 | smooth_weighted_rr | Load Balancing | smooth weighted round-robin (nginx algorithm)
+255 | least_connections | Load Balancing | least-connections balancer with release and tie-breaking
+256 | service_registry_ttl | Service Discovery | registry with heartbeats, TTL expiry and deregistration
+257 | canary_analysis | Deployment | canary vs baseline error-rate verdict with minimum sample size
+258 | blue_green_switch | Deployment | blue/green cutover with health gate and rollback
+259 | rolling_update_plan | Deployment | rolling update batches from maxSurge/maxUnavailable (ints and percents)
+260 | hpa_replicas | Autoscaling | HPA desired replicas formula with tolerance and min/max bounds
+261 | linear_forecast | Autoscaling | least-squares trend forecast for capacity planning
+262 | zscore_anomalies | Observability | rolling z-score anomaly detection; zero std dev handling
+263 | ewma_latency | Observability | EWMA latency tracker with alpha math and first sample
+264 | burn_rate_alerts | Observability | SLO error budget multi-window burn-rate alerting
+265 | span_tree | Observability | build trace span tree and compute self time per span
+266 | traceparent | Observability | W3C traceparent parse/validate/generate child context
+267 | log_correlation | Observability | correlate logs across services by request id with ordering
+268 | drift_plan | Infrastructure as Code | desired vs actual state diff into create/update/delete plan
+269 | reconcile_loop | Infrastructure as Code | idempotent reconcile loop with requeue on transient errors
+270 | resource_dag_apply | Infrastructure as Code | dependency DAG into parallel apply levels; destroy in reverse
+271 | secret_rotation | Security | dual-secret validity window during credential rotation
+272 | pbkdf2_credentials | Security | PBKDF2 password hashing with salt, iterations and constant-time compare
+273 | rbac_engine | Security | RBAC with wildcards where explicit deny overrides allow
+274 | audit_hash_chain | Security | tamper-evident hash-chained audit log verification
+275 | tenant_quotas | Multi-tenancy | per-tenant quota isolation with shared mutable state bug
+276 | module_hot_reload | Runtime | reload plugin modules from disk with importlib; stale caches
+277 | ast_lint_rule | Metaprogramming | ast.NodeVisitor lint rule; missing generic_visit and line numbers
+278 | ast_transform | Metaprogramming | ast.NodeTransformer rewrite; fix_missing_locations and compile
+279 | metaclass_registry | Metaprogramming | metaclass auto-registers subclasses but not the abstract base
+280 | validating_descriptor | Metaprogramming | descriptor stores value on descriptor instead of per-instance; __set_name__
+281 | weakref_cache | Memory | WeakValueDictionary cache keeps strong refs accidentally
+282 | ndjson_stream | Data Processing | stream large NDJSON lazily, skip and count malformed lines
+283 | backpressure_pipeline | Data Processing | bounded stage pipeline with drop-oldest/reject policies
+284 | dead_letter_queue | Messaging | retry counting and DLQ routing for poison messages
+285 | sequence_dedup | Messaging | per-producer sequence numbers: duplicates and gap detection
+286 | expand_contract_migration | Databases | validate zero-downtime expand/contract migration step ordering
+287 | feature_flag_rollout | Release Engineering | percentage rollout with stable hashing per user
+288 | jump_hash_sharding | Data Structures | jump consistent hash for shard routing and minimal movement
+289 | timeseries_downsample | Observability | downsample time series into aligned buckets with gaps
+290 | gfs_retention | Backups | grandfather-father-son backup retention selection
+291 | fault_injector | Chaos Engineering | seeded fault injector with per-target probabilities and latency
+292 | watchdog_restarts | Reliability | watchdog with consecutive-failure threshold and restart cooldown
+293 | adaptive_timeout | Resilience | timeout derived from recent p99 latency with floor/ceiling
+294 | hedged_requests | Resilience | hedged requests simulated with a fake clock; first success wins
+295 | bulkhead | Resilience | per-dependency concurrency limits (bulkheads) with rejection
+296 | graceful_shutdown | Reliability | drain in-flight work on shutdown signal; ordering of flags
+297 | deployment_state_machine | Orchestration | deployment state machine with transition table and illegal transitions
+298 | pipeline_dsl | Compilers | tokenize/parse "build -> test & lint -> deploy" pipeline DSL into stages
+299 | three_way_merge | Config | three-way config merge with conflict detection
+300 | cd_orchestrator | Capstone | final boss: CD pipeline orchestrator with stages, approvals and automatic rollback
