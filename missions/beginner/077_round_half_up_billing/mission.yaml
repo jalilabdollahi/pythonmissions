@@ -1,0 +1,28 @@
+title: Pennies in the Invoice
+category: Numbers
+difficulty: 2
+xp: 100
+story: |
+  Finance at Tidewater Cloud noticed that the monthly usage invoices are off by a cent here and there compared to the legacy billing system.
+  Auditors want every half-cent rounded up, the way the contract says, and the new script rounds some of them down.
+description: |
+  invoice.py prices metered usage.
+
+  - `line_total(units, unit_price)` returns the cost of one line as a `Decimal` rounded to cents with half-cent values rounded UP (0.125 becomes 0.13).
+  - `invoice_total(lines)` takes `(units, unit_price)` pairs where prices are strings like `"0.0125"`, and returns the sum of the already rounded line totals.
+  - `format_money(amount)` returns a string like `$12.50`.
+
+  There is 1 bug.
+hints:
+  - |
+    Try a line whose exact cost ends in exactly half a cent. Which way does it round, and is that the contract?
+  - |
+    Python's `round()` uses banker's rounding on floats, and floats cannot store most decimals exactly. The `decimal` module has an explicit rounding mode.
+  - |
+    Build prices from strings with `Decimal(price)` and call `.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)`.
+tags: [numbers, decimal, rounding, billing]
+lesson: |
+  `round(2.5)` is 2 and `round(0.125, 2)` is 0.12, because Python rounds halves to the nearest even digit and floats are binary approximations. Money must be exact and follow the written rounding rule, so use `Decimal` built from strings and quantize with an explicit rounding mode such as `ROUND_HALF_UP`. Build Decimals from strings: `Decimal(0.1)` captures the float error you were trying to avoid.
+mistakes:
+  - "Wrapping a float in Decimal after the multiplication, which keeps the float error."
+  - "Rounding only the final invoice total instead of each line, so totals disagree with the printed lines."

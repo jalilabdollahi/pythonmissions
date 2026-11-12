@@ -1,0 +1,29 @@
+title: Reading Log Timestamps
+category: Dates
+difficulty: 2
+xp: 100
+story: |
+  The incident timeline tool at Cobalt Gaming rebuilds an outage window from two log sources: the app log and the web access log.
+  For minutes past twelve the app log fails to parse, and the access log refuses every afternoon timestamp, so the timeline is empty after lunch.
+description: |
+  timeline.py parses text timestamps into naive datetimes.
+
+  - `parse_app_ts("2024-03-05 14:07:09")` parses the app log format `YYYY-MM-DD HH:MM:SS` (24-hour clock).
+  - `parse_access_ts("05/Mar/2024:14:07:09")` parses the access log format `DD/Mon/YYYY:HH:MM:SS` (24-hour clock).
+  - `outage_minutes(start_text, end_text)` returns whole minutes between two app log timestamps.
+  - `same_hour(a, b)` is True when two parsed datetimes share date and hour.
+
+  There are 2 bugs.
+hints:
+  - |
+    A ValueError says the text does not match the format. Compare the format letters with the meaning of each position in the timestamp.
+  - |
+    `%m` is month and `%M` is minute; `%H` is the 24-hour clock and `%I` the 12-hour clock.
+  - |
+    Use `%Y-%m-%d %H:%M:%S` and `%d/%b/%Y:%H:%M:%S`.
+tags: [dates, strptime, formats]
+lesson: |
+  strptime format codes are case sensitive: `%m` is the month but `%M` is the minute, and `%H` is the 24-hour hour while `%I` expects 1 to 12 (and needs `%p`). Mixing them up either raises a ValueError on some timestamps or, worse, parses without errors into the wrong time when values happen to fit. Always test a parser with a timestamp whose parts are all different, like 14:07:09 on March 5th.
+mistakes:
+  - "Testing only with times where hour, minute and month look alike, such as 03:03:03."
+  - "Adding `%p` instead of switching to the 24-hour code."

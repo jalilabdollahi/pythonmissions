@@ -1,0 +1,28 @@
+title: Which Node Has Room
+category: Builtins
+difficulty: 1
+xp: 100
+story: |
+  The scheduler at Orbit Compute is supposed to place new jobs on the node with the most free memory.
+  Every job lands on node "worker-9" no matter how busy it is, and its owners have started to complain about out-of-memory kills.
+description: |
+  placement.py picks nodes from a `{node_name: free_mb}` dict.
+
+  - `most_free_node(free_mb)` returns the name of the node with the most free memory, or `None` for an empty dict.
+  - `least_free_node(free_mb)` returns the name with the least free memory, or `None`.
+  - `pick_for_job(free_mb, needed_mb)` returns the node with the most free memory if it has at least `needed_mb`, otherwise `None`.
+
+  There are 2 bugs.
+hints:
+  - |
+    Compare the returned node with the numbers in the dict. Is the winner chosen by its name or by its value?
+  - |
+    `max()` and `min()` on a dict look at the keys. They accept a `key=` argument that decides what is compared.
+  - |
+    Use `max(free_mb, key=free_mb.get)`, and the same for `min`.
+tags: [builtins, max, min, dict]
+lesson: |
+  Iterating a dict yields its keys, so `max(d)` returns the alphabetically largest name rather than the entry with the biggest value. The `key=` argument tells `max`, `min` and `sorted` what to compare: `max(d, key=d.get)` returns the key whose value is largest. This one idiom answers a huge number of ops questions such as busiest host, slowest endpoint or emptiest disk.
+mistakes:
+  - "Using `max(free_mb.values())`, which returns the number and loses the node name."
+  - "Fixing max but leaving min as it was, so the least-free query is still alphabetical."

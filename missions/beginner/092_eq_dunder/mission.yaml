@@ -1,0 +1,29 @@
+title: Duplicate Endpoint Check
+category: Classes
+difficulty: 2
+xp: 100
+story: |
+  The service-registry sync at Bluebird Mobility keeps adding the same endpoint again and again because its duplicate check never matches.
+  Two Endpoint objects with identical host and port compare as different, so the registry has grown to thousands of copies.
+description: |
+  registry.py defines `Endpoint(host, port)`.
+
+  - Two endpoints with the same host and port are equal; any other pair is not.
+  - Equal endpoints can be used as set members and dict keys, so a set of them collapses duplicates.
+  - `register(registry, endpoint)` appends the endpoint to the list only if an equal one is not already there and returns True if it was added.
+  - `unique(endpoints)` returns the endpoints without duplicates, keeping first-seen order.
+
+  There is 1 bug.
+hints:
+  - |
+    Compare two separately created but identical endpoints with `==` and with `in`.
+  - |
+    By default, objects are equal only when they are the very same object. A special method changes that.
+  - |
+    Implement `__eq__` comparing host and port, and remember to also define `__hash__` consistently.
+tags: [classes, dunder, eq, hash]
+lesson: |
+  Without `__eq__`, Python falls back to identity, so two objects with identical data are "different". Defining `__eq__` teaches `==`, `in` and `list.index` what equal means for your type. Because objects that compare equal must hash equal, define `__hash__` as well (for example `hash((host, port))`), otherwise the objects cannot be used in sets or as dict keys. Return `NotImplemented` for other types.
+mistakes:
+  - "Defining `__eq__` only, which makes the class unhashable so set() raises TypeError."
+  - "Comparing with `is`, which is the same identity check as the default."

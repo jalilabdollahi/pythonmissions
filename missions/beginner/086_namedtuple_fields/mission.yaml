@@ -1,0 +1,29 @@
+title: Backup Catalogue Fields
+category: Collections
+difficulty: 2
+xp: 100
+story: |
+  The nightly backup catalogue at Ironvale Storage stores each backup as a namedtuple.
+  After a field was added in the middle of the tuple last sprint, the "total size" report began showing timestamps in gigabytes, and the staleness check crashes.
+description: |
+  catalogue.py defines `Backup = namedtuple("Backup", "name host created_day size_gb ok")`.
+
+  - `total_size_gb(backups)` returns the sum of `size_gb` for every backup.
+  - `failed_hosts(backups)` returns the sorted, de-duplicated hosts of backups where `ok` is False.
+  - `oldest(backups)` returns the name of the backup with the smallest `created_day`, or `None`.
+  - `stale(backups, today)` returns names of backups older than 7 days relative to `today` (an integer day number), sorted.
+
+  There are 2 bugs.
+hints:
+  - |
+    One report returns nonsense numbers and another raises an AttributeError. Both read fields of a Backup.
+  - |
+    A namedtuple field can be read by name, and a position-based read breaks when the field order changes. Also check the exact spelling of each field.
+  - |
+    Use `b.size_gb` instead of `b[2]`, and `b.created_day` rather than a field that does not exist.
+tags: [collections, namedtuple, fields]
+lesson: |
+  A namedtuple gives each position a name, so `b.size_gb` always means the same thing even if the field list is reordered. Indexing like `b[2]` works only until someone inserts a field, and then it silently reads a different column. Misspelled names fail loudly with AttributeError, which is a feature. Prefer names everywhere and keep indexes for generic tuple code.
+mistakes:
+  - "Fixing the index to the right number today instead of switching to the field name."
+  - "Adding the missing attribute to the namedtuple definition instead of using the real field."

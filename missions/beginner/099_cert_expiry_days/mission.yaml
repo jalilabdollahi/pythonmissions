@@ -1,0 +1,29 @@
+title: Days Until the Cert Dies
+category: Dates
+difficulty: 2
+xp: 100
+story: |
+  The certificate watcher at Larkspur Payments told nobody that the checkout domain's TLS certificate had 40 days left, then 12 days left, then expired.
+  Its report always claimed "0 days remaining" for anything more than a day away, so the warning threshold never triggered until the last day.
+description: |
+  certwatch.py takes expiry datetimes and a fixed `now` datetime (naive UTC) so results are repeatable.
+
+  - `days_left(expires, now)` returns the number of whole days remaining (negative once expired).
+  - `hours_left(expires, now)` returns the total hours remaining as a float.
+  - `expiring_soon(certs, now, warn_days)` returns sorted names of certs with `days_left <= warn_days`.
+  - `report(certs, now, warn_days)` returns lines like `shop.example.com: 12 days`.
+
+  There are 2 bugs.
+hints:
+  - |
+    Compare the day count for a certificate 40 days out with the one for a certificate 10 hours out.
+  - |
+    A timedelta stores days, seconds and microseconds as separate parts. `.seconds` is only the leftover part below one day.
+  - |
+    Use `.days` for whole days and `.total_seconds()` for the total length of the delta.
+tags: [dates, timedelta, total_seconds, certificates]
+lesson: |
+  A `timedelta` is stored as `days`, `seconds` (0 to 86399) and `microseconds`. So `timedelta(days=40, hours=3).seconds` is 10800, not 3.5 million, and dividing it by 86400 gives 0. `.days` returns the whole days, and `.total_seconds()` returns the full duration, which you can divide by 3600 for hours. This mistake is behind many "alert fired one day too late" incidents with certificates and backups.
+mistakes:
+  - "Using `.seconds // 86400`, which is always 0."
+  - "Dividing `.days` by 24 to get hours, losing the partial day."

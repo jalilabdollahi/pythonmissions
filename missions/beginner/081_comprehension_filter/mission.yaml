@@ -1,0 +1,29 @@
+title: Stopped Containers Cleanup
+category: Comprehensions
+difficulty: 1
+xp: 100
+story: |
+  A disk-space alert fired on the build farm at Granite CI during a release freeze.
+  The cleanup job is meant to list exited containers for removal, but the report lists the live ones, and nobody dares run it.
+description: |
+  cleanup.py works with container dicts like `{"name": "web", "state": "running", "age_hours": 3}`.
+
+  - `running_names(containers)` returns the names of containers whose state is `"running"`.
+  - `stopped_names(containers)` returns the names of containers that are NOT running.
+  - `removable(containers, min_age_hours)` returns names of non-running containers that are at least `min_age_hours` old.
+  - `cleanup_plan(containers, min_age_hours)` returns a list of `"docker rm <name>"` strings for the removable ones.
+
+  There are 2 bugs.
+hints:
+  - |
+    Compare the output of the stopped and removable lists to the input. Which condition decides what stays in?
+  - |
+    A comprehension's `if` keeps the items for which the condition is true. Read it as "keep the ones where...".
+  - |
+    Keep stopped containers with `if c["state"] != "running"`. Check the age comparison direction in `removable` as well.
+tags: [comprehensions, filtering, containers]
+lesson: |
+  The `if` at the end of a list comprehension is a keep-filter: only items where the condition is true end up in the result. Inverting it, or comparing in the wrong direction, produces a plausible-looking list that contains exactly the wrong items. For destructive tasks like cleanups, always test the filter with one item that should stay and one that should go, and print the plan before running it.
+mistakes:
+  - "Deleting the `if` and filtering later in a second loop, which just moves the same inverted condition."
+  - "Using `!= \"stopped\"` when the state could be `exited`, `created` or `dead` as well."

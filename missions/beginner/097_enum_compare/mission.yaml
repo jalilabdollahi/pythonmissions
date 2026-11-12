@@ -1,0 +1,29 @@
+title: Alert Levels as Enum
+category: Classes
+difficulty: 2
+xp: 100
+story: |
+  The paging service at Meridian Health moved its severity levels into an Enum, but incoming webhook payloads still carry plain strings like `"error"`.
+  Since the change nobody gets paged for errors, and the JSON sent to the chat tool contains odd `Level.ERROR` text.
+description: |
+  alerts.py defines `Level` as an Enum with values `"debug"`, `"warn"` and `"error"`.
+
+  - `parse_level(text)` converts a raw string into the matching `Level` member, raising `ValueError` for unknown text.
+  - `should_page(raw_level)` takes a raw string and is True only for the `error` level.
+  - `to_wire(level)` takes a `Level` member and returns its plain string value for JSON payloads.
+  - `most_severe(raw_levels)` takes raw strings and returns the most severe `Level` (order: debug, warn, error), or `None`.
+
+  There are 2 bugs.
+hints:
+  - |
+    Check what `"error" == Level.ERROR` evaluates to, and what `str(Level.ERROR)` looks like.
+  - |
+    Enum members are not strings. Use the value to leave the enum and the constructor with a value to enter it.
+  - |
+    `Level(raw)` looks a member up by value; `level.value` gives the plain string back.
+tags: [classes, enum, comparison]
+lesson: |
+  A plain Enum member never equals its raw value: `Level.ERROR == "error"` is False because they are different types. Convert at the boundary: `Level("error")` turns incoming text into a member (and raises ValueError for unknown text), and `.value` turns a member back into the string you serialize. Inside the program, compare members with members. Doing the conversion once at the edge avoids comparisons that silently never match.
+mistakes:
+  - "Comparing `raw == Level.ERROR.name`, which only works while names and values happen to match."
+  - "Using `str(level)` for JSON, which gives `Level.ERROR`."

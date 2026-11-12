@@ -1,0 +1,29 @@
+title: Is the Cluster Healthy
+category: Builtins
+difficulty: 2
+xp: 100
+story: |
+  During a Friday release at Pinecone Streaming, the status page said "healthy" while two of five cache nodes were down, and then "degraded" for a cluster where every node was fine.
+  The health summary uses any() and all(), and someone swapped them.
+description: |
+  cluster_health.py classifies a cluster from a list of node dicts such as `{"name": "c1", "up": True}`.
+
+  - `cluster_healthy(nodes)` is True only when EVERY node is up.
+  - `cluster_degraded(nodes)` is True when AT LEAST ONE node is down.
+  - `cluster_down(nodes)` is True when no node is up (an empty cluster counts as down).
+  - `status(nodes)` returns `"down"`, `"degraded"` or `"healthy"`, checked in that order.
+
+  There are 2 bugs.
+hints:
+  - |
+    Try a cluster with exactly one node down and one with no nodes down. Which answers look inverted?
+  - |
+    `any()` means at least one item is true, `all()` means every item is true. Match each function to its sentence.
+  - |
+    Healthy needs `all(n["up"] ...)`; degraded needs `any(not n["up"] ...)`.
+tags: [builtins, any, all, boolean-logic]
+lesson: |
+  `all(x)` is True when every element passes, while `any(x)` is True when at least one passes. They are not interchangeable: swapping them turns "all nodes up" into "some node up", so a half-dead cluster reports green. Say the requirement out loud in plain words ("every node", "at least one") and pick the builtin that matches. Remember that `all([])` is True and `any([])` is False, so decide how empty input should behave.
+mistakes:
+  - "Negating the whole result instead of choosing the right builtin, which breaks the empty-list case."
+  - "Writing `any(n['up'] for n in nodes)` for degraded, which is true for any cluster that has a single live node."
