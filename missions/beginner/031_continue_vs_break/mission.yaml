@@ -1,0 +1,30 @@
+title: Comments Cut the Config
+category: Loops
+difficulty: 1
+xp: 100
+story: |
+  Feature flags for the Marigold storefront live in a plain `KEY=VALUE` file that
+  the on-call engineer annotated with comments during a sale. Right after the file
+  was reloaded, checkout started behaving as if half the flags did not exist.
+description: |
+  `load_flags(text)` parses multi-line `KEY=VALUE` text into a dict. Blank lines and
+  lines starting with `#` are skipped, and parsing continues with the next line.
+  Whitespace around keys and values is stripped. `enabled_flags(flags)` returns the
+  sorted names whose value is `"on"`.
+  There is 1 bug.
+hints:
+  - |
+    Find the first flag that is missing and look at the line just before it in the sample file.
+  - |
+    `break` leaves the whole loop; `continue` only skips the rest of the current iteration.
+  - |
+    A comment should skip that one line and carry on: use `continue`.
+tags: [loops, continue, break, config]
+lesson: |
+  Inside a loop, `continue` abandons the current iteration and moves to the next item,
+  while `break` abandons the loop entirely. When you filter out lines you do not want
+  (comments, blanks, headers), you want `continue`. Using `break` silently truncates the
+  data from that point on, which is hard to notice because nothing crashes.
+mistakes:
+  - Replacing break with pass, which does not skip the comment line and then fails to parse it.
+  - Filtering comments out after the loop instead of skipping them while reading.

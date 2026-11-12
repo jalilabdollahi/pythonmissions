@@ -1,0 +1,32 @@
+title: Terror in the Logs
+category: Logic
+difficulty: 2
+xp: 100
+story: |
+  Nightwatch, the alerting pipeline at Basalt Cloud, pages a human for every log
+  record at severity `error` or `critical`. Last week it paged someone at 3 a.m.
+  because a game server logged a harmless message with the level `"terror_mode"`, and
+  the on-call engineer is not amused.
+description: |
+  `is_severe(level)` returns `True` only when the level, compared case-insensitively,
+  is exactly one of `error`, `critical` or `fatal`. `severe_records(records)` filters
+  `(level, message)` tuples down to the severe ones. Levels like `"stderr"` or
+  `"terror_mode"` are not severe.
+  There is 1 bug.
+hints:
+  - |
+    Try `is_severe("terror_mode")` and `is_severe("critical")`.
+  - |
+    The `in` operator on a string tests for a substring, not for equality.
+  - |
+    Define a set of severe level names and test `level.lower() in SEVERE_LEVELS`.
+tags: [logic, in-operator, substring, sets]
+lesson: |
+  `"err" in level` asks whether the text contains those letters anywhere, so it matches
+  `error`, `stderr` and `terror`. When you mean "is one of these exact values", compare
+  against a set of whole words: `level.lower() in {"error", "critical"}`. Substring
+  checks are fine for searching free text, but dangerous for classifying
+  structured fields such as log levels, status codes or environment names.
+mistakes:
+  - Checking `level.startswith("err")`, which still accepts "errand" and misses "critical".
+  - Forgetting to normalise case, so "ERROR" is not recognised.

@@ -1,0 +1,31 @@
+title: Missing Optional Settings
+category: Files
+difficulty: 2
+xp: 100
+story: |
+  The small cron helper at Peregrine Freight reads an optional `local.json` for
+  per-machine overrides. Fresh servers do not have that file yet, and the helper
+  crashed on all of them. A previous quick fix also turned the shared defaults into
+  a mess, with one machine's overrides leaking into the next.
+description: |
+  `load_settings(path)` returns a dict of settings: the built-in `DEFAULTS` merged with
+  overrides from the JSON file at `path`. If the file does not exist the defaults are
+  returned. The `DEFAULTS` dict itself must never be modified.
+  There are 2 bugs.
+hints:
+  - |
+    Call `load_settings` with a path that does not exist. Then call it twice with different files and compare.
+  - |
+    A missing file raises `FileNotFoundError`; catch it or check with `os.path.exists`. And `settings = DEFAULTS` does not copy anything.
+  - |
+    Start from `dict(DEFAULTS)` (a copy) before calling `update`, and return that copy when the file is absent.
+tags: [files, defaults, exceptions, config]
+lesson: |
+  Optional files are normal in ops: a fresh host has no override file yet. Handle
+  `FileNotFoundError` explicitly and fall back to defaults, but let real errors such as bad
+  JSON still surface. When merging overrides, copy the defaults first, because
+  assigning a dict to another name only creates a second reference and `update()` would
+  change the shared original for every later caller.
+mistakes:
+  - Catching a bare `except:` which also hides invalid JSON and permission errors.
+  - Merging into DEFAULTS directly so the next call sees the previous machine's overrides.

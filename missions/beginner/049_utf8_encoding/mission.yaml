@@ -1,0 +1,32 @@
+title: Mojibake in the Changelog
+category: Files
+difficulty: 2
+xp: 100
+story: |
+  The release notes at Sunbeam Software contain arrows, accented names and a few
+  checkmarks. The notes tool crashed in the build container with a
+  `UnicodeDecodeError`, and the summary file it did write turned
+  into question marks on the website.
+description: |
+  `read_changelog(path)` returns the text of a UTF-8 changelog file.
+  `write_summary(path, entries)` writes one line per entry (with a trailing newline)
+  as UTF-8, so it can be read back by any UTF-8 reader. `entries` may contain
+  non-ASCII characters such as `→` and `é`.
+  There are 2 bugs.
+hints:
+  - |
+    Read the exception: which codec complains, and on which byte or character?
+  - |
+    `open()` takes an `encoding=` argument; ASCII cannot represent `é`, and Latin-1 cannot represent `→`.
+  - |
+    Both reading and writing should use `encoding="utf-8"`.
+tags: [files, encoding, utf-8, unicode]
+lesson: |
+  Text files are bytes on disk, and the encoding tells Python how to turn bytes into
+  characters. Pick the wrong codec and you get `UnicodeDecodeError` on read,
+  `UnicodeEncodeError` on write, or silent mojibake. Never rely on the platform default,
+  since it differs between your laptop and the CI container. Say `encoding="utf-8"`
+  explicitly every time you open a text file.
+mistakes:
+  - Adding errors="ignore" or errors="replace", which hides the problem and corrupts text.
+  - Using the same wrong encoding for writing that was used for reading.

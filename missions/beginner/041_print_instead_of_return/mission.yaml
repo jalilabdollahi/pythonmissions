@@ -1,0 +1,30 @@
+title: Printed But Never Returned
+category: Functions
+difficulty: 2
+xp: 100
+story: |
+  A new internal CLI at Kestrel Observability builds the URLs of metrics endpoints
+  for a health sweep. The sweep reported "0 endpoints reachable" for every service,
+  and the logs showed the URLs flying past on the console instead of being used.
+description: |
+  `build_url(host, path, params=None)` returns an `https://` URL string with the path
+  joined by a single slash and the parameters URL-encoded in a query string.
+  `sweep_urls(hosts, path)` returns one URL per host.
+  There are 2 bugs.
+hints:
+  - |
+    Call `build_url` in a shell and look at its return value.
+  - |
+    `print` shows a value to a human; `return` hands it to the calling code.
+  - |
+    Return the finished URL. Also check what happens when `path` already starts with a slash.
+tags: [functions, return, print, urls]
+lesson: |
+  `print` writes text to the console and returns `None`, so code that calls a helper to
+  get a value and receives `None` instead breaks later in confusing ways. Helpers
+  should return values and leave printing to the outermost layer (the CLI), so they can be
+  reused and tested. Joining URL pieces is a close cousin of this bug: strip duplicate
+  slashes so `host + "/" + path` does not turn into `//`.
+mistakes:
+  - Keeping the print and also adding a global variable to smuggle the URL out.
+  - Fixing the return value but leaving a double slash in URLs built from paths like "/metrics".

@@ -1,0 +1,30 @@
+title: Release Countdown Blank
+category: Loops
+difficulty: 1
+xp: 100
+story: |
+  Release day at Pinecone Games: the deploy bot is supposed to post a countdown in
+  the team channel before it flips traffic to the new build. This time the channel
+  stayed silent and traffic flipped with no warning to the support desk.
+description: |
+  `countdown_messages(seconds)` returns a list of strings `"T-<n>"` counting down from
+  `seconds` to 1 (so `3` gives `["T-3", "T-2", "T-1"]`) followed by the final
+  message `"GO"`. `announce(seconds, post)` sends each message through `post` and
+  returns how many were sent.
+  There is 1 bug.
+hints:
+  - |
+    Print what `countdown_messages(5)` returns. Is it empty?
+  - |
+    `range(a, b)` counts upward by 1 by default, so it is empty when a is larger than b.
+  - |
+    To count down you need a negative step: `range(seconds, 0, -1)`.
+tags: [loops, range, countdown, deploy]
+lesson: |
+  `range(start, stop)` always steps by +1 unless you pass a third argument. When
+  `start` is bigger than `stop` the range is simply empty and the loop body never runs, with
+  no error to warn you. Counting down needs a negative step, `range(10, 0, -1)`, and the
+  `stop` value is still excluded. Empty-loop bugs are quiet, so test the boundaries.
+mistakes:
+  - Using reversed(range(seconds)), which counts from seconds-1 down to 0 and is off by one.
+  - Changing the stop value to -1, which adds a T-0 message nobody asked for.

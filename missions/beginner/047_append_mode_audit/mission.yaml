@@ -1,0 +1,30 @@
+title: Audit Trail Overwritten
+category: Files
+difficulty: 1
+xp: 100
+story: |
+  Auditors at Vantage Pharma asked for the full history of who restarted the
+  production batch scheduler. The audit file held exactly one entry, the most recent
+  one. Every earlier restart had been wiped, which is a finding in itself.
+description: |
+  `record_action(path, user, action)` adds one line `"<user> <action>"` to the audit
+  log, always ending with a newline, and keeps every earlier line. `history(path)`
+  returns all entries as a list of strings (empty if the file does not exist yet).
+  There are 2 bugs.
+hints:
+  - |
+    Call `record_action` twice and open the file to see what remains.
+  - |
+    The mode string passed to `open` decides whether existing content is kept: `"r"`, `"w"`, `"a"`.
+  - |
+    `"w"` truncates the file; `"a"` appends. Also make sure every entry ends with `\n`.
+tags: [files, append, open-modes, audit]
+lesson: |
+  `open(path, "w")` truncates the file the moment it opens, destroying what was there,
+  while `open(path, "a")` positions at the end and adds. Logs and audit trails must always
+  be opened for appending. And since `write` adds exactly the characters you give it,
+  each record needs its own trailing newline or consecutive entries run together
+  on a single line.
+mistakes:
+  - Reading the old content and rewriting it in "w" mode, which risks data loss if the process dies mid-write.
+  - Adding the newline when reading instead of when writing.

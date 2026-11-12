@@ -1,0 +1,32 @@
+title: One Line of the Log
+category: Files
+difficulty: 1
+xp: 100
+story: |
+  The nginx error log at Larkspur Media is summarised each morning for the
+  engineering stand-up. The summary has been announcing "0 errors, 1 line" for a log
+  that is megabytes long, and the team has stopped trusting it.
+description: |
+  `summarize_log(path)` reads a UTF-8 log file and returns a tuple
+  `(total_lines, error_lines)` where an error line contains the word `ERROR`.
+  `last_lines(path, count)` returns the final `count` lines without trailing
+  newlines.
+  There is 1 bug.
+hints:
+  - |
+    Compare the total reported with the number of lines in the file.
+  - |
+    `readline()` returns a single line (as a string), not all of them.
+  - |
+    `readlines()` returns a list with every line; `read().splitlines()` also works.
+tags: [files, readline, readlines, logs]
+lesson: |
+  File objects offer several readers. `readline()` returns one line as a string,
+  `readlines()` returns a list of all lines, and iterating over the file yields lines
+  lazily. Calling `readline()` once and then treating the result as a list
+  iterates over characters of that first line, which gives plausible-looking but
+  meaningless numbers. For big logs, iterate over the file directly instead of loading
+  everything.
+mistakes:
+  - Calling readline() twice, which only reads two lines.
+  - Counting len() of the string returned by readline(), which counts characters.

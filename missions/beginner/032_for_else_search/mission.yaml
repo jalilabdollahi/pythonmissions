@@ -1,0 +1,32 @@
+title: No Free Port Found
+category: Loops
+difficulty: 2
+xp: 100
+story: |
+  Preview environments at Lumen Labs each grab a TCP port from a reserved range.
+  Yesterday the allocator handed two review apps the same port, and a third app
+  that should have gotten the last port in the range was told the range was full.
+description: |
+  `first_free_port(start, end, in_use)` returns the lowest port between `start` and
+  `end` (both included) that is not in the collection `in_use`. If every port in
+  the range is taken it raises `RuntimeError("no free port ...")`. The search uses a
+  `for ... else` loop. `allocate(start, end, in_use)` returns the port and the updated
+  set of ports in use.
+  There are 2 bugs.
+hints:
+  - |
+    Check which port is returned when the first one is already taken, and when only the last port is free.
+  - |
+    The `else` of a `for` loop runs only when the loop finished without hitting `break`. `range(a, b)` excludes `b`.
+  - |
+    `break` must fire when you have found a free port (`not in in_use`), and the range must go up to `end + 1`.
+tags: [loops, for-else, ports, range]
+lesson: |
+  A `for ... else` block runs its `else` part only if the loop was never interrupted by
+  `break`, which makes it a neat "searched everything, found nothing" branch. That
+  means the `break` has to sit on the success condition; inverting it makes the failure
+  branch fire when you succeed. Remember too that `range(start, end)` stops before
+  `end`, so inclusive ranges need `end + 1`.
+mistakes:
+  - Putting the raise inside the loop body, which fails on the first busy port.
+  - Fixing the break condition but leaving the range exclusive, so the last port can never be used.

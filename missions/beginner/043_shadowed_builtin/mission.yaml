@@ -1,0 +1,32 @@
+title: Builtins Under Disguise
+category: Functions
+difficulty: 2
+xp: 100
+story: |
+  The capacity-planning scripts at Moss Hill Data summarise pipeline runtimes. One
+  report generator was tidied up by a new hire who used short, friendly variable
+  names such as `list` and `max`. The next run died with `TypeError: 'list' object is
+  not callable`.
+description: |
+  `slowest_pipelines(timings, top_n)` takes `{pipeline: [seconds, ...]}` and returns
+  the names of the `top_n` pipelines with the largest total runtime, slowest first.
+  `name_column_width(timings)` returns the length of the longest pipeline name (0 for
+  no pipelines).
+  There are 2 bugs.
+hints:
+  - |
+    Read the traceback: what is being called, and what did that name become earlier in the function?
+  - |
+    Assigning to `list` or `max` hides the builtin of the same name for the rest of the function.
+  - |
+    Rename the local variables (for example `totals` and `widest`) so `list()` and `max()` still work.
+tags: [functions, builtins, shadowing, naming]
+lesson: |
+  Python looks names up in the local scope first, then enclosing scopes, then the
+  builtins. If you assign `list = []` or `max = 0` you hide the builtins of those names for
+  the rest of that scope, and later calls like `list(x)` or `max(x)` hit your variable
+  instead and fail. The fix is to pick descriptive names. Linters flag shadowed builtins
+  for exactly this reason.
+mistakes:
+  - Deleting the variable with `del list`, which is fragile and obscures intent.
+  - Importing builtins to get the original back instead of renaming the variable.

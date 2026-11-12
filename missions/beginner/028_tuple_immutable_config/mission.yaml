@@ -1,0 +1,31 @@
+title: Frozen Launch Flags
+category: Tuples
+difficulty: 1
+xp: 100
+story: |
+  The Quill queue workers start with a fixed set of command-line flags kept in a
+  tuple, so nobody can change them by accident. During a noisy-logs incident an
+  engineer added helpers to build variants of the flags, and now every worker boot
+  in staging crashes before it even connects.
+description: |
+  `BASE_ARGS` is an immutable tuple of launch flags. `with_extra_args(base, extra)`
+  returns a new tuple with the extra flags added at the end. `quiet_variant(base)`
+  returns a new tuple where the value after `--log-level` is `"error"`. Neither
+  function may change `BASE_ARGS` itself.
+  There are 2 bugs.
+hints:
+  - |
+    Read the exception type in the traceback: tuples refuse some operations lists allow.
+  - |
+    Tuples have no `append`/`extend` and do not support item assignment. To "change" one, build a new one.
+  - |
+    Convert with `list(base)`, edit the list, then return `tuple(...)`. Or concatenate tuples with `+`.
+tags: [tuples, immutability, config, cli]
+lesson: |
+  Tuples are immutable: you cannot append, extend or assign to an index. That is a
+  feature for configuration defaults, because no function can silently alter them. When
+  you need a variant, copy into a list (`list(t)`), edit the copy, and convert back with
+  `tuple(...)`, or concatenate with `t + (x,)`. The original stays intact for the next caller.
+mistakes:
+  - Changing BASE_ARGS into a list; that makes it mutable and removes the safety the tuple gave.
+  - Editing a list that is an alias of the original, which would break callers that share the data.

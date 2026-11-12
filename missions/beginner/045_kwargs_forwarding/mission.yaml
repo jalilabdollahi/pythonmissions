@@ -1,0 +1,31 @@
+title: Options Lost in the Wrapper
+category: Functions
+difficulty: 2
+xp: 100
+story: |
+  Hawthorn Security wrapped its alert sender so every message carries an "[ops]"
+  prefix and every call is audited. Afterwards, drills with `dry_run=True` really paged
+  people and urgent alerts all arrived with the default low severity.
+description: |
+  `send_alert(channel, message, severity="info", dry_run=False)` is the core sender and
+  returns a dict describing what it did. `prefixed_alert(channel, message, **options)`
+  adds the `[ops] ` prefix and forwards all options. `with_audit(func)` is a decorator that records each call's name in an
+  `AUDIT` list and forwards every positional and keyword argument to `func`.
+  There are 2 bugs.
+hints:
+  - |
+    Call the wrapper with `severity="critical"` and look at what the core function received.
+  - |
+    A wrapper that accepts `**kwargs` must also pass them on, or they vanish.
+  - |
+    Forward with `send_alert(..., **options)` and `func(*args, **kwargs)`.
+tags: [functions, kwargs, decorators, forwarding]
+lesson: |
+  A wrapper that takes `*args` and `**kwargs` but calls the inner function without them
+  silently drops every option the caller supplied, and the inner function falls back to
+  its defaults. The wrapped function does not complain because the defaults are valid.
+  Always forward both with `func(*args, **kwargs)`, and test that options reach the
+  inner function. This matters for safety flags such as `dry_run`.
+mistakes:
+  - Hard-coding the known options (severity, dry_run) in the wrapper, which breaks as soon as a new option is added.
+  - Forwarding args but not kwargs in the decorator.

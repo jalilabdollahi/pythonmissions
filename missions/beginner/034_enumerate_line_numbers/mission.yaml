@@ -1,0 +1,29 @@
+title: Off-by-One Error Report
+category: Loops
+difficulty: 1
+xp: 100
+story: |
+  Engineers at Copperfield Logistics open the nightly error report in their editors
+  and jump to the reported line numbers. Every jump lands one line above the real
+  error, and a rookie spent an hour wondering why line 0 kept showing up.
+description: |
+  `error_report(lines)` scans a list of log lines and returns strings of the form
+  `"line <n>: <text>"` for lines containing `ERROR`, using 1-based line numbers like
+  editors do. `format_summary(lines)` returns `"<count> error(s)"`.
+  There is 1 bug.
+hints:
+  - |
+    Compare the first reported line number with where the error is in the file.
+  - |
+    `enumerate` starts counting at 0 by default.
+  - |
+    `enumerate(lines, start=1)` numbers the first line as 1.
+tags: [loops, enumerate, off-by-one, logs]
+lesson: |
+  `enumerate(iterable)` yields `(index, item)` pairs starting at 0, which suits list
+  indexing but not humans: editors, log tools and error messages count lines from 1.
+  Pass `start=1` rather than adding `+ 1` in several places. Off-by-one mistakes in
+  reports are costly because they send people to the wrong place during an incident.
+mistakes:
+  - Adding 1 to the line number in the summary only and leaving the report wrong.
+  - Using range(len(lines)) and forgetting the offset.
