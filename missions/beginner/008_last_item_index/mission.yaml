@@ -1,0 +1,29 @@
+title: Newest Backup
+category: Lists
+difficulty: 1
+xp: 100
+story: |
+  At Tidewater Storage the nightly restore test always starts from the newest backup.
+  Last night the restore job died with an IndexError, and on the fresh cluster with no backups yet it died differently.
+  Backups are listed oldest first.
+description: |
+  backups.py picks backups from a list ordered oldest to newest.
+
+  - `newest_backup(backups)` returns the last item, or `None` when the list is empty.
+  - `oldest_backup(backups)` returns the first item, or `None` when empty.
+  - `restore_plan(backups)` returns a message such as `"restore from db-03.tar"` or `"no backups available"`.
+
+  There is 1 bug.
+hints:
+  - |
+    Index values start at 0, so a list of length n has valid indexes 0 to n-1.
+  - |
+    Negative indexes count from the end: -1 is the last item. Also remember an empty list has no last item.
+  - |
+    Return `backups[-1]` when the list is not empty, otherwise `None`.
+tags: [lists, indexing, indexerror]
+lesson: |
+  A list of length n only has indexes 0 through n-1, so `items[len(items)]` always raises IndexError. Python offers negative indexes: `items[-1]` is the last element no matter the length. That still fails for an empty list, so decide explicitly what an empty list should mean (here `None`) before you index.
+mistakes:
+  - "Using backups[len(backups) - 1] and forgetting the empty-list case."
+  - "Catching IndexError for every list instead of checking for emptiness."

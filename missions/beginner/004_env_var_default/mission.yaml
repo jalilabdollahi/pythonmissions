@@ -1,0 +1,28 @@
+title: Optional Setting Crash
+category: Environment
+difficulty: 1
+xp: 100
+story: |
+  The Harbor Lights billing worker reads its configuration from environment variables.
+  A new staging cluster was created without the optional RETENTION_DAYS variable and the worker died on boot with a KeyError.
+  Only REGION is mandatory; everything else must have a sensible default.
+description: |
+  settings.py loads worker configuration from a mapping (normally os.environ).
+
+  - `load_settings(env)` returns a dict with `region` (required: a missing REGION must still raise KeyError), `retention_days` (default `"7"`) and `notify_email` (default `""`).
+  - `describe(settings)` renders a short text summary.
+
+  There is 1 bug.
+hints:
+  - |
+    Which key is missing in the failing test, and is that variable actually required?
+  - |
+    Indexing with `env["X"]` raises KeyError when missing. Dictionaries have a method that accepts a fallback.
+  - |
+    Use `env.get("RETENTION_DAYS", "7")` for the optional settings but keep `env["REGION"]` for the required one.
+tags: [environment, dict, defaults]
+lesson: |
+  Environment variables are optional by nature, so reading them with `env["NAME"]` turns every missing variable into a crash. Use `.get(name, default)` for settings that have a sensible default, and keep square brackets for the ones that must exist so a typo fails loudly at startup instead of later. Deciding which settings are required and which are optional is part of designing a twelve-factor service.
+mistakes:
+  - "Wrapping everything in try/except KeyError, which also hides the missing required REGION."
+  - "Using .get() for REGION too, so a missing region silently becomes None."

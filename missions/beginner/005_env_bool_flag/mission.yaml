@@ -1,0 +1,28 @@
+title: The Flag That Never Turns Off
+category: Environment
+difficulty: 2
+xp: 100
+story: |
+  Nightingale Health runs a notification service in three environments.
+  An engineer set DEBUG=false in production to quiet the logs, yet the service kept printing verbose payloads, including patient ids.
+  The flag parser is the suspect.
+description: |
+  flags.py turns environment variables into booleans.
+
+  - `flag_enabled(env, name)` is True for the values `1`, `true`, `yes`, `on` in any letter case (surrounding spaces are ignored) and False for anything else, including a missing variable.
+  - `enabled_flags(env, names)` returns the list of names that are on, in the order given.
+
+  There is 1 bug.
+hints:
+  - |
+    Test what happens for DEBUG="false" and DEBUG="0". Which strings count as True in Python?
+  - |
+    Every non-empty string is truthy, so `bool("false")` is True. You have to compare against known true spellings.
+  - |
+    Normalize with `.strip().lower()` and test membership in a set such as `{"1", "true", "yes", "on"}`.
+tags: [environment, booleans, parsing]
+lesson: |
+  Environment variables are always strings, and in Python every non-empty string is truthy, so `bool("false")` and `bool("0")` are both True. Parse flags explicitly: normalize the text with `strip().lower()` and check it against a set of accepted true values. Anything else, including a missing variable, is off, which is the safe default for debug and dangerous features.
+mistakes:
+  - "Using bool(value) or `if value:` on the raw string."
+  - "Only checking for the exact string \"true\", so TRUE, yes and 1 stop working."

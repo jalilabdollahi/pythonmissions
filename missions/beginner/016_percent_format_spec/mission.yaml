@@ -1,0 +1,29 @@
+title: Percent Without The Percent
+category: Formatting
+difficulty: 1
+xp: 100
+story: |
+  The weekly capacity email at Orbit Telecom lists disk fill levels for each storage pool.
+  Managers have been confused: a pool at 87.5 percent is printed as "0.9" with no unit, and a third full pool shows as "0.3".
+  The numbers are right, the formatting is not.
+description: |
+  fillreport.py renders disk usage.
+
+  - `fill_label(used, total)` returns the fill ratio as a percentage with exactly one decimal and a percent sign, for example `"87.5%"` or `"33.3%"`.
+  - `pool_line(name, used, total)` returns `"<name>: <label>"`.
+  - `report(pools)` takes `{name: (used, total)}` and returns lines sorted by pool name.
+
+  There is 1 bug.
+hints:
+  - |
+    Compare the printed text with the expected text character by character.
+  - |
+    Format specs have a percentage type. It multiplies by 100 and appends the sign for you.
+  - |
+    Use `f"{ratio:.1%}"`. The `.1` is the number of decimals and `%` is the type.
+tags: [formatting, f-strings, percent]
+lesson: |
+  Format specs after the colon in an f-string control presentation: `{x:.1f}` is fixed point with one decimal, and `{x:.1%}` multiplies by 100, rounds to one decimal and appends a percent sign. A spec with only a precision, like `.1`, means "one significant digit", which is why 0.875 turned into 0.9. Letting the formatter do the work avoids hand-multiplying by 100 and forgetting the unit.
+mistakes:
+  - "Multiplying by 100 yourself and then also using the % type, which gives 8750.0%."
+  - "Using :.1f, which prints 0.9 and still has no percent sign."

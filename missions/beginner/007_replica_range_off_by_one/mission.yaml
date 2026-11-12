@@ -1,0 +1,28 @@
+title: The Missing Replica
+category: Loops
+difficulty: 1
+xp: 100
+story: |
+  Quarry Analytics scales a stateful database in lockstep with a naming scheme: replicas are called app-1 through app-N.
+  During a failover drill the runbook said to promote replica 5 of 5, but the generator never produced that name.
+  The inventory tool is off by one.
+description: |
+  replicas.py generates replica names.
+
+  - `replica_names(app, count)` returns `["<app>-1", ..., "<app>-<count>"]`, numbered from 1 and inclusive of `count`. Zero replicas gives an empty list.
+  - `promotion_order(app, count)` returns the same names with the highest number first.
+
+  There is 1 bug.
+hints:
+  - |
+    Ask for 3 replicas and compare the length of the result with 3.
+  - |
+    `range(a, b)` stops before b. The upper bound is exclusive.
+  - |
+    Use `range(1, count + 1)` so the last number is included.
+tags: [loops, range, off-by-one]
+lesson: |
+  `range(start, stop)` is half-open: it includes start and excludes stop, so `range(1, n)` produces only n-1 values. Off-by-one errors are the most common loop bug in operations scripts, and they tend to drop the very last server or the very last day. When names are 1-based, remember that stop must be `n + 1`.
+mistakes:
+  - "Switching to range(0, count), which fixes the length but gives wrong 0-based names."
+  - "Appending an extra name after the loop instead of correcting the range."

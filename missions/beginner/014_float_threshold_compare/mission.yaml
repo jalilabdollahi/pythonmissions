@@ -1,0 +1,29 @@
+title: Penny Drift
+category: Numbers
+difficulty: 2
+xp: 100
+story: |
+  Meridian Hosting reconciles disk usage per customer volume against the figure on the invoice.
+  The nightly reconciliation flags almost every customer as a mismatch even though the numbers look identical in the dashboard.
+  Usage is reported in GB with fractions, and it is summed from several volumes.
+description: |
+  reconcile.py compares measured usage with an invoice.
+
+  - `total_usage(volumes)` sums a list of GB values.
+  - `matches_invoice(volumes, invoiced)` is True when the total equals the invoiced figure, allowing for floating point error (use a tiny tolerance, not exact equality).
+  - `mismatches(customers)` takes `{name: (volumes, invoiced)}` and returns a sorted list of customer names that do not match.
+
+  There is 1 bug.
+hints:
+  - |
+    Open a Python shell and evaluate 0.1 + 0.2 == 0.3.
+  - |
+    Floats are binary approximations. Compare them with a tolerance, not with ==.
+  - |
+    `math.isclose(total, invoiced)` (optionally with abs_tol) handles this correctly.
+tags: [numbers, float, isclose]
+lesson: |
+  Most decimal fractions cannot be represented exactly in binary floating point, so `0.1 + 0.2` is 0.30000000000000004 and `== 0.3` is False. When you compare computed floats, use `math.isclose` or an explicit tolerance. For money, prefer `decimal.Decimal` or integer cents so there is nothing to approximate in the first place.
+mistakes:
+  - "Rounding both sides to 2 decimals, which still fails near rounding boundaries."
+  - "Using a huge tolerance such as 1.0 that hides real billing discrepancies."

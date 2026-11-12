@@ -1,0 +1,29 @@
+title: Listening Ports Report
+category: Dicts
+difficulty: 1
+xp: 100
+story: |
+  After a hardening sprint, Tern Networks prints a report of every service and the port it listens on, so auditors can compare it with the firewall.
+  The report script, which loops over a dict of service names and ports, now stops with a ValueError on its first line.
+  The loop used to iterate over a list of pairs.
+description: |
+  ports.py reports service ports.
+
+  - `listening_lines(ports)` takes `{service: port}` and returns `"<service>:<port>"` strings in sorted service order.
+  - `services_on_port(ports, wanted)` returns the sorted services listening on the wanted port.
+  - `highest_port(ports)` returns the `(service, port)` pair with the highest port, or `None` for an empty dict.
+
+  There is 1 bug.
+hints:
+  - |
+    Which line raises the ValueError, and what exactly is it trying to unpack?
+  - |
+    Looping directly over a dict gives you only its keys. A view method gives key and value pairs.
+  - |
+    Use `for service, port in ports.items():` (wrap with sorted() for ordering).
+tags: [dicts, items, unpacking]
+lesson: |
+  Iterating over a dictionary yields its keys, so `for service, port in ports:` tries to unpack each key string into two names and raises ValueError. Use `ports.items()` to get (key, value) pairs, `.keys()` for keys and `.values()` for values. Being explicit about which view you want makes loops over configuration and inventory dicts easier to read.
+mistakes:
+  - "Looping over keys and indexing inside the loop in one place but not the other."
+  - "Converting the dict to a list, which still only contains the keys."

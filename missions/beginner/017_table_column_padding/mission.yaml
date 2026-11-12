@@ -1,0 +1,28 @@
+title: Crooked Status Table
+category: Formatting
+difficulty: 2
+xp: 100
+story: |
+  The terminal dashboard at Pinecone Robotics prints a status table for the fleet service rack.
+  Since a recent edit, the table is a mess: service names hug the right edge of their column and uptimes are glued to the left, so nobody can scan the numbers.
+  Text columns should line up on the left and numbers on the right.
+description: |
+  table.py renders fixed-width rows.
+
+  - `render_row(name, status, uptime)` returns `name` left-aligned in 12 characters, a space, `status` left-aligned in 8, a space, then `uptime` (an int of hours) right-aligned in 6.
+  - `render_table(rows)` returns a header row (`SERVICE`, `STATE`, `HOURS`, formatted the same way) followed by one line per `(name, status, uptime)` tuple.
+
+  There are 2 bugs.
+hints:
+  - |
+    Print one row between two pipe characters and look at where the padding spaces end up.
+  - |
+    `ljust(n)` pads on the right (text stays left), `rjust(n)` pads on the left (text moves right).
+  - |
+    Names and states use `ljust`; numbers use `rjust` (and numbers must be converted with str first).
+tags: [formatting, ljust, rjust]
+lesson: |
+  `str.ljust(width)` keeps text at the left and pads spaces after it, while `rjust(width)` pushes text to the right. By convention, words are left-aligned and numbers are right-aligned so digits line up by place value. Fixed-width tables in logs and terminals depend on this, and swapping the two makes the output unreadable even though the data is correct.
+mistakes:
+  - "Padding with manual spaces computed from len(), which breaks as soon as the data changes."
+  - "Fixing the name column but leaving the number column left-aligned."

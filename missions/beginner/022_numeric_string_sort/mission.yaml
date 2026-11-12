@@ -1,0 +1,29 @@
+title: Build 10 Before Build 9
+category: Lists
+difficulty: 2
+xp: 100
+story: |
+  Ironwood Labs promotes whichever CI build is newest to the staging cluster.
+  Build numbers come out of the artifact store as text, and after the counter reached 100 the pipeline kept promoting build 99 as the "latest".
+  Release managers noticed that the list on the dashboard was also ordered strangely.
+description: |
+  builds.py orders CI build numbers given as strings.
+
+  - `ordered_builds(builds)` returns the build numbers sorted numerically, oldest first, as the original strings.
+  - `latest_build(builds)` returns the highest build number (a string), or `None` for an empty list.
+  - `builds_after(builds, last_deployed)` returns the builds newer than `last_deployed`, in numeric order.
+
+  There is 1 bug.
+hints:
+  - |
+    Sort ["9", "10", "100"] in a Python shell. What order do you get?
+  - |
+    Strings compare character by character, so "10" comes before "9". The sort needs to compare numbers.
+  - |
+    Pass `key=int` to sorted(). The items stay strings but are ordered by their integer value.
+tags: [lists, sorting, key]
+lesson: |
+  Sorting strings uses dictionary order: "10" sorts before "9" because "1" is less than "9". When the values mean numbers, tell sorted() how to compare them with `key=int` while keeping the original items. The same trap catches version numbers, port numbers read from text and dates written without zero-padding.
+mistakes:
+  - "Converting the list to ints and returning ints, which changes the type callers rely on."
+  - "Sorting by len(), which only works until the numbers have the same number of digits."

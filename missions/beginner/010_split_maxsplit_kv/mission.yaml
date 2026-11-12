@@ -1,0 +1,28 @@
+title: Equals Signs In Values
+category: Strings
+difficulty: 2
+xp: 100
+story: |
+  The platform team at Zephyr Logistics ships a tiny .env loader for their legacy batch jobs.
+  It worked for months, until a service was given DATABASE_URL with a query string containing extra "=" characters, and the whole job refused to start.
+  Comments and blank lines are already handled.
+description: |
+  envfile.py parses KEY=value text.
+
+  - `parse_line(line)` returns `(key, value)` for a `KEY=value` line, splitting only on the first `=`. Values may contain more `=` characters. Keys and values are stripped.
+  - `parse_env_text(text)` returns a dict for all lines, ignoring blank lines and lines starting with `#`.
+
+  There is 1 bug.
+hints:
+  - |
+    Feed the loader a line such as TOKEN=abc=def. What error do you see, and from which line of code?
+  - |
+    `str.split("=")` splits at every "=". It takes an optional second argument that limits the number of splits.
+  - |
+    Use `line.split("=", 1)` so only the first equals sign separates key from value.
+tags: [strings, split, parsing]
+lesson: |
+  `str.split(sep)` cuts at every occurrence of the separator, so a value that itself contains the separator produces too many pieces and unpacking fails with ValueError. Passing `maxsplit=1` (or using `partition`) says "only the first one is special". This matters for connection strings, base64 padding and URLs, all of which contain "=" in the value.
+mistakes:
+  - "Joining the extra pieces back together by hand instead of limiting the split."
+  - "Skipping lines that do not unpack into two parts, which silently drops valid configuration."

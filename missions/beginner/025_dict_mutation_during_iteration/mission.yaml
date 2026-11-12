@@ -1,0 +1,28 @@
+title: Expired Sessions Sweep
+category: Dicts
+difficulty: 2
+xp: 100
+story: |
+  The session store at Cinder Chat is cleaned by a small sweeper that deletes tokens past their expiry.
+  Since the store moved from a list to a dict, the sweeper crashes with "dictionary changed size during iteration" the first time anything has expired.
+  Users stay logged in forever in the meantime.
+description: |
+  sessions.py maintains an in-memory session store.
+
+  - `purge_expired(sessions, now)` deletes, in place, every token whose expiry timestamp is `<= now`, and returns how many were removed.
+  - `active_tokens(sessions, now)` returns the sorted tokens that have not expired.
+
+  There is 1 bug.
+hints:
+  - |
+    Which exception is raised, and what is the loop doing to the dict while it runs?
+  - |
+    You cannot add or delete keys of a dict while iterating over it. Iterate over a snapshot instead.
+  - |
+    Loop over `list(sessions.items())` and delete from the original dict.
+tags: [dicts, mutation, runtimeerror]
+lesson: |
+  Python refuses to resize a dictionary while you iterate over it and raises `RuntimeError: dictionary changed size during iteration`, because the iterator could skip or repeat entries. Take a snapshot with `list(d.items())`, or collect the keys to delete first and remove them after the loop. The same rule applies to sets, and it matters for every cache, session and lease cleanup job.
+mistakes:
+  - "Building a new dict and returning it, when callers expect the original dict to be cleaned in place."
+  - "Catching the RuntimeError and stopping the sweep after the first deletion."

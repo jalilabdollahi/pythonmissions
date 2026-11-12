@@ -1,0 +1,28 @@
+title: Identity Crisis In Prod
+category: Basics
+difficulty: 2
+xp: 100
+story: |
+  The change-advisory board at Granite Insurance requires a manual approval for any deployment to the protected environment.
+  Last Friday a release went straight to production with no approval.
+  The gate compares environment names read from a CLI argument, and it only blocked them sometimes.
+description: |
+  gate.py decides whether a deployment needs approval.
+
+  - `needs_approval(environment)` is True when the environment name, ignoring case and surrounding spaces, equals `prod`.
+  - `deploy_gate(environment)` returns `"manual approval required"` or `"auto deploy"`.
+
+  There is 1 bug.
+hints:
+  - |
+    Build the environment string at runtime (for example by joining pieces) and compare it. Does it equal "prod"?
+  - |
+    `is` checks whether two names point to the same object, not whether the text matches.
+  - |
+    Compare values with `==`. Reserve `is` for None, True and False.
+tags: [strings, identity, comparison]
+lesson: |
+  `==` asks whether two values are equal; `is` asks whether they are the very same object in memory. Short literal strings are often shared by CPython, so `is` appears to work in a quick test and then fails for text that came from a file, a CLI argument or `.lower()`. Use `==` to compare values and keep `is` for singletons such as `None`.
+mistakes:
+  - "Interning the string with sys.intern, which hides the problem rather than comparing values."
+  - "Replacing `is` with `in`, which also matches words like production-eu by accident."

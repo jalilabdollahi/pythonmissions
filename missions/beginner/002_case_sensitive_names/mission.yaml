@@ -1,0 +1,28 @@
+title: Hostname Mix-Up
+category: Basics
+difficulty: 1
+xp: 100
+story: |
+  Release day at Orchard Pay: the deploy bot is supposed to post a one-line summary to the release channel after each rollout.
+  The bot crashed right after the first deployment and nobody got a confirmation.
+  The author renamed a parameter halfway through the refactor.
+description: |
+  deploy_summary.py formats a message after a rollout.
+
+  - `deploy_summary(hostname, release, environment)` returns `"<release> deployed to <hostname> (<environment>)"` with the environment upper-cased.
+  - `summarize_all(hostnames, release, environment)` returns one summary per host.
+
+  There is 1 bug.
+hints:
+  - |
+    Read the exception name and message. Python tells you exactly which name it could not find.
+  - |
+    Python names are case sensitive: `hostname` and `Hostname` are two different identifiers.
+  - |
+    Use the same spelling as the function parameter everywhere in the function body.
+tags: [names, nameerror, basics]
+lesson: |
+  Identifiers in Python are case sensitive, so `Hostname` is not `hostname`, and using a name that was never assigned raises a NameError at runtime. The error only shows up when that line executes, which is why a typo in a rarely used code path can survive until release day. Read the NameError message, check the spelling against the parameters, and let an editor or linter such as pyflakes flag these before you ship.
+mistakes:
+  - "Defining a global called Hostname to silence the error instead of fixing the spelling."
+  - "Renaming the parameter in the signature, which breaks every caller that uses the keyword."

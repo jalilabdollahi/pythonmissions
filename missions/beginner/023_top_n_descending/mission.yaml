@@ -1,0 +1,27 @@
+title: Biggest CPU Hogs
+category: Lists
+difficulty: 2
+xp: 100
+story: |
+  An on-call page at Vireo Payments says a node is at 100% CPU, and the runbook says to look at the three busiest processes.
+  The triage helper prints the three quietest ones instead, which is how a runaway batch job stayed hidden for twenty minutes.
+description: |
+  triage.py reports the busiest processes.
+
+  - `top_cpu(usage, n=3)` takes `{process: cpu_percent}` and returns the names of the `n` highest consumers, highest first.
+  - `cpu_report(usage, n=3)` returns lines such as `"1. batch-export 97.5%"` for those processes.
+
+  There is 1 bug.
+hints:
+  - |
+    Compare the order of the output with the numbers in the test data.
+  - |
+    sorted() goes from smallest to largest by default. Think about how to flip that before you slice.
+  - |
+    Pass `reverse=True` to sorted(), then slice the first n items.
+tags: [lists, sorted, slicing]
+lesson: |
+  `sorted()` returns items in ascending order, so taking `[:n]` from it gives the n smallest values. For a top-N list use `reverse=True` first and slice afterward. Using a `key` function lets you sort dictionary entries by their value rather than by name, which is how most "top consumers" reports are built.
+mistakes:
+  - "Slicing with [-n:], which gives the right items but in ascending order."
+  - "Sorting by the process name instead of the value."

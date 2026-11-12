@@ -1,0 +1,29 @@
+title: Unlabeled Pods
+category: Dicts
+difficulty: 2
+xp: 100
+story: |
+  Cost review at Brightwater Retail: finance wants cloud spend grouped by owning team using the "team" label on every pod.
+  The report script crashes as soon as it meets a pod nobody labeled, so the whole report is blocked.
+  Unlabeled pods should show up under their own heading instead.
+description: |
+  ownership.py groups pods by team label.
+
+  - `team_of(pod)` returns `pod["labels"]["team"]`, or `"unowned"` when the pod has no team label. A pod may have an empty labels dict.
+  - `count_by_team(pods)` returns a dict of team name to number of pods.
+  - `unowned_pods(pods)` returns the names of pods that have no team label.
+
+  There is 1 bug.
+hints:
+  - |
+    Which pod makes the report crash? Look at its labels dict.
+  - |
+    Indexing a dict with a missing key raises KeyError. `dict.get(key, default)` never does.
+  - |
+    Use `pod["labels"].get("team", "unowned")` inside team_of.
+tags: [dicts, get, keyerror]
+lesson: |
+  Square-bracket access on a dict raises KeyError when the key is absent, which is what you want for mandatory data but a crash for optional metadata like labels and tags. `dict.get(key, default)` returns the fallback instead. Real clusters are full of half-labeled resources, so reporting code should always decide what a missing label means.
+mistakes:
+  - "Adding try/except around the whole loop, which drops every pod after the first unlabeled one."
+  - "Using .get(\"team\") without a default, which groups unlabeled pods under None."
