@@ -1,0 +1,30 @@
+title: Flatten The Tree
+category: Config
+difficulty: 3
+xp: 200
+story: |
+  Halcyon Metrics pushes configuration into a legacy agent that only understands flat `key=value` pairs.
+  The converter works for simple dicts, but when the ops team added a list of upstream hosts and an
+  empty `labels: {}` block, hosts vanished from the agent config and keys started with a stray dot.
+description: |
+  `flatten(data, prefix="", sep=".")` turns nested dicts and lists into a flat dict with dotted keys: list items use their
+  index (`upstreams.0`), top-level keys have no leading separator, and empty dicts or lists are kept as values
+  (`labels` -> `{}`) rather than disappearing. `to_env_lines(flat)` renders sorted `KEY=value` lines where the key is upper-cased
+  and dots become underscores. There are 3 bugs.
+hints:
+  - |
+    Hint 1: Flatten `{"ports": [80, 443], "labels": {}}` and print the result. Which keys exist, and does any start with a dot?
+  - |
+    Hint 2: Lists need to be walked with `enumerate`, empty containers must be returned as leaf values before looping, and the separator should only be added when there is already a prefix.
+  - |
+    Hint 3: Add `elif isinstance(data, list): items = enumerate(data)`, return `{prefix: data}` when `not data`, and build the name with `prefix + sep + str(key) if prefix else str(key)`.
+tags: [recursion, dict, list, flatten]
+lesson: |
+  Flattening is a small recursive walk, and each container type needs its own way to produce `(key, value)` pairs: dicts give their
+  items, lists give `enumerate`. Empty containers have no children, so a naive loop produces nothing and the key silently disappears;
+  treat them as leaves instead. Joining prefixes is a classic off-by-one: only add the separator when a prefix already exists.
+  When configuration is lossy converted to a flat format, missing keys fail at runtime on someone else's machine, so such
+  edge cases deserve explicit tests.
+mistakes:
+  - "Treating lists like scalars so their contents are never visited."
+  - "Stripping a leading '.' from every key after the fact instead of building keys correctly."

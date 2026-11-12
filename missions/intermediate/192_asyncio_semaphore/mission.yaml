@@ -1,0 +1,29 @@
+title: Polite Downloader
+category: Async
+difficulty: 4
+xp: 200
+story: |
+  The Linden mirror service fetches release artifacts from an upstream registry that bans clients using more than 4 connections. The
+  downloader has a `limit` option, yet the registry kept banning it. After one 404 the downloader also froze forever on small limits, and
+  passing `limit=0` made the whole job hang instead of failing fast.
+description: |
+  `fetch_all(urls, fetch, limit=3)` runs `await fetch(url)` for every URL concurrently but with at most `limit` fetches in flight at the same time.
+  It returns a list in the order of `urls` whose items are either the fetched value or the exception that fetch raised (one failure must not stop the others and
+  must not consume a slot forever). A `limit` below 1 raises `ValueError("limit must be at least 1")` immediately. `split_results(results)` returns `(values, errors)`.
+  There are 3 bugs.
+hints:
+  - |
+    Hint 1: Track how many fetches overlap using a fake fetch that increments a counter, yields with `await asyncio.sleep(0)` and decrements it. Then try one failing URL with `limit=1`, and `limit=0`.
+  - |
+    Hint 2: A semaphore limits concurrency only if all tasks share the same instance. Permits taken with `acquire()` must be returned even when the work raises. `Semaphore(0)` can never be acquired.
+  - |
+    Hint 3: Create one `Semaphore(limit)` in `fetch_all`, release in a `finally` block, and validate with `if limit < 1`.
+tags: [asyncio, semaphore, rate-limit, try-finally]
+lesson: |
+  `asyncio.Semaphore(n)` lets at most n tasks into a section at once, but only when every task waits on the same object; a semaphore created inside the worker coroutine is
+  private to that task and never blocks anyone. Each acquired permit must be released in a `finally` block (or via `async with`), otherwise a failing request leaks a slot and a
+  small pool eventually deadlocks. Validate the limit up front, because a semaphore starting at zero makes every task wait forever. Gathering with `return_exceptions=True`
+  reports individual failures without cancelling the rest.
+mistakes:
+  - "Creating the semaphore inside the per-URL coroutine."
+  - "Releasing the semaphore after the awaited call without a finally, so errors skip the release."

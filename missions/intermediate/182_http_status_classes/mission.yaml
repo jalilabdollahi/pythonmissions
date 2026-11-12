@@ -1,0 +1,29 @@
+title: Status Code Sorter
+category: HTTP
+difficulty: 2
+xp: 200
+story: |
+  Wharfside CDN summarises millions of edge log lines into a dashboard. Since the last refactor the 200s have gone missing,
+  the 5xx error rate looks lower than the pager says, and a handful of impossible codes are counted as server errors.
+  Status codes arrive from the log parser as text such as `"404"`.
+description: |
+  `classify(code)` accepts an int or numeric string and returns `informational` (100-199), `success` (200-299), `redirect` (300-399),
+  `client_error` (400-499), `server_error` (500-599) or `unknown` for anything else. `summarize(codes)` returns a dict that counts
+  every class that occurs. `error_rate(codes)` is the fraction of codes that are `server_error` (0.0 for no codes).
+  `is_retryable(code)` is true for 408, 429 and any `server_error` except 501 and 505. There are 3 bugs.
+hints:
+  - |
+    Hint 1: Classify the codes 100, 200, 299, 499, 500, 599 and 600 and compare with the table in the description. Then pass `"404"` as text.
+  - |
+    Hint 2: Ranges use half-open boundaries: `200 <= code < 300`. Values coming from log text need converting with `int()` before comparing.
+  - |
+    Hint 3: Convert with `code = int(code)` first, use `200 <= code < 300` for success and `500 <= code < 600` for server errors.
+tags: [http, status-codes, ranges, classification]
+lesson: |
+  HTTP classes are the hundreds digit, so each class is a half-open range such as `200 <= code < 300`; using `<` where `<=` is
+  needed drops the very first code of a class, and a closed upper bound like `<= 600` lets bogus values join the class below them.
+  Log pipelines deliver codes as text, and comparing a string to an int raises in Python 3, so convert at the boundary. Accurate
+  classification feeds error budgets and alerts, which is why off-by-one range mistakes tend to stay hidden until an incident.
+mistakes:
+  - "Using `code // 100` and forgetting to guard against values below 100 or above 599."
+  - "Comparing the string code with ints and catching TypeError to hide it."

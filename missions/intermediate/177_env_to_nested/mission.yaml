@@ -1,0 +1,30 @@
+title: Double Underscore
+category: Config
+difficulty: 3
+xp: 200
+story: |
+  Kestrel Pay deploys its settlement service on Nomad, where configuration only arrives as environment variables.
+  Developers use names like `PAY__DB__HOST` to mean `config["db"]["host"]`. After the latest release the pool
+  size was the string `"20"`, `PAY__DEBUG=false` turned debug mode on, and setting `DB__PORT` wiped out `DB__HOST`.
+description: |
+  `env_to_nested(environ, prefix="PAY__")` considers only variables whose name starts with `prefix`, strips it, lower-cases the rest
+  and splits it on `__` to build nested dictionaries. Values are coerced: `true`/`false` (any case) become booleans, integers
+  become `int`, decimals become `float`, everything else stays a string. Several variables in the same section must all be kept.
+  There are 3 bugs.
+hints:
+  - |
+    Hint 1: Pass `{"PAY__DB__HOST": "h", "PAY__DB__PORT": "5432", "PAY__DEBUG": "false"}` and inspect each value and type.
+  - |
+    Hint 2: `dict.setdefault(key, {})` returns the existing child instead of replacing it. `bool("false")` is `True` because any non-empty string is truthy. Prefix matching belongs to `str.startswith`.
+  - |
+    Hint 3: Use `node = node.setdefault(part, {})`, compare `value.lower() == "true"` for booleans, and filter with `name.startswith(prefix)`.
+tags: [environment, nested-dict, type-coercion, twelve-factor]
+lesson: |
+  Environment variables are always strings, so a loader must coerce types itself, and the classic trap is `bool("false")`, which is `True`
+  because only the empty string is falsy. Parse booleans by comparing text instead. When building nested dictionaries from several
+  paths, create intermediate levels with `setdefault` so siblings accumulate instead of overwriting each other. And match
+  the prefix at the start of the name: `prefix in name` will happily accept `LEGACY_PAY__X` from some unrelated tool. These
+  rules keep configuration predictable across deployments.
+mistakes:
+  - "Using `bool(value)` to parse booleans."
+  - "Replacing the prefix anywhere in the name instead of only checking the beginning."

@@ -1,0 +1,28 @@
+title: Await All The Things
+category: Async
+difficulty: 4
+xp: 200
+story: |
+  Cormorant Systems wrote an async status aggregator for its 40 internal services. In production the aggregator takes 40 times as long as a single
+  probe, which defeats the purpose, a refactor made some checks report `<coroutine object ...>` as their status, and a single crashing probe wipes out the
+  entire status report.
+description: |
+  `check_service(name, probe)` awaits `probe(name)` (an async function) and returns its status. `check_all(names, probe)` runs every check concurrently and
+  returns `{name: status}` in the order of `names`; if a probe raises an exception that service's entry is `"error: ExceptionName"` and every other service
+  still reports normally. `count_ok(report)` counts entries equal to `"ok"`. There are 3 bugs.
+hints:
+  - |
+    Hint 1: Print the report for a probe that raises for one service. Then make each probe wait until all probes have started, and see what happens to a sequential loop.
+  - |
+    Hint 2: A coroutine does nothing until it is awaited, and `await` inside a loop runs one at a time. `asyncio.gather` starts them all together, and its `return_exceptions` argument decides whether one failure cancels the result for everyone.
+  - |
+    Hint 3: `status = await probe(name)`, then `await asyncio.gather(*(check_service(n, probe) for n in names), return_exceptions=True)` and map exception objects to text.
+tags: [asyncio, gather, await, concurrency]
+lesson: |
+  Calling an `async def` function only creates a coroutine object; nothing runs until it is awaited, so a forgotten `await` yields a coroutine instead of a result (and a
+  "never awaited" warning). Awaiting inside a `for` loop serialises the work: use `asyncio.gather` to start all coroutines at once and wait for the group. By default `gather` raises
+  the first exception it sees, so one failing probe hides all other results; `return_exceptions=True` returns exception objects in the result list so you can report each
+  service individually. Tests for concurrency should prove overlap deterministically, for example by having every task wait until all tasks have started.
+mistakes:
+  - "Wrapping the sequential loop in asyncio.run for each service, which is still sequential."
+  - "Catching exceptions with a bare except inside gather's arguments and returning None."

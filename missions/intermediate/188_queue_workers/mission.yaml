@@ -1,0 +1,30 @@
+title: Worker Shift Change
+category: Concurrency
+difficulty: 4
+xp: 200
+story: |
+  Quarry Analytics resizes uploaded images with a handful of worker threads fed by a `queue.Queue`. After deploys the service process
+  sometimes lingers because some workers never exit, one corrupt image used to kill a worker thread for good, and the queue's
+  unfinished-task counter never drops to zero, so the health endpoint reports a permanent backlog.
+description: |
+  `run_jobs(payloads, handler, workers=3, join_timeout=2.0)` starts `workers` daemon threads that pull `(index, payload)` items from a queue.
+  A handler result is stored under its index; if the handler raises an exception the error text (`repr`) is stored in `errors[index]` and the worker keeps going.
+  When the payloads are exhausted every worker receives a sentinel and exits. Every item taken from the queue, sentinels included, is acknowledged with
+  `task_done()`. The function returns `{"results": [...in payload order, failures skipped], "errors": {index: repr}, "stopped": bool, "unfinished": int}` where
+  `stopped` says whether all threads exited within `join_timeout` and `unfinished` is `queue.unfinished_tasks`. There are 3 bugs.
+hints:
+  - |
+    Hint 1: Run 6 jobs with 3 workers and print the whole returned dict. Is `stopped` true? Is `unfinished` 0? Then make a handler raise.
+  - |
+    Hint 2: A sentinel stops exactly one worker, so how many do you need? Every `get()` must be matched by a `task_done()`, including the one for the sentinel, and the handler error must not escape the worker loop.
+  - |
+    Hint 3: Put one sentinel per worker, call `q.task_done()` before returning on the sentinel, and catch `Exception` around the handler call.
+tags: [queue, threads, sentinel, task_done]
+lesson: |
+  With a shared `queue.Queue`, each worker thread needs its own shutdown signal: a single sentinel stops one worker and leaves the others blocked in `get()`
+  forever, which keeps the process alive. Every `get()` must be paired with `task_done()` or `Queue.join()` and `unfinished_tasks` will lie, and that includes the
+  sentinel. A worker must also survive failing jobs: an exception that escapes the loop silently kills the thread and shrinks the pool. Capture the error
+  per item, keep going, and report it at the end. Join with a timeout in tests so a bug shows up as a failed assertion instead of a hung build.
+mistakes:
+  - "Sending one sentinel and expecting all threads to see it."
+  - "Wrapping the whole worker loop in try/except, so the first failure still ends the worker."

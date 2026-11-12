@@ -1,0 +1,29 @@
+title: Unwrap The Token
+category: Security
+difficulty: 3
+xp: 200
+story: |
+  Vesper Cloud's support console shows which user and scope a customer token belongs to. It decodes the middle part
+  of the token by hand. Roughly one token in four crashes the page with "Incorrect padding", names with accents come out as
+  garbage, and tokens are shown as valid for one extra second after they expire.
+description: |
+  A token looks like `header.payload.signature`, each part base64url-encoded without `=` padding. `decode_segment(segment)` returns
+  the raw bytes of one part. `read_payload(token)` returns the payload as a dict (a token without exactly three parts raises
+  `ValueError("malformed token")`). `is_expired(token, now)` is true when `now` is at or after the `exp` claim; tokens without `exp`
+  never expire. This is decoding only, signatures are not verified here. There are 3 bugs.
+hints:
+  - |
+    Hint 1: Decode payloads whose encoded length is not a multiple of 4. Then decode one that contains `-` or `_` in its base64 text.
+  - |
+    Hint 2: base64url uses a different alphabet from standard base64 (`-_` instead of `+/`), and Python needs the `=` padding back before decoding. Think about the expiry boundary: `exp` is the first instant at which the token is no longer valid.
+  - |
+    Hint 3: Append `"=" * (-len(segment) % 4)`, decode with the URL-safe alphabet (`urlsafe_b64decode`, or `b64decode(..., altchars=b"-_", validate=True)` for strict checking), and use `now >= exp`.
+tags: [base64, jwt, padding, encoding]
+lesson: |
+  JWT parts use the URL-safe base64 alphabet and strip the trailing `=` padding, so a decoder has to restore the padding (`-len(s) % 4`
+  characters) and use `urlsafe_b64decode`. The standard lenient decoder silently discards `-` and `_` instead of failing, which produces corrupt text
+  rather than an exception, a particularly nasty failure mode; `validate=True` makes the decoder strict. Remember that a decode is not a verification: anything
+  you read from a token is attacker-controlled until its signature is checked. Expiry timestamps mean "invalid from this instant on", so compare with `>=`.
+mistakes:
+  - "Using the standard `base64.b64decode` for URL-safe text."
+  - "Catching the padding error and returning an empty payload."

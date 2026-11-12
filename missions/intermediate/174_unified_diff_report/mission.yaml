@@ -1,0 +1,31 @@
+title: Drift Report Printer
+category: Config
+difficulty: 3
+xp: 200
+story: |
+  Copperleaf Hosting emails a nightly drift report listing files on its load balancers that differ from
+  Git. The report arrives double-spaced, with the arrows pointing the wrong way ("deployed" looks like the new
+  version), and the summary line counts file header lines as edits. Nobody trusts it any more.
+description: |
+  `unified(deployed, desired, name)` returns the unified diff as one string (no trailing newline). The diff goes from the
+  deployed text to the desired text, uses `NAME.deployed` and `NAME.desired` as file labels, and has no blank lines between
+  rows. `count_changes(diff_text)` returns `(added, removed)` line counts and must not count the `+++`/`---` header lines.
+  `drift_report(files)` takes `{name: (deployed, desired)}` and returns the diffs of files that differ, sorted by name and
+  separated by a blank line, or `"no drift"` if nothing differs. There are 3 bugs.
+hints:
+  - |
+    Hint 1: Print the diff of two one-line texts. Are there empty lines between rows? Which side has the `+` lines?
+  - |
+    Hint 2: `difflib.unified_diff(a, b, ...)` shows how to get from `a` to `b`. Its `lineterm` argument defaults to a newline that is appended to the header rows, which clashes with `"\n".join` over lines produced by `splitlines()`.
+  - |
+    Hint 3: Pass `lineterm=""`, put the deployed lines first, and skip lines that start with `+++` or `---` when counting.
+tags: [difflib, unified-diff, reports, drift]
+lesson: |
+  `difflib.unified_diff(a, b)` describes the edits needed to turn `a` into `b`, so argument order decides which lines get `+` and
+  which get `-`. The two header rows (`---`/`+++`) and the `@@` rows are built with `lineterm` appended, while the body rows come
+  from the lines you pass in; when you split with `splitlines()` you should pass `lineterm=""` so a later `"\n".join` does not
+  double the newlines. Header rows also start with `+` or `-`, so any code that counts changes must exclude them. Deterministic
+  ordering and exact formatting matter because drift reports are usually diffed again by humans and tools.
+mistakes:
+  - "Stripping blank lines from the output afterwards, which also removes legitimate blank lines inside the diff."
+  - "Counting every line that starts with '+', which includes the '+++' file label."

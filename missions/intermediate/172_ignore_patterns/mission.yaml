@@ -1,0 +1,31 @@
+title: Dockerignore Duel
+category: Files
+difficulty: 3
+xp: 200
+story: |
+  Dockhand, the in-house image builder at Teal Harbor Labs, ships a 2 GB build context because `.dockerignore`
+  rules are not honoured. Secrets files that were meant to be re-included with `!` are dropped, while
+  backup files in subfolders sneak into the image. The platform team needs the matcher fixed before the next release.
+description: |
+  `is_ignored(path, patterns)` takes a `/`-separated relative path and a list of gitignore-like lines. Blank lines and
+  lines starting with `#` are skipped. A pattern ending in `/` matches a directory anywhere in the path. A pattern without a `/`
+  is matched against the file name only (any depth). A pattern containing a `/` is matched against the whole path. A leading `!`
+  negates a pattern, and the last matching line wins. `filter_paths(paths, patterns)` keeps the paths that are not ignored.
+  There are 3 bugs.
+hints:
+  - |
+    Hint 1: Test `"deploy/app.bak"` against `["*.bak"]` and `"docs/build/x.html"` against `["build/"]`, then try a list that ends with a `!` line.
+  - |
+    Hint 2: Think about which rule order decides the verdict: you need to remember the last match, and a negated match must set the verdict back to "not ignored". Plain names should match `os.path.basename`-style.
+  - |
+    Hint 3: Use `ignored = not negate` when a pattern matches, match plain patterns against `path.split("/")[-1]`, and for `dir/` patterns also check `"/" + dir + "/"` inside `"/" + path`.
+tags: [fnmatch, patterns, dockerignore, negation]
+lesson: |
+  Ignore files are evaluated top to bottom and the last matching line decides, which is how `!keep.env` can rescue a file excluded
+  by an earlier `*.env`. Implement that by tracking a single `ignored` flag that every match overwrites, instead of returning on
+  the first hit. `fnmatch` compares plain strings, so you must decide yourself what a pattern is compared with: the base name for
+  patterns without a slash, the full relative path otherwise. Directory patterns need to match at any depth. Getting this wrong
+  leaks secrets into images or bloats build contexts.
+mistakes:
+  - "Returning True on the first matching pattern, which makes negation impossible."
+  - "Matching every pattern against the full path, so a bare `*.bak` never applies in subdirectories like `deploy/`."

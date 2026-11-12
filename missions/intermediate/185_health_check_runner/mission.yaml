@@ -1,0 +1,29 @@
+title: Probe Parade
+category: HTTP
+difficulty: 4
+xp: 200
+story: |
+  Mistral Ledger's status page polls a dozen internal services. During an outage it reported "unreachable" for services that were merely slow,
+  treated redirect responses to a login page as healthy, and ran every probe with the same two-second timeout even for the slow batch API
+  that is configured for ten. The on-call team wants the runner fixed and testable without a network.
+description: |
+  `run_check(check, fetch)` calls `fetch(url, timeout)` where `check` is `{"name", "url", optional "timeout" (default 2.0)}`; `fetch` returns a status
+  code or raises. The result is `{"name": ..., "state": ...}` with state `up` for 2xx, `down` for 5xx, `degraded` for any other status (3xx, 4xx),
+  `timeout` when `fetch` raises `TimeoutError` and `unreachable` for any other `OSError`. `run_all(checks, fetch)` returns results in order, and
+  `overall(results)` is `ok` if all are `up`, `critical` if any is `down`, `timeout` or `unreachable`, otherwise `warning`. There are 3 bugs.
+hints:
+  - |
+    Hint 1: Write a fake `fetch` that raises `TimeoutError` and another that raises `ConnectionRefusedError`. Which state does each produce? Also record the timeout your fake receives.
+  - |
+    Hint 2: `TimeoutError` is a subclass of `OSError`, so the order of `except` clauses matters. Check the status ranges: is 302 healthy? And where does `check["timeout"]` end up?
+  - |
+    Hint 3: Put `except TimeoutError` before `except OSError`, treat only `200 <= status < 300` as up, and pass `check.get("timeout", 2.0)` to `fetch`.
+tags: [health-checks, exceptions, dependency-injection, http]
+lesson: |
+  Python tries `except` clauses top to bottom and uses the first one whose class matches, including parent classes. `TimeoutError` derives from `OSError`, so catching
+  `OSError` first hides every timeout under a more generic label, and your status page lies about the failure mode. Put the most specific handlers first. Health checks should
+  also follow the contract in their configuration: per-check timeouts exist for a reason. Passing the network call in as a parameter (`fetch`) makes the logic deterministic to
+  test, because a fake can raise any exception or return any status on demand without sockets or sleeping.
+mistakes:
+  - "Catching Exception and mapping everything to 'down'."
+  - "Reordering the except clauses by guesswork without understanding the class hierarchy."

@@ -1,0 +1,29 @@
+title: Structured Logging Shift
+category: Logging
+difficulty: 3
+xp: 200
+story: |
+  Dunmore Retail is moving from plain text logs to JSON so the search cluster can index fields. The first JSON formatter shipped with
+  unformatted messages like `user %s logged in`, silently dropped the `extra={...}` fields developers add, and crashed the logging call when someone
+  attached a `datetime`. Tracebacks were also missing from error events.
+description: |
+  `JsonFormatter` renders each record as a single-line JSON object with sorted keys: `level`, `logger`, `message` (the fully formatted message with `%` arguments applied) and `ts`
+  (`record.created`), plus every custom attribute passed through `extra=` at its own top-level key. Values that JSON cannot represent (datetimes, paths, ...) are rendered with `str()`.
+  If the record has exception info, an `exc` key holds the formatted traceback. `make_logger(name, stream)` returns a non-propagating logger writing to `stream` with this formatter.
+  There are 3 bugs.
+hints:
+  - |
+    Hint 1: Log `logger.info("user %s logged in", "ana", extra={"order": 7})`, then log an extra containing `datetime.date(2024, 1, 2)`, then use `logger.exception`.
+  - |
+    Hint 2: `record.msg` is the raw template and `record.getMessage()` applies the arguments. Custom attributes live in `record.__dict__` next to the standard ones, and `json.dumps` accepts a `default=` callable for unknown types.
+  - |
+    Hint 3: Use `record.getMessage()`, `json.dumps(payload, sort_keys=True, default=str)`, and add `self.formatException(record.exc_info)` when `record.exc_info` is set.
+tags: [logging, formatter, json, structured-logs]
+lesson: |
+  A logging record keeps the message template in `record.msg` and its arguments in `record.args`; `getMessage()` combines them, so a custom formatter that reads `record.msg` ships
+  unformatted text. Anything passed via `extra=` becomes an attribute on the record, which means a structured formatter must compare `record.__dict__` against the standard attributes to find
+  the custom fields. Logging must never raise because of its payload, so give `json.dumps` a `default=str` fallback for exotic values. Tracebacks are not part of the message either: render
+  them with `formatException` when `exc_info` is present, otherwise error events lose their most useful clue.
+mistakes:
+  - "Formatting the message with the % operator yourself instead of using getMessage()."
+  - "Reading only a fixed list of extra field names rather than inspecting the record's attributes."

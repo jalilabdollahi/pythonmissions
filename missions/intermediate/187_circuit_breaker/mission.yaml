@@ -1,0 +1,30 @@
+title: Trip The Breaker
+category: Resilience
+difficulty: 4
+xp: 200
+story: |
+  Saffron Delivery calls a flaky geocoding vendor. The team wrapped it in a circuit breaker, but during the last vendor outage the
+  breaker tripped after failures spread over an entire day, and once it started probing again a single failed probe did not close the door
+  again, so every user request hit the dead vendor until three more failures piled up.
+description: |
+  `CircuitBreaker(failure_threshold, reset_timeout, clock)` wraps calls through `call(fn)`. In state `closed` calls run; consecutive
+  failures are counted (any success resets the count) and reaching `failure_threshold` opens the breaker. In `open` state `call` raises
+  `CircuitOpenError` without running `fn` until `reset_timeout` seconds have passed since it opened (exactly that long is enough), then
+  the breaker becomes `half_open` and lets one trial through. A trial success closes the breaker, a trial failure reopens it immediately.
+  Exceptions from `fn` are re-raised. There are 3 bugs.
+hints:
+  - |
+    Hint 1: With threshold 3, fail twice, succeed once, fail twice. Is the breaker still closed? Then trip it, wait, and fail the half-open trial.
+  - |
+    Hint 2: "Consecutive" means a success clears the counter. In half-open state the very first failure is enough to reopen. The wait is over when `now - opened_at >= reset_timeout`.
+  - |
+    Hint 3: Set `self.failures = 0` after any successful call, reopen when `self.state == "half_open" or self.failures >= threshold`, and use `>=` for the timeout.
+tags: [circuit-breaker, state-machine, resilience, clock-injection]
+lesson: |
+  A circuit breaker is a small state machine: closed (normal), open (fail fast) and half-open (probing). The transitions carry the
+  whole design. Failures must be consecutive, otherwise rare background errors eventually trip a healthy dependency; a failed probe must reopen the
+  breaker immediately, otherwise the half-open state lets traffic through to a service that just proved it is still down. Time based transitions
+  should be tested at the exact boundary using an injected clock, since an off-by-one there delays recovery or retries too early.
+mistakes:
+  - "Counting total failures instead of consecutive failures."
+  - "Letting half-open behave like closed, requiring the full failure threshold again before reopening."

@@ -1,0 +1,28 @@
+title: Lost In The Path
+category: HTTP
+difficulty: 3
+xp: 200
+story: |
+  Tidewater Insurance's client library builds URLs for its claims API at `https://api.tidewater.example/v2`.
+  Every call to `claims/17` lands on `/claims/17` instead of `/v2/claims/17`, one helper that was given `/claims` went
+  to the host root, and search terms with spaces or ampersands produce broken, truncated query strings.
+description: |
+  `join_url(base, path)` appends `path` below `base`, keeping every segment of the base path, whether or not `base` ends with `/`
+  and whether or not `path` starts with `/`. `with_query(url, params)` adds `params` (sorted by name, URL-encoded) to the URL while
+  keeping any existing query string and the fragment. `endpoint(base, resource, **params)` combines both. There are 3 bugs.
+hints:
+  - |
+    Hint 1: Join `https://h.example/v2` with `claims`, then `https://h.example/v2/` with `/claims`, then add a param like `q="a b&c"`.
+  - |
+    Hint 2: `urljoin` treats the last segment of the base as a file name unless the base ends with `/`, and a path that starts with `/` replaces the whole base path. Query values must be quoted by `urllib.parse.urlencode`.
+  - |
+    Hint 3: Use `urljoin(base.rstrip("/") + "/", path.lstrip("/"))` and build the query string with `urlencode`, not string formatting.
+tags: [urllib, urljoin, query-string, urlencode]
+lesson: |
+  `urllib.parse.urljoin` implements browser-style relative resolution, not path concatenation. A base without a trailing slash loses its last segment
+  (`/v2` is treated like a file), and a relative reference starting with `/` jumps back to the host root. API clients therefore normalise both sides first:
+  exactly one slash after the base and none at the start of the path. Never glue query strings together with `%s=%s`; `urlencode` percent-escapes spaces, `&` and `=`,
+  which otherwise let one parameter inject another. `urlsplit`/`urlunsplit` let you edit a URL without disturbing the fragment or existing parameters.
+mistakes:
+  - "Hard-coding a trailing slash into the base URL constant and trusting every caller to do the same."
+  - "Escaping only spaces by hand and leaving '&' and '=' unquoted."

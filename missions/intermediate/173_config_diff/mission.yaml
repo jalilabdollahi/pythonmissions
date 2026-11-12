@@ -1,0 +1,31 @@
+title: Spot The Drift
+category: Config
+difficulty: 2
+xp: 200
+story: |
+  Marlowe Freight rolls out feature flags and tuning knobs as flat key/value configs. After a bad rollout
+  the on-call engineer ran the drift checker to see what differed between staging and prod, and it claimed a
+  setting set to `0` had been "added" while identical lists were flagged as changed. The report was unreadable noise.
+description: |
+  `diff_configs(old, new)` returns `{"added": {...}, "removed": {...}, "changed": {...}}`. `added` holds keys only present in `new`,
+  `removed` holds keys only present in `old` (with their old values), and `changed` maps keys present in both with different
+  values to an `(old_value, new_value)` tuple. Falsy values such as `0`, `""` or `None` are real values. `summarize(diff)`
+  renders lines `+ key=value`, `- key=value` and `~ key: old -> new`, each section sorted by key, in the order added,
+  removed, changed. There are 3 bugs.
+hints:
+  - |
+    Hint 1: Compare `{"retries": 0}` with `{"retries": 3}`. Which sections mention `retries`? Then compare two equal lists.
+  - |
+    Hint 2: Use membership tests (`in`) to decide whether a key exists, not truthiness of its value, and compare values with `==` rather than identity (`is`). Look at the order of keys in the summary too.
+  - |
+    Hint 3: Use `k not in old` for added, `old[k] != new[k]` for changed, and iterate `sorted(diff["added"])` when rendering.
+tags: [dict, diff, config, equality]
+lesson: |
+  A key being present and its value being falsy are different facts, so decide existence with `in` and never with `if old.get(k)`.
+  Equality (`==`) asks whether two values mean the same thing, while `is` asks whether they are the very same object; two equal
+  lists built at different times are never identical, so identity comparisons produce phantom changes. Finally, dictionaries
+  keep insertion order, which varies with how a config was loaded, so sort keys before printing a report. Stable output lets
+  people diff the diffs and lets tests assert on exact text.
+mistakes:
+  - "Treating a value of 0 or an empty string as 'missing' because `if value` is false."
+  - "Sorting the whole summary text instead of each section, which scrambles the +/-/~ grouping."

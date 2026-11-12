@@ -1,0 +1,28 @@
+title: Pool Party Results
+category: Concurrency
+difficulty: 4
+xp: 200
+story: |
+  Ashgrove Networks probes its fleet of edge routers from a thread pool. The nightly report lists routers in the order they happened to answer,
+  which makes diffs against yesterday's report useless, one unreachable router aborts the entire run, and the "max 2 concurrent probes" rule that protects
+  the management plane is not being honoured.
+description: |
+  `probe_all(hosts, probe, workers=4)` runs `probe(host)` for every host in a `ThreadPoolExecutor` with `workers` threads and returns one entry per host, in the same
+  order as `hosts`: `{"host", "ok": True, "value": result}` on success and `{"host", "ok": False, "error": "TypeName: message"}` if the probe raised any exception. A failing probe
+  must not affect the others. `failed_hosts(results)` returns the hosts whose probe failed. There are 3 bugs.
+hints:
+  - |
+    Hint 1: Make the first host slow and the last host fast. Which one is reported first? Then make one probe raise `ValueError`.
+  - |
+    Hint 2: `as_completed` yields in completion order; iterating over the list of futures you submitted keeps submission order. `Future.result()` re-raises the worker's exception in the caller, so it needs to be caught for every exception type. Check how the pool is constructed.
+  - |
+    Hint 3: Loop with `zip(hosts, futures)`, catch `Exception` around `fut.result()`, and pass `max_workers=workers` to the executor.
+tags: [threadpool, futures, ordering, exceptions]
+lesson: |
+  `ThreadPoolExecutor.submit` returns futures immediately; the order in which they finish is up to the scheduler. If you need results in input order, keep the futures in a list
+  and read them in that order, rather than using `as_completed`. Exceptions raised inside a worker are stored in its future and re-raised when you call `result()`, so a robust
+  batch job catches them per future and records them, otherwise one bad host aborts the run. Finally, `max_workers` is the only thing that enforces a concurrency limit; forgetting to
+  pass it silently uses a default that may be far higher than the downstream system can take.
+mistakes:
+  - "Sorting the results afterwards by completion time or by host name instead of preserving the input order."
+  - "Catching only the one exception you expect, so any other error escapes the batch."

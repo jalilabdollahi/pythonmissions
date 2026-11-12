@@ -1,0 +1,30 @@
+title: Trust No Webhook
+category: Security
+difficulty: 3
+xp: 200
+story: |
+  Pinecrest Billing receives payment webhooks from a partner and trusts them only if the `X-Signature` header matches.
+  The handler recently crashed for webhooks that arrived with no signature header at all, a unit test with a string secret raised a
+  `TypeError`, and a security review flagged that the signature is compared with a plain `==`, which leaks timing information.
+description: |
+  `sign(secret, body)` returns `"sha256=" + hex HMAC-SHA256` of the body; both secret and body may be `str` or `bytes`.
+  `verify(secret, body, header)` returns `True` only if `header` equals the expected signature. A missing (`None`) or empty header is
+  simply `False`, never an exception, and the comparison must use `hmac.compare_digest`. `parse_event(secret, body, header)` returns
+  the decoded JSON object or raises `PermissionError("bad signature")`. There are 3 bugs.
+hints:
+  - |
+    Hint 1: Call `sign("topsecret", "{}")` with a `str` secret, and `verify(secret, body, None)`.
+  - |
+    Hint 2: `hmac.new` needs bytes for key and message. `hmac.compare_digest(a, b)` compares in constant time, which a plain `==` does not. Decide what to do with a missing header before you touch it.
+  - |
+    Hint 3: Encode `str` inputs with `.encode()`, return `False` early when `not header`, and compare `expected.encode()` with `header.encode()` using `hmac.compare_digest`.
+tags: [hmac, webhooks, timing-attack, bytes]
+lesson: |
+  Webhook endpoints are public, so the HMAC check is the only thing standing between the internet and your business logic. Use
+  `hmac.compare_digest` to compare signatures: `==` stops at the first differing byte, and that tiny timing difference can be measured to
+  forge a signature one byte at a time. HMAC primitives work on `bytes`, so normalise `str` secrets and bodies explicitly with a
+  single encoding. Finally, treat malformed or absent headers as an ordinary verification failure (return `False`) rather than
+  letting an `AttributeError` become a 500 that reveals how your handler works.
+mistakes:
+  - "Verifying a re-serialised JSON body instead of the exact raw bytes that were signed."
+  - "Comparing hex strings with == because it 'works' in tests."

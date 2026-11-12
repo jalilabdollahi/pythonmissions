@@ -1,0 +1,31 @@
+title: Redact Before Shipping
+category: Security
+difficulty: 3
+xp: 200
+story: |
+  Ironwood Logistics forwards application logs to a third-party search service. A compliance scan found live
+  API keys in the index: lines with `Token=` in a different case, lines holding two secrets where only the first was hidden,
+  and masked values that revealed the first four characters, which is the part that identifies a key.
+description: |
+  `mask_value(value)` hides a secret: values of 8 characters or fewer become all `*`; longer values become `*` characters
+  followed by the last 4 characters of the original (same total length). `mask_line(line)` masks every
+  `password`, `passwd`, `token`, `secret`, `api_key`/`api-key`/`apikey` assignment written with `=` or `:` (any letter case,
+  optional spaces around the separator), plus `Bearer <token>` values. Every secret in the line must be masked, and the key
+  names and separators must survive. There are 3 bugs.
+hints:
+  - |
+    Hint 1: Mask `"Token=abcdef123456 password=hunter2hunter2"` and read the result carefully: which parts are visible?
+  - |
+    Hint 2: Look at `re.sub`'s `count` and `flags` arguments, and at which end of the string you slice when keeping characters.
+  - |
+    Hint 3: Compile with `re.IGNORECASE`, do not pass `count=1`, and keep `value[-4:]` after the stars.
+tags: [regex, redaction, logging, secrets]
+lesson: |
+  Redaction is a security control, so it has to be conservative: matching must be case-insensitive because log producers are inconsistent,
+  and `re.sub` must replace every occurrence, not just the first, which means never passing `count=1` unless you want exactly that. When
+  you keep part of a secret for debugging, keep the tail: prefixes of keys often identify the provider or the account, while the last
+  four characters are enough to tell two keys apart. Always write tests with realistic mixed-case, multi-secret lines before
+  trusting a masker.
+mistakes:
+  - "Revealing the first four characters instead of the last four."
+  - "Lower-casing the whole line before matching, which corrupts the rest of the log message."
