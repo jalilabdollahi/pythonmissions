@@ -1,0 +1,29 @@
+title: Webhook Payload Mixup
+category: JSON
+difficulty: 1
+xp: 100
+story: |
+  Pagerline receives alert webhooks as raw JSON text, and an on-call tool replays saved incidents from disk.
+  Since last sprint's refactor, parsing a webhook raises `AttributeError` and replaying a saved file raises `TypeError`.
+  Both errors mention strange things about `read` and `str`.
+description: |
+  alerts.py parses incident JSON.
+
+  - `parse_event(raw)` takes a JSON string and returns the dict.
+  - `load_events(path)` opens a file containing a JSON list and returns it.
+  - `severities(events)` returns a sorted list of distinct `severity` values.
+
+  There are 2 bugs.
+hints:
+  - |
+    Read the two exceptions carefully: one function is handed text, the other an open file.
+  - |
+    The json module has two reading functions whose names differ by one letter. One wants text, the other wants a file object.
+  - |
+    `json.loads` parses a string; `json.load` reads from a file handle.
+tags: [json, load, loads]
+lesson: |
+  The trailing `s` in `json.loads` stands for string. `json.load(fp)` reads from a file-like object, `json.loads(text)` parses text you already have; the same pairing exists for `dump` and `dumps`. Mixing them up gives confusing errors about missing `read` methods or wrong types. In ops code you meet both constantly: file contents on one side, HTTP bodies and environment variables on the other.
+mistakes:
+  - "Calling `.read()` on the string, which does not exist."
+  - "Wrapping the file path in json.loads, which parses the path text instead of the file."

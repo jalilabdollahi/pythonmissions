@@ -1,0 +1,29 @@
+title: Deploy Lock Stuck On
+category: Errors
+difficulty: 1
+xp: 100
+story: |
+  At Cobalt Payments only one deployment may run at a time, enforced by a lock flag on the deployer object.
+  Last night a migration step raised an exception and the flag stayed set.
+  Every later deploy was refused with "already running" until someone restarted the whole service.
+description: |
+  deployer.py runs deployment steps while holding a lock.
+
+  - `Deployer.run(steps)` raises `RuntimeError("deploy already running")` if the lock is held. Otherwise it takes the lock, calls every step in order and returns the list of results.
+  - If a step raises, the exception propagates to the caller, and the lock must still be released.
+  - `Deployer.runs` counts completed or failed attempts that actually started.
+
+  There is 1 bug.
+hints:
+  - |
+    Run a deploy whose first step raises, catch the error, then check `deployer.locked`.
+  - |
+    The line that releases the lock is skipped when an exception leaves the function early.
+  - |
+    Put the work in `try:` and the release in `finally:`, which runs on success and on failure.
+tags: [errors, finally, cleanup, locks]
+lesson: |
+  Code after a failing statement never runs, so cleanup placed after the risky work is skipped exactly when it matters. `try/finally` guarantees the cleanup block executes whether the body returns normally or raises, and the exception still propagates afterwards. Use it for locks, temporary files, open connections and status flags. Context managers (`with`) are the same idea packaged for reuse.
+mistakes:
+  - "Catching the exception and returning None, which releases the lock but hides the failure from the caller."
+  - "Releasing the lock in an `except` block only, which leaves it held after success paths that return early."

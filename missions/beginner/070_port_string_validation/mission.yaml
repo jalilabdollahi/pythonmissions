@@ -1,0 +1,29 @@
+title: Ports From Outer Space
+category: Validation
+difficulty: 1
+xp: 100
+story: |
+  The firewall generator at Aurora Hosting reads port numbers typed by customers in a web form.
+  This week it opened port 0, wrote rules for port 99999, and accepted `8_0` as port 80.
+  The network team wants strict validation before anything reaches the firewall.
+description: |
+  ports.py validates user-supplied ports.
+
+  - `validate_port(text)` returns the port as an `int` if `text` consists only of digits and the value is between 1 and 65535 inclusive. Anything else raises `ValueError`.
+  - `parse_port_list("80,443")` returns a list of valid ports; a bad entry raises `ValueError`.
+  - `open_rules(text)` returns firewall lines like `allow tcp 80`.
+
+  There are 2 bugs.
+hints:
+  - |
+    Try `validate_port('0')`, `validate_port('8_0')` and `validate_port('65535')`. Which ones surprise you?
+  - |
+    `int()` accepts more text than you might expect (underscores, a plus sign). And a range check needs both ends.
+  - |
+    Check `text.isdigit()` before converting, and test `1 <= port <= 65535`.
+tags: [validation, ports, isdigit, range]
+lesson: |
+  Validating input means rejecting everything that is not explicitly allowed. `int()` is generous: it accepts `'+80'`, `' 80 '` and `'8_0'`, so check `text.isdigit()` first when only plain digits are acceptable. Then check the numeric range with both bounds: a port is valid from 1 to 65535, and checking only the top lets 0 through. Boundary values (0, 1, 65535, 65536) are the first things to test.
+mistakes:
+  - "Only checking the upper bound, which still accepts port 0."
+  - "Relying on try/except around int(), which accepts underscores and signs."

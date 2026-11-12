@@ -1,0 +1,30 @@
+title: Glued Paths At Orbit Freight
+category: Paths
+difficulty: 1
+xp: 100
+story: |
+  Orbit Freight ships a new build every Thursday, and release day just went sideways.
+  The packaging job wrote the billing artifacts to a directory called /srv/releasesbilling.
+  Nothing is broken on disk except the names, but the deploy tool cannot find a single file.
+description: |
+  release.py computes where release artifacts live under /srv/releases.
+
+  - `release_dir(project, version, root)` returns a `Path` like `<root>/<project>/<version>`.
+  - `artifact_path(...)` and `checksum_path(...)` build on it (the checksum adds `.sha256`).
+  - `latest_link(project, root)` returns `<root>/<project>/latest`.
+  - `all_paths(project, version, filename, root)` returns the three paths as a list.
+
+  There is 1 bug.
+hints:
+  - |
+    Print `release_dir('billing', '1.0', '/srv/releases')`. Look closely at where the project name begins.
+  - |
+    Joining strings with `+` does not insert a separator. `pathlib` has an operator made for joining path parts.
+  - |
+    Use the `/` operator between `Path` objects and strings: `Path(root) / project / version`.
+tags: [paths, pathlib, release]
+lesson: |
+  Building paths with `+` only works if you remember every slash yourself, and one missing slash silently points at a different directory. `pathlib.Path` joins parts with the `/` operator and inserts the right separator for the platform. It also normalises doubled slashes, so `Path('/srv/releases/') / 'app'` is still correct. In deploy scripts a wrong path often fails far from where it was built, so build paths with `Path` from the start.
+mistakes:
+  - "Adding a trailing slash to ARTIFACT_ROOT, which only works until someone passes a root without one."
+  - "Switching to os.path.join for one call but leaving the string concatenation in the other helpers."

@@ -1,0 +1,30 @@
+title: Four-Letter Extensions
+category: Strings
+difficulty: 1
+xp: 100
+story: |
+  The artifact uploader at Mosaic Games sorts build outputs into folders by file extension.
+  Overnight a bucket named `tml` appeared, along with `son` and `s.md`, and a `Makefile` went into a folder called `Makefile`.
+  The uploader grabs the last three characters of every name.
+description: |
+  artifacts.py groups build outputs by extension.
+
+  - `extension(filename)` returns the extension in lower case without the dot (`"app.JAR"` gives `"jar"`). A name with no extension gives `""`.
+  - Only the last extension counts: `bundle.tar.gz` gives `"gz"`.
+  - `group_by_extension(names)` returns a dict of extension to sorted list of names.
+  - `count_by_extension(names)` returns a dict of extension to count.
+
+  There is 1 bug.
+hints:
+  - |
+    Call `extension('index.html')` and `extension('Makefile')` and compare with what you expect.
+  - |
+    Cutting a fixed number of characters assumes every extension has the same length.
+  - |
+    Split on the last dot (`rpartition` or `pathlib.Path(name).suffix`) instead of counting characters.
+tags: [strings, slicing, extensions]
+lesson: |
+  Slicing by position only works when the data has a fixed shape, and file extensions do not: `py`, `md`, `html`, `json` and no extension at all are all normal. Find the separator instead of the length. `Path(name).suffix` handles dotfiles and missing extensions correctly, and `name.rpartition('.')` splits on the last dot when you only have a string. Always test with a name that has no dot and a name that has several.
+mistakes:
+  - "Slicing the last four characters, which fixes `.html` and breaks `.py`."
+  - "Using `split('.')[1]`, which returns `tar` for `bundle.tar.gz` instead of `gz`."

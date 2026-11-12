@@ -1,0 +1,30 @@
+title: Config Errors Nobody Can Catch
+category: Errors
+difficulty: 1
+xp: 100
+story: |
+  The launch tooling at Skyforge validates a service config before every rollout.
+  The author defined a `ConfigError` so callers could react to bad configs, but raising it crashes with a confusing TypeError.
+  When it does work, the message just says "missing key", which sends engineers grepping through thirty files.
+description: |
+  validate.py checks that a config dict has the required keys.
+
+  - `REQUIRED_KEYS` lists `name`, `port` and `owner`.
+  - `validate_config(cfg)` raises `ConfigError` for a missing key; the message must name the key (for example `missing required key: port`).
+  - `ConfigError` must be a real exception that callers can catch with `except ConfigError`.
+  - `is_valid(cfg)` returns True or False and never raises ConfigError.
+
+  There are 2 bugs.
+hints:
+  - |
+    Trigger a missing key and read the traceback. Is the exception you see the one the code tried to raise?
+  - |
+    Only classes that inherit from `Exception` can be raised. Also check what information the message carries.
+  - |
+    Declare `class ConfigError(Exception)` and put the key name in the message with an f-string.
+tags: [errors, custom-exception, raise]
+lesson: |
+  Python can only raise objects whose class derives from `BaseException`, so a plain `class ConfigError:` fails with `TypeError: exceptions must derive from BaseException`. A custom exception is usually one line, `class ConfigError(Exception): pass`, and it lets callers catch your failures without also catching unrelated ones. The message is the other half: include the offending name or value so the person reading the log can act without opening the code.
+mistakes:
+  - "Raising ValueError instead, which callers cannot distinguish from other value errors."
+  - "Putting the key name in a print statement rather than in the exception message."

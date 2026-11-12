@@ -1,0 +1,29 @@
+title: Error Text Went Missing
+category: Errors
+difficulty: 1
+xp: 100
+story: |
+  The nightly port check at Fjord Networks is supposed to email a list of bad port values and the reason for each.
+  The email never arrives: the checker crashes with `AttributeError: 'ValueError' object has no attribute 'message'`.
+  The script was copied from an old Python 2 wiki page.
+description: |
+  portcheck.py validates port strings.
+
+  - `check_port(text)` returns `(True, "")` for a valid port 1-65535, otherwise `(False, reason)` where `reason` contains the text of the underlying `ValueError` message.
+  - `failure_report(values)` returns a list of lines `"<value>: <reason>"` for the bad ones only.
+  - `all_ok(values)` is True if every value is valid.
+
+  There is 1 bug.
+hints:
+  - |
+    Run `check_port('abc')`. Where does the AttributeError come from?
+  - |
+    Exception objects in Python 3 do not have a `.message` attribute.
+  - |
+    `str(error)` gives the message text, and `error.args` holds the raw arguments.
+tags: [errors, exceptions, python3]
+lesson: |
+  Python 2 exceptions carried a `.message` attribute; Python 3 removed it. The portable way to get the human-readable text is `str(e)`, and `e.args` holds the original arguments as a tuple. Old snippets from wikis and forums often still use `.message`, and the failure appears only inside the except block, exactly when you are already handling an error. Always test the error path of your error handling.
+mistakes:
+  - "Using `e.args` directly in a string, which prints a tuple such as `('bad',)`."
+  - "Replacing the message with a fixed string, which loses the detail from the original error."

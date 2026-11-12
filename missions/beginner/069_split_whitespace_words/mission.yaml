@@ -1,0 +1,29 @@
+title: Double Space Deploy Command
+category: Strings
+difficulty: 1
+xp: 100
+story: |
+  ChatOps at Nimbus Retail lets engineers type commands such as `deploy web v2` into the team channel.
+  A tired engineer typed two spaces between words and the bot answered "unknown service ''".
+  The parser splits the message on a single space.
+description: |
+  chatops.py parses chat commands of the form `verb target [args...]`.
+
+  - `parse_command(line)` returns `(verb, target, args)` where `args` is a list. Any amount of spaces or tabs between words is allowed, and leading or trailing whitespace is ignored.
+  - `parse_command("")` raises `ValueError("empty command")`; a line with only a verb raises `ValueError("missing target")`.
+  - `describe(line)` returns a one-line summary.
+
+  There is 1 bug.
+hints:
+  - |
+    Print `parse_command('deploy  web')` with two spaces. What is in the args list?
+  - |
+    `split(' ')` creates an empty string for every extra space.
+  - |
+    Call `split()` with no argument: it splits on any run of whitespace and drops empty pieces.
+tags: [strings, split, whitespace, parsing]
+lesson: |
+  `text.split(' ')` splits at every single space, so two spaces in a row produce an empty string between them, and leading or trailing spaces produce empty strings at the ends. `text.split()` with no argument is different: it treats any run of whitespace (spaces, tabs, newlines) as one separator and ignores the ends. For user-typed input and for command output, that is nearly always what you want. Use an explicit separator only for formats that really define one, like CSV.
+mistakes:
+  - "Filtering empty strings afterwards with a list comprehension, which works but misses tabs."
+  - "Calling `strip()` first, which fixes only the ends and not the middle."

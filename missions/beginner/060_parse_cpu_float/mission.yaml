@@ -1,0 +1,30 @@
+title: Half A Core Of Trouble
+category: Numbers
+difficulty: 1
+xp: 100
+story: |
+  The autoscaler at Brightwave Analytics reads CPU readings such as `12.5%` from a metrics agent.
+  Every time a pod reports a fractional value the scaler logs `invalid literal for int()` and skips the pod.
+  Since most readings are fractional, the cluster has not scaled in two days.
+description: |
+  cpu.py parses CPU usage strings.
+
+  - `parse_cpu(text)` accepts values like `"12.5%"`, `"80%"` or `" 7 % "` and returns a float.
+  - `hottest(readings)` takes a dict of pod to text and returns the pod name with the highest CPU.
+  - `average_cpu(readings)` returns the mean as a float.
+  - `needs_scale_up(readings, limit=75.0)` is True when the average is above the limit.
+
+  There is 1 bug.
+hints:
+  - |
+    Call `parse_cpu('12.5%')` and read the error. What kind of number is 12.5?
+  - |
+    `int` only understands whole-number text. Percentages from agents often have decimals.
+  - |
+    Use `float(...)` instead of `int(...)` after stripping the percent sign and spaces.
+tags: [numbers, float, parsing]
+lesson: |
+  `int('12.5')` raises ValueError because the text is not an integer literal, even though the number looks harmless. Use `float` for measurements that can have decimals, such as CPU percentages, latencies and ratios, and `int` only for counts and identifiers. Truncating with `int(float(x))` would silently drop the fraction, so convert once to a float and keep it.
+mistakes:
+  - "Using `int(float(text))`, which accepts the input but throws away the decimal part."
+  - "Catching ValueError and returning 0, which hides hot pods from the autoscaler."

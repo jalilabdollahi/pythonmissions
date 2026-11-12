@@ -1,0 +1,29 @@
+title: Partial Load Detector
+category: Logic
+difficulty: 1
+xp: 100
+story: |
+  The scheduler at Cascade Compute only migrates workloads off nodes that are partly loaded, never idle ones and never full ones.
+  After a refactor the scheduler stopped finding any candidates, and several nodes sat at 60 percent for a whole weekend.
+  The check that decides what counts as partial looks odd.
+description: |
+  nodes.py classifies node load percentages.
+
+  - `is_partial(load)` is True only when the load is strictly between 0 and 100.
+  - `classify(load)` returns `"invalid"` for values below 0 or above 100, `"idle"` for 0, `"full"` for 100, otherwise `"partial"`.
+  - `candidates(loads)` returns the node names (keys of a dict) that are partial, sorted.
+
+  There is 1 bug.
+hints:
+  - |
+    Call `is_partial(60)` and `is_partial(150)`. Which one should be true?
+  - |
+    Python lets you chain comparisons, and each operator is evaluated on its own side. Read `0 < x > 100` literally.
+  - |
+    A range check uses the same direction twice: `0 < load < 100`.
+tags: [logic, comparison, chaining, ranges]
+lesson: |
+  Python chains comparisons: `0 < x < 100` means `0 < x and x < 100`, which is the natural way to write a range. If you change one operator, `0 < x > 100` means `0 < x and x > 100`, which is true only when x is above 100. It is valid Python and never raises, so the mistake only shows up in behaviour. Keep both operators pointing the same way and test values inside the range, on each boundary and outside it.
+mistakes:
+  - "Using `or` between the two checks, which makes nearly every number partial."
+  - "Making the bounds inclusive, which turns idle and full nodes into candidates."

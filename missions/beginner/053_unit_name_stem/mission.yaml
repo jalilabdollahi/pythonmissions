@@ -1,0 +1,29 @@
+title: Unit Names Cut Short
+category: Paths
+difficulty: 1
+xp: 100
+story: |
+  The SRE team at Kestrel Bank is auditing every systemd unit on the payment hosts.
+  The inventory report lists services like `back` and `docker.` instead of `backup` and `docker`.
+  Dashboards keyed on those names are all showing empty graphs.
+description: |
+  units.py turns systemd unit file names into inventory rows.
+
+  - `service_name(unit)` returns the unit name without its type suffix: `nginx.service` becomes `nginx`, `backup.timer` becomes `backup`, `my.app.service` becomes `my.app`.
+  - `unit_type(unit)` returns the type without the dot (`service`, `timer`, ...).
+  - `inventory(units)` returns a sorted list of `(name, type)` tuples.
+
+  There is 1 bug.
+hints:
+  - |
+    Try `service_name('backup.timer')`. How many characters does it chop off, and is that always right?
+  - |
+    The code assumes every unit ends in the same ten-ish characters. Units come in several types of different length.
+  - |
+    `pathlib.PurePath(name).stem` removes only the final extension, whatever its length.
+tags: [paths, pathlib, stem, systemd]
+lesson: |
+  Slicing off a fixed number of characters assumes every name has the same ending, which is true for the one example you tested and false for the next. `Path.stem` removes exactly the last extension and keeps the rest, so `my.app.service` stays `my.app`. The same applies to `.suffix` for the other half. Let the path object understand file names instead of counting characters.
+mistakes:
+  - "Using `split('.')[0]`, which turns `my.app.service` into `my`."
+  - "Slicing with a different fixed length, which fixes `.timer` and breaks `.service`."

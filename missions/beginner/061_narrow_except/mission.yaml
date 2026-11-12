@@ -1,0 +1,29 @@
+title: The Except That Ate Everything
+category: Errors
+difficulty: 1
+xp: 100
+story: |
+  A deploy at Vantage Ledger rolled out with `retries` unset, and the service quietly used the default of 3 for a week.
+  A reviewer found the cause: the settings loader wraps its integer parsing in a bare `except:`.
+  It was meant to forgive typos like `retries=abc`, not a missing value.
+description: |
+  settings.py reads operator settings.
+
+  - `parse_retries(value, default=3)` returns `int(value)`. If the text is not a number (for example `"abc"`), it returns the default.
+  - A `None` value is a programming error: `parse_retries(None)` must raise `TypeError`, not hide it.
+  - `load_settings(raw)` applies it to `raw["retries"]` and returns a dict with `retries` and `region` (default `"eu-west"`).
+
+  There is 1 bug.
+hints:
+  - |
+    Call `parse_retries(None)`. What does the caller get, and what should they get?
+  - |
+    A bare `except:` catches every exception type, including ones that signal real bugs.
+  - |
+    Name the one exception you expect: `except ValueError:`.
+tags: [errors, except, valueerror]
+lesson: |
+  A bare `except:` (or `except Exception:`) turns every failure into the same quiet fallback, including bugs you never anticipated. Catch only what you know how to handle: `int('abc')` raises `ValueError`, so that is the only thing to forgive here. `TypeError` from a `None` input is a signal that some upstream code is wrong, and it should surface loudly. Narrow handlers keep fallbacks honest and make failures easy to find.
+mistakes:
+  - "Switching to `except Exception`, which is still far too wide."
+  - "Handling TypeError as well, which would reintroduce the silent default."

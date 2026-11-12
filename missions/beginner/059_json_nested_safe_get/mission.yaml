@@ -1,0 +1,29 @@
+title: Missing Resources Section
+category: JSON
+difficulty: 1
+xp: 100
+story: |
+  Quasar Cloud's cost review scans every Kubernetes manifest in the monorepo for memory limits.
+  The scan died halfway through with a KeyError on the first manifest that had no `resources` block, so no report was produced.
+  Half the legacy services never declared limits at all.
+description: |
+  manifests.py reads parsed manifest dicts shaped like `{"spec": {"resources": {"limits": {"memory": "512Mi"}}}}`.
+
+  - `memory_limit(doc)` returns the memory limit string, or `None` when any level is absent.
+  - `cpu_request(doc)` returns `spec.resources.requests.cpu` or `None`.
+  - `unlimited(docs)` returns the names (`doc["name"]`) of manifests without a memory limit.
+
+  There is 1 bug.
+hints:
+  - |
+    Call `memory_limit({'spec': {}})`. Which key does the error name?
+  - |
+    Direct indexing raises KeyError as soon as one level is missing. Another function in the file already deals with this.
+  - |
+    Chain `.get(key, {})` for the intermediate levels and a plain `.get` for the last one.
+tags: [json, dict, get, defaults]
+lesson: |
+  Configuration files come in many shapes, and optional sections are the norm rather than the exception. `d['a']['b']['c']` fails with KeyError at the first absent level, while `d.get('a', {}).get('b', {}).get('c')` walks as far as it can and returns `None` otherwise. Use indexing when a key is required and its absence is a real error; use `get` with a default for optional data. A scanner that crashes on the first odd file is useless for fleets.
+mistakes:
+  - "Wrapping everything in try/except KeyError, which also hides typos in key names."
+  - "Using `.get('resources')` without a default, which fails one level deeper with AttributeError."
