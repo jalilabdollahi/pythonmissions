@@ -1,0 +1,30 @@
+title: Rack Hostlists
+category: Parsing
+difficulty: 3
+xp: 200
+story: |
+  Operators of the Mistral cluster run commands against hosts written in the
+  compact form `web[01-03].dc1`. The tool targeted `web1` instead of `web01`,
+  skipped the last host of every range, and choked on mixed lists such as
+  `web[1,3],db1`.
+description: |
+  `expand_hostlist(spec)` expands a comma separated list of host patterns into a list of hostnames in
+  the order written. A pattern may contain one bracket group holding numbers, inclusive ranges, or
+  both, for example `web[01-03,07].dc1`. Zero padding of the range start is preserved (`01` gives two digits).
+  Commas inside brackets do not separate patterns. Unbalanced brackets raise `ValueError`. There are 3 bugs.
+hints:
+  - |
+    Hint 1: Expand `web[01-03]` and `web[1,3],db1` and compare to what an operator would expect.
+  - |
+    Hint 2: Splitting the whole spec on commas also cuts through the brackets. Format numbers with a width taken from the text of the range start, and remember range ends are inclusive.
+  - |
+    Hint 3: Split on commas only when bracket depth is zero; use `f"{n:0{width}d}"` with `width = len(low_text)`; iterate `range(lo, hi + 1)`.
+tags: [parsing, hostlist, ranges, formatting]
+lesson: |
+  Hostlist notation compresses fleets into one line, but expanding it correctly needs care. The comma has two meanings, separating
+  patterns at the top level and separating items inside brackets, so you must split with awareness of nesting. Padding is data: `01`
+  and `1` are different hostnames, so keep the digit width of the written start value. As with every human range notation, the end
+  is inclusive. Getting any of this wrong means running a command on the wrong machines.
+mistakes:
+  - Converting everything to `int` and back with `str`, which discards leading zeros.
+  - Using a regex split on commas followed by a lookahead hack that fails with nested ranges.

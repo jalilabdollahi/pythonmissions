@@ -1,0 +1,32 @@
+title: Missing Placeholders
+category: Config
+difficulty: 2
+xp: 200
+story: |
+  The Sparrow platform renders nginx and systemd unit files from templates using
+  `$name` and `${name}` placeholders. A release went out with a half-rendered unit
+  file because one variable was missing, and the pre-flight report that should have
+  listed missing variables came back empty.
+description: |
+  `find_placeholders(text)` returns the sorted list of distinct placeholder names in a template
+  (both `$name` and `${name}` forms; `$$` is an escaped dollar and is not a placeholder).
+  `render(text, values)` returns `(rendered, missing)`: the text with all known values substituted
+  (unknown placeholders are left untouched, never an exception) and the sorted list of names that
+  are not in `values`. A value of `0` or an empty string counts as provided. There are 3 bugs.
+hints:
+  - |
+    Hint 1: Render a template that uses `${region}` with no region value. Does it raise, and does the report mention it?
+  - |
+    Hint 2: `string.Template` has two flavours of rendering: `substitute` raises KeyError for a missing key and `safe_substitute` leaves it. The class attribute `Template.pattern` has groups named `named` and `braced`.
+  - |
+    Hint 3: Use safe_substitute, collect both `named` and `braced` groups from `Template.pattern.finditer`, and test membership with `name not in values` rather than truthiness.
+tags: [string.Template, config, templating, validation]
+lesson: |
+  `string.Template.substitute` is strict and raises KeyError at the first missing key, which hides the other problems.
+  `safe_substitute` leaves unknown placeholders in place so you can report all of them. When you inspect placeholders yourself,
+  remember there are two syntaxes (`$name` and `${name}`) and an escape (`$$`); the regex in `Template.pattern` already knows all
+  of them. Check presence with `in`, never with truthiness, or legitimate values such as `0` and the empty string will be reported
+  as missing.
+mistakes:
+  - Catching KeyError and returning the template unrendered, which loses all the valid substitutions.
+  - Writing your own `\$\w+` regex that misses `${name}` and treats `$$` as a placeholder.

@@ -1,0 +1,30 @@
+title: Smoothing Latency
+category: Metrics
+difficulty: 2
+xp: 200
+story: |
+  The Cedar monitoring team smooths request latency before alerting, using a
+  moving average over the last N samples. The smoothed line lags behind real
+  spikes by an extra sample, starts out suspiciously low, and the threshold alert
+  fires on values that are merely equal to the limit.
+description: |
+  `moving_average(values, window)` returns a list with one entry per input value: the mean of the last `window`
+  values ending there (fewer values at the start, where the mean uses only what exists), rounded to 2 decimals.
+  `window` below 1 raises `ValueError`. `spike_indices(values, window, limit)` returns the indices where the
+  smoothed value is strictly greater than `limit`. There are 3 bugs.
+hints:
+  - |
+    Hint 1: Smooth `[10, 20, 30, 40]` with window 2 and compute the expected answer by hand.
+  - |
+    Hint 2: Count how many elements each slice contains, and what divisor is used for the first few positions. Also reread "strictly greater".
+  - |
+    Hint 3: The slice for position `i` is `values[max(0, i - window + 1): i + 1]`, divide by its `len`, and compare with `>`.
+tags: [metrics, moving-average, slicing, off-by-one]
+lesson: |
+  A trailing window of size N ending at index i spans indices `i - N + 1` through `i`, so the slice is `[i - N + 1 : i + 1]`, which
+  is a classic off-by-one trap. At the beginning there are fewer than N points; negative slice starts would wrap around, so clamp the
+  start with `max(0, ...)`, and divide by the number of points actually present, not by N, or the start of the series is biased low.
+  Finally, alert comparisons should match their spec exactly: "above the limit" is `>`, not `>=`.
+mistakes:
+  - Dividing by the window size even when fewer samples exist.
+  - Letting the slice start go negative so it wraps to the end of the list.

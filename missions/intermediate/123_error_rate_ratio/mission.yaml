@@ -1,0 +1,31 @@
+title: Five Hundred Percent
+category: Metrics
+difficulty: 2
+xp: 200
+story: |
+  The Marlin checkout API pages the on-call whenever its 5xx rate crosses 1 percent,
+  yet last week it stayed quiet through an outage that failed one request in twenty.
+  The SLO owner suspects the rate math, not the alert rule.
+description: |
+  `error_rate_percent(statuses)` takes a list of HTTP status codes and returns the
+  percentage (0-100, rounded to 2 decimals) of responses that are server errors (500-599).
+  An empty list gives `0.0`. `breaching_services(by_service, threshold)` takes
+  `{service: [status, ...]}` and returns the sorted names whose error rate is strictly above
+  the threshold percentage. There are 3 bugs.
+hints:
+  - |
+    Hint 1: Work one small example by hand, for example 1 error in 20 requests, and compare it with the function output.
+  - |
+    Hint 2: Check three things: which statuses count as errors, what you divide by, and whether integer division or truncation throws away the fraction.
+  - |
+    Hint 3: Errors are `500 <= status < 600`, the denominator is all responses, and the result should be `round(errors / total * 100, 2)`.
+tags: [metrics, slo, percentages, rounding]
+lesson: |
+  An error rate is errors divided by all requests, not errors divided by the successes or by some subset.
+  A wrong denominator can make an outage look tiny. Python 3 true division keeps fractions, but
+  `//` and `int()` silently discard them, so 4.8 percent becomes 4 and a 0.7 percent blip becomes 0.
+  Define the numerator carefully too: 5xx means server errors only, including 500 itself, and not 4xx
+  client mistakes. Guard the empty case so a quiet service does not crash the report.
+mistakes:
+  - Counting every status of 400 or more as an error, which blames the server for client mistakes.
+  - Rounding the percentage to a whole number "for readability" and losing sub-1% alerts.

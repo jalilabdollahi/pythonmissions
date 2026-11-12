@@ -1,0 +1,31 @@
+title: Layered Config Merge
+category: Config
+difficulty: 3
+xp: 200
+story: |
+  The Tidewater platform team ships a defaults file and lets each environment
+  override a few keys. Staging overrode `database.host` and suddenly every
+  service lost `database.port` and the pool settings. Another environment's
+  layers were applied in the opposite order from what the README promises.
+description: |
+  `deep_merge(base, override)` returns a new dict in which nested dicts are merged
+  recursively, other values from `override` replace those in `base`, and an override
+  value of `None` removes the key. Neither input may be modified. `build_config(*layers)`
+  merges layers from lowest to highest priority (the last layer wins). There are 3 bugs.
+hints:
+  - |
+    Hint 1: Merge `{"db": {"host": "a", "port": 1}}` with `{"db": {"host": "b"}}` and print it. Where did the port go?
+  - |
+    Hint 2: Replacing a key wholesale throws away nested siblings. When both values are dicts, recurse. Then check the order in which build_config applies its layers.
+  - |
+    Hint 3: Inside the loop: if value is None, `pop` the key; elif both are dicts, `result[key] = deep_merge(result[key], value)`; else assign. In build_config iterate the layers in the given order.
+tags: [config, dict, recursion, merge]
+lesson: |
+  `dict.update` and plain assignment are shallow: assigning `override["db"]` replaces the whole nested dict,
+  so keys that the override did not mention vanish. A deep merge recurses whenever both sides are dicts. Defaults
+  layering also needs a clear rule about order (last layer wins) and a way to delete a key, otherwise there is no
+  way to turn an inherited setting off. Always work on a copy so that the shared defaults object is not mutated
+  between calls.
+mistakes:
+  - Using `base.copy()` and then `update`, which is still shallow.
+  - Merging lists element by element; here lists are replaced whole like any other scalar value.

@@ -1,0 +1,30 @@
+title: Version Bumper
+category: Versions
+difficulty: 3
+xp: 200
+story: |
+  The Cobalt release bot cuts tags for twelve libraries. After a "minor" bump
+  it published `2.4.7` where `2.4.0` was expected, it crashed on a release
+  candidate tag, and it declared `1.9.0` newer than `1.10.0`.
+description: |
+  `parse(version)` returns `(major, minor, patch, prerelease)` where prerelease is a string or `None`
+  (a leading `v` is allowed; build metadata after `+` is ignored). `bump(version, part)` with part
+  `major`, `minor` or `patch` returns the new `X.Y.Z` string: lower parts reset to zero and any
+  prerelease suffix is dropped. Unknown parts raise `ValueError`. `latest(versions)` returns the highest version
+  by semantic ordering (a release beats its own prerelease). There are 3 bugs.
+hints:
+  - |
+    Hint 1: Bump `2.4.7` by minor and by major, then parse `1.2.3-rc.1` and compare `1.9.0` with `1.10.0`.
+  - |
+    Hint 2: Semantic versions are compared as tuples of integers, never as strings. Splitting on `.` is wrong when the patch carries a `-rc.1` suffix.
+  - |
+    Hint 3: Use a regex such as `^v?(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?(?:\+.*)?$`, return zeros for the lower parts, and sort with a key of `(major, minor, patch, prerelease is None)`.
+tags: [semver, versions, release, sorting]
+lesson: |
+  In semantic versioning a bump resets everything to its right: a minor bump makes the patch 0, a major bump makes minor and patch 0.
+  Versions are structured data, so parse them with a regex instead of splitting strings, and compare them as integer tuples; as strings,
+  `"1.10.0" < "1.9.0"`. A prerelease such as `2.0.0-rc.1` sorts below the final `2.0.0`, which you can model by adding a boolean
+  to the sort key. Release tooling that gets this wrong ships the wrong artifact.
+mistakes:
+  - Comparing version strings directly or with `sorted(versions)`.
+  - Only incrementing the requested part and forgetting to reset the lower parts.

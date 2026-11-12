@@ -1,0 +1,31 @@
+title: Cron Field Matcher
+category: Scheduling
+difficulty: 3
+xp: 200
+story: |
+  The Pelican job runner replaces a legacy cron daemon, and the migration review
+  found jobs firing at the wrong times: `1-5` skipped the fifth minute, `*/2` on
+  day-of-month ran on even days instead of odd, and `0,30` never matched anything.
+description: |
+  `field_matches(field, value, lo, hi)` says whether `value` satisfies one cron field whose
+  legal range is `lo..hi`. Supported syntax: `*`, a number, a range `a-b` (inclusive), a list
+  `a,b,c` of any of those, and steps `*/n` or `a-b/n`. A step counts from the start of the range
+  (for `*` the start is `lo`). `cron_matches(expr, when)` checks the five fields
+  `minute hour day-of-month month day-of-week` against a `datetime`, where day-of-week 0 is Sunday.
+  There are 3 bugs.
+hints:
+  - |
+    Hint 1: Test `field_matches("1-5", 5, 0, 59)`, `field_matches("0,30", 30, 0, 59)` and `field_matches("*/2", 2, 1, 31)`.
+  - |
+    Hint 2: Cron ranges include both ends. Lists are comma separated pieces and the field matches if any piece does. A step is measured from the start of the range, not from zero.
+  - |
+    Hint 3: Split on `,` and loop over the parts; use `range(a, b + 1)`; for steps test `(value - start) % step == 0` where start is `lo` for `*`.
+tags: [cron, scheduling, ranges, parsing]
+lesson: |
+  Cron fields look simple but have precise rules. Ranges like `1-5` are inclusive, comma lists are alternatives that must be
+  split before anything else, and a step counts from the beginning of its range. Day-of-month and month start at 1, so `*/2`
+  means 1, 3, 5, and not 2, 4, 6; testing `value % step` only works for fields that start at zero. Small off-by-one
+  errors here translate directly into jobs that run at the wrong time or never run at all.
+mistakes:
+  - Using Python's `range(a, b)` and forgetting the end is inclusive in cron.
+  - Treating the whole field text as one token, so a list like `0,30` is compared with the string "30".

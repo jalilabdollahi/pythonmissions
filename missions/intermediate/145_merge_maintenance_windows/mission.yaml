@@ -1,0 +1,32 @@
+title: Window Consolidator
+category: Scheduling
+difficulty: 3
+xp: 200
+story: |
+  Each team of the Redwood platform books its own maintenance windows, and the
+  change calendar must show one consolidated list so that nobody pages the
+  customer twice in a night. The consolidated calendar shows back-to-back windows as
+  separate entries, shows a long window cut short by a small one inside it, and
+  depends on the order in which teams filed their requests.
+description: |
+  `merge_windows(windows)` takes dicts `{"start": "YYYY-MM-DD HH:MM", "end": ..., "team": name}` in any order
+  and returns merged windows sorted by start, as dicts with `start`, `end` (same string format) and `teams`
+  (sorted list of distinct team names). Windows that overlap or touch (one ends exactly when the next starts) are
+  merged. The input dicts must not be modified. Entries whose end is not after the start raise `ValueError`.
+  `in_window(merged, when)` tells whether a `datetime` falls in any window (start inclusive, end exclusive). There are 3 bugs.
+hints:
+  - |
+    Hint 1: Merge three windows filed out of order, one of which sits entirely inside another, and one that starts exactly when another ends.
+  - |
+    Hint 2: A merge sweep only works on input sorted by start time. When a window is absorbed, the merged end is the later of the two ends. Decide whether touching windows count as overlapping.
+  - |
+    Hint 3: Sort by parsed start, merge while `next_start <= current_end`, and set `current_end = max(current_end, next_end)`.
+tags: [intervals, scheduling, datetime, merge]
+lesson: |
+  Merging intervals is a sort followed by a single pass. Without sorting by start time, overlaps that are not adjacent in the list are missed. While
+  sweeping, a window that starts at or before the current end extends the group, and the new end must be the maximum of both ends, because a window
+  contained in the group must not shrink it. Whether touching intervals merge is a policy decision; for change calendars it is yes, since back-to-back
+  windows are one continuous outage for customers.
+mistakes:
+  - Sorting by end time or not sorting at all, and relying on the order in which teams filed.
+  - Assigning the end of the newest window instead of taking the maximum.

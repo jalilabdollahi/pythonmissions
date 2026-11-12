@@ -1,0 +1,32 @@
+title: Honest Uptime
+category: Reliability
+difficulty: 3
+xp: 200
+story: |
+  The Birch status page reports monthly uptime from an outage log. During a
+  big incident three teams each logged their own overlapping outage and the page
+  showed 91 percent uptime, when the real downtime was a fraction of that. Another
+  month showed uptime of 0.4 percent.
+description: |
+  `downtime_minutes(windows, period_start, period_end)` takes outage `(start, end)` pairs in minutes since the
+  start of the month and returns the number of distinct minutes the service was down inside
+  `[period_start, period_end)`, counting overlapping outages only once. Parts of an outage that lie outside
+  the period are ignored. `uptime_percent(windows, period_start, period_end)` returns
+  `100 * (1 - downtime / period_length)` rounded to 3 decimals and raises `ValueError` for an empty period.
+  There are 3 bugs.
+hints:
+  - |
+    Hint 1: Log two outages `(10, 60)` and `(30, 90)` for a period of 0 to 100. How long was the service really down?
+  - |
+    Hint 2: Summing durations counts shared minutes twice. A sweep over sorted start/end events, with a depth counter, counts each minute once. Clamp every window to the period first, and reread how uptime is computed.
+  - |
+    Hint 3: Clamp with `max(start, period_start)` and `min(end, period_end)`, add `(start, +1)` and `(end, -1)` events, sort, and count time while depth is above zero. Uptime is 100 minus the downtime share.
+tags: [sla, uptime, intervals, sweep-line]
+lesson: |
+  Downtime is the size of the union of the outage intervals, not the sum of their lengths: three overlapping 30-minute outages in the same hour
+  are one hour at most. A sweep line handles this cleanly. Turn each interval into a +1 event at its start and a -1 event at its end, sort the events, and
+  add up the time during which at least one outage is active. Clamp the intervals to the reporting period first, or a long outage that began last
+  month is charged to this month. Finally, uptime is the complement: 100 percent minus the downtime share.
+mistakes:
+  - Subtracting the sum of all outage lengths from the period, which double counts overlaps.
+  - Forgetting to clamp the windows and charging minutes from outside the reporting period.

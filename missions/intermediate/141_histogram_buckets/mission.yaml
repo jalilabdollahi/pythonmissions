@@ -1,0 +1,31 @@
+title: Cumulative Buckets
+category: Metrics
+difficulty: 3
+xp: 200
+story: |
+  The Pine metrics library exports request-duration histograms in the style of
+  Prometheus. The quantile panels built on top of it look like nonsense: buckets
+  go down as the threshold goes up, requests that took exactly 0.5 seconds
+  fall in the wrong bucket, and the total count is nowhere to be found.
+description: |
+  `LatencyHistogram(bounds)` has `observe(seconds)` and `snapshot()`. The snapshot is a dict mapping each
+  upper bound label to the number of observations less than or equal to that bound: buckets are cumulative.
+  Labels are the bounds formatted with `str()`, in ascending order, followed by the final `"+Inf"` bucket that
+  holds every observation. `total` is the sum of all observed values and `count` the number of observations.
+  There are 3 bugs.
+hints:
+  - |
+    Hint 1: Observe 0.05, 0.3 and 2.0 into bounds `[0.1, 0.5, 1.0]` and print the snapshot. Is each bucket at least as large as the one before?
+  - |
+    Hint 2: An observation belongs to every bucket whose bound is greater than or equal to it ("le" means less than or equal). And there is one more bucket than there are bounds.
+  - |
+    Hint 3: Loop over all bounds without breaking, compare with `<=`, and add `"+Inf": self.count` to the snapshot.
+tags: [histogram, prometheus, buckets, metrics]
+lesson: |
+  Prometheus-style histograms are cumulative: the bucket labelled `le="0.5"` counts every observation up to and including 0.5 seconds,
+  so each bucket includes all the smaller ones. This is what lets quantiles be estimated and histograms be summed across instances.
+  The `le` label means "less than or equal", so a value on a boundary belongs to that bucket. Every histogram also ends with a `+Inf`
+  bucket that equals the total count, which catches the slow outliers beyond the largest bound.
+mistakes:
+  - Incrementing only the first matching bucket and then `break`, which produces per-bucket counts instead of cumulative ones.
+  - Using `<` for the comparison so that boundary values fall into the next bucket.

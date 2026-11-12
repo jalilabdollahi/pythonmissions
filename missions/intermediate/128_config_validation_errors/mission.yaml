@@ -1,0 +1,30 @@
+title: Collect Every Error
+category: Validation
+difficulty: 3
+xp: 200
+story: |
+  Developers on the Granite platform push service manifests through a linter in CI.
+  People complain it takes five commits to get green because it reports one problem
+  at a time, and it even approves a manifest with `replicas: true`.
+description: |
+  `validate_manifest(cfg)` returns a list of human-readable error strings (an empty list means valid).
+  Required keys: `name` (non-empty str), `port` (int 1-65535), `replicas` (int >= 1) and `env`
+  (dict). Booleans are not accepted as integers. Every problem must be reported in one run, in the order
+  name, port, replicas, env. A key that is present but has a bad value is reported as invalid, not as missing.
+  `assert_valid(cfg)` raises `ValueError` joining all errors. There are 3 bugs.
+hints:
+  - |
+    Hint 1: Pass a manifest with several problems and look at how many messages you get back.
+  - |
+    Hint 2: The function returns or raises inside the loop. Also remember `isinstance(True, int)` is True, and `not cfg.get(key)` is also true for 0 and empty values.
+  - |
+    Hint 3: Append to a list and return it once after the loop, check presence with `key not in cfg`, and reject `bool` explicitly before accepting an `int`.
+tags: [validation, errors, collect, types]
+lesson: |
+  Validators that stop at the first problem force a slow fix-and-retry loop, so a good validator accumulates errors in a list and
+  reports them all. Distinguish "missing" (the key is absent) from "invalid" (present but wrong), which means testing with `in`,
+  not truthiness: `replicas: 0` is present and wrong, not absent. And remember that `bool` is a subclass of `int` in
+  Python, so `True` passes `isinstance(x, int)` unless you exclude it deliberately.
+mistakes:
+  - Raising an exception at the first bad key and calling that "collecting" errors.
+  - Treating falsy values as missing keys.

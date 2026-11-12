@@ -1,0 +1,30 @@
+title: Human Duration Parser
+category: Parsing
+difficulty: 2
+xp: 200
+story: |
+  The Vesper alert manager accepts silence durations such as `1h30m` or `2d` from
+  chat commands. Someone typed `1w` and it was ignored, `1h` silenced alerts for
+  only six minutes, and a typo like `10 minutes` silently became zero seconds.
+description: |
+  `parse_duration(text)` converts strings such as `1h30m15s`, `2d`, `1w2d` or `45` (plain seconds)
+  into an int number of seconds. Units are `w`, `d`, `h`, `m`, `s`; they may appear in any order
+  but must be attached to a number. Anything else, including an empty string or unknown units,
+  raises `ValueError`. `format_duration(seconds)` is the reverse, using the largest units first and
+  returning `0s` for zero. There are 3 bugs.
+hints:
+  - |
+    Hint 1: Parse `1h`, `1w` and `10 minutes` and compare the results with what you expect.
+  - |
+    Hint 2: There are two separate problems: the multiplier table and the way the string is scanned. `re.findall` skips text that does not match, whereas `re.fullmatch` demands that all of it matches.
+  - |
+    Hint 3: Hour is 3600, week is 604800. Validate with `re.fullmatch(r"(?:\d+[wdhms])+", text)` before summing `re.findall(r"(\d+)([wdhms])", text)`.
+tags: [parsing, regex, duration, validation]
+lesson: |
+  Unit tables are easy to get wrong, so write the multipliers as readable constants (60, 3600, 86400, 604800) and test each one.
+  More subtly, `re.findall` quietly ignores anything that does not match, so a typo becomes a zero rather than an error.
+  Validate the full string first with `re.fullmatch`, then extract the pieces. Input from humans needs to fail loudly, because a silence
+  or timeout that is silently wrong is worse than a rejected command.
+mistakes:
+  - Using `re.search` or `findall` alone and assuming that unknown text is rejected.
+  - Fixing `1w` by adding it to the unit table but not to the regex character class.

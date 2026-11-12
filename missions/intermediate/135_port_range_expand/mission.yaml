@@ -1,0 +1,31 @@
+title: Firewall Port Lists
+category: Parsing
+difficulty: 2
+xp: 200
+story: |
+  The Juniper firewall tool lets operators write ports as `8000-8003,9000`. A
+  rule for `8000-8003` opened only three ports, the same port listed twice
+  produced duplicate rules, and someone's typo of `99999` produced a rule
+  that the firewall rejected at 3 a.m.
+description: |
+  `expand_ports(spec)` turns a comma separated list of ports and inclusive ranges into a sorted list of
+  unique ints. Whitespace around items is ignored and an empty spec gives `[]`. Ports must be 1-65535 and a
+  range must not run backwards; otherwise `ValueError` is raised. `format_ports(ports)` is the inverse: it
+  collapses a sorted list into compact ranges, for example `[8000, 8001, 8002, 9000]` becomes `8000-8002,9000`.
+  There are 3 bugs.
+hints:
+  - |
+    Hint 1: Expand `8000-8003`, then `9000,8000,9000`, then `70000`.
+  - |
+    Hint 2: Range end values are inclusive in this notation. Collecting into a set removes duplicates and sorted() puts them in order. Validation should happen on every number you produce or parse.
+  - |
+    Hint 3: Use `range(lo, hi + 1)`, add to a `set`, check `1 <= port <= 65535` and `lo <= hi`, and return `sorted(result)`.
+tags: [parsing, ports, ranges, validation]
+lesson: |
+  Human-friendly range notation is nearly always inclusive, while Python's `range` is half-open, so every conversion needs `+ 1`
+  on the end. Collecting values in a set removes duplicates, and `sorted` makes the output deterministic, which matters when the
+  result is diffed or turned into firewall rules. Validate inputs at the boundary: ports above 65535 or backward ranges should be
+  rejected with a clear error before they reach production systems.
+mistakes:
+  - Using `range(lo, hi)` and appending the end separately only for the last range.
+  - Validating only single ports and not the ends of ranges.
