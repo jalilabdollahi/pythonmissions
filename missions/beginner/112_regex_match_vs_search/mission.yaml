@@ -1,0 +1,29 @@
+title: Log Line Spotter
+category: Regex
+difficulty: 2
+xp: 100
+story: |
+  The support bots at Tidewater Games scan log lines for errors and pull out request IDs so engineers can jump to traces.
+  Every real log line starts with a timestamp, and the bot has not flagged a single error since it was deployed.
+  Its unit tests used lines that began with the keyword, so everything looked fine.
+description: |
+  logscan.py inspects log lines such as `2025-03-01T10:00:00 ERROR db timeout req-4821`.
+
+  - `has_error(line)` is True when the word `ERROR` appears anywhere in the line as a whole word (`ERRORS` or `TERROR` do not count).
+  - `request_id(line)` returns the number from the first `req-<digits>` anywhere in the line as an `int`, or `None`.
+  - `count_errors(lines)` counts the lines for which `has_error` is True.
+
+  There are 2 bugs.
+hints:
+  - |
+    Test your functions with a line that starts with a timestamp rather than the keyword.
+  - |
+    `re.match` only tries at the very beginning of the string. `re.search` scans the whole string.
+  - |
+    Replace `re.match` with `re.search` in both functions.
+tags: [regex, re.search, logs]
+lesson: |
+  `re.match` is anchored to the start of the string, so it only succeeds if the pattern appears at position 0; `re.search` scans every position and returns the first match. Log lines almost never begin with the interesting part, so `re.search` (or `re.findall`) is usually what you want. Test regexes with realistic input, not with strings handcrafted to start with the keyword.
+mistakes:
+  - "Adding `.*` to the front of the pattern, which works but obscures intent and captures confusingly."
+  - "Using `in` for the error check, which also matches words like TERROR."

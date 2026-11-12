@@ -1,0 +1,30 @@
+title: Release Gatekeeper
+category: Versions
+difficulty: 2
+xp: 100
+story: |
+  Juniper Metrics ships an agent and a fleet tool decides which hosts are behind.
+  After agent 1.10.0 was released, the tool insisted 1.9.0 was newer and refused to upgrade anyone, and the "latest" label in the dashboard pointed at the old build.
+  Version 1.10 apparently sorts before 1.9.
+description: |
+  versions.py compares plain `MAJOR.MINOR.PATCH` versions (numbers only).
+
+  - `parse_version(text)` returns a tuple of ints, for example `(1, 10, 0)`.
+  - `is_newer(a, b)` is True when version `a` is strictly newer than `b`.
+  - `latest_release(versions)` returns the newest version string from a list.
+  - `needs_upgrade(current, minimum)` is True when `current` is older than `minimum`.
+
+  There are 2 bugs.
+hints:
+  - |
+    Compare `1.10.0` and `1.9.0` and look at which comparison the code actually performs.
+  - |
+    Strings compare character by character, so `"1.10.0" < "1.9.0"` because `"1" < "9"`. Tuples of ints compare numerically, field by field.
+  - |
+    Compare `parse_version(a)` with `parse_version(b)`, and give `max` a `key=parse_version`.
+tags: [versions, tuples, comparison]
+lesson: |
+  Version strings are not numbers or words: they are lists of numbers. Comparing them as text goes character by character, so "1.10.0" sorts before "1.9.0" and "10.0" before "9.0". Convert each version into a tuple of ints, such as (1, 10, 0), and compare the tuples, which Python orders field by field. This mistake breaks upgrade decisions, dependency pinning and compatibility checks. For real-world versions with pre-release tags, reach for a dedicated library such as `packaging`.
+mistakes:
+  - "Padding or zero-filling the strings, which fixes some cases but not different lengths."
+  - "Converting the whole version to a float, so 1.10 becomes 1.1 and equals 1.1."

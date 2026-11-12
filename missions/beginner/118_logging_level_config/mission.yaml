@@ -1,0 +1,30 @@
+title: Quiet Disk Monitor
+category: Logging
+difficulty: 2
+xp: 100
+story: |
+  The monitoring agent at Pinecrest Hosting is supposed to write a warning when a disk passes 80 percent and an error at 95.
+  Three servers filled up this month without a single line in the log, and when an error was finally logged, the severity was too low to trigger the pager.
+  The log config was copied from a noisy test setup.
+description: |
+  diskwatch.py uses the logger named `pinecrest.disk`.
+
+  - `check_disk(host, percent)` logs one message per reading and returns the level name it used: below 80 is INFO, 80 up to (not including) 95 is WARNING, 95 and above is ERROR.
+  - The logger must let INFO and higher through.
+  - Messages include the host name and the percentage.
+  - `check_all(readings)` takes a dict of host to percent and returns the list of hosts at WARNING or ERROR.
+
+  There are 2 bugs.
+hints:
+  - |
+    Log a reading of 85 percent and see whether a record is emitted at all. Then check the severity of a 97 percent reading.
+  - |
+    A logger drops records below its own level. Severity order is DEBUG, INFO, WARNING, ERROR, CRITICAL.
+  - |
+    Set the logger level to INFO (or lower) and use `logger.error` for the 95 percent case.
+tags: [logging, levels, monitoring]
+lesson: |
+  Every logger has a level, and records below it are discarded before any handler sees them. A logger set to ERROR will never emit warnings, however many you write. Levels also carry meaning for downstream tooling: alerting rules and log shippers often filter on them, so an outage logged at INFO or WARNING can be invisible to the pager. Pick the lowest level you want to keep on the logger and use the level that matches the real severity at each call site.
+mistakes:
+  - "Lowering the level only on the handler or root logger while the named logger still filters."
+  - "Using `print` instead of logging, which bypasses levels and handlers entirely."

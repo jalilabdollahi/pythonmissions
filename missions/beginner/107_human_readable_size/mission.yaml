@@ -1,0 +1,29 @@
+title: Disk Report Units
+category: Numbers
+difficulty: 2
+xp: 100
+story: |
+  The storage team at Ashford Media sends a nightly report of the largest volumes.
+  Reports show "1024.0 B" for a file that is exactly one kibibyte, and a 1,000,000 byte log shows up as "1000.0 KiB", which looks suspiciously round.
+  Finance has started to question the numbers.
+description: |
+  sizes.py formats sizes with binary units (1 KiB = 1024 bytes).
+
+  - `human_size(n)` picks the largest unit among B, KiB, MiB, GiB, TiB where the value is at least 1, and prints one decimal place, for example `"1.5 KiB"`. Plain bytes print as an integer: `"512 B"`.
+  - Exactly 1024 bytes is `"1.0 KiB"`, exactly 1024 KiB is `"1.0 MiB"`.
+  - `largest_volume(volumes)` takes a dict of name to bytes and returns `"<name>: <human size>"` for the biggest one.
+
+  There are 2 bugs.
+hints:
+  - |
+    Try the exact boundary 1024, then try 1,000,000 and do the arithmetic by hand.
+  - |
+    Binary units step by 1024 each time. Think about whether the loop should continue when the size equals 1024 exactly.
+  - |
+    Compare with `>= 1024` and divide by `1024`, not `1000`.
+tags: [numbers, units, loops]
+lesson: |
+  Binary units (KiB, MiB, GiB) step by 1024, while decimal units (kB, MB, GB) step by 1000; mixing the two in one loop produces plausible-looking but wrong figures. Boundaries need care too: a value equal to the threshold already belongs to the larger unit, so the loop condition is `>=`, not `>`. Mistakes like these creep into capacity reports and cost estimates, where they are easy to miss because every number looks reasonable.
+mistakes:
+  - "Switching all units to decimal names (kB, MB) but keeping the divisor at 1024."
+  - "Using integer division, which loses the decimal digit (1.5 KiB becomes 1 KiB)."

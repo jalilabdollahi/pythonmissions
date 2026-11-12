@@ -1,0 +1,29 @@
+title: Allow-List Sanitiser
+category: Network
+difficulty: 2
+xp: 100
+story: |
+  Falcon Hosting lets customers paste IP addresses into a firewall allow-list form.
+  Any typo in the list crashes the whole page with a stack trace, and customers who use IPv6 are told their perfectly valid addresses are wrong.
+  Support has had enough.
+description: |
+  allowlist.py checks addresses.
+
+  - `is_valid_ip(text)` returns True for any valid IPv4 or IPv6 address (surrounding spaces are ignored) and False for anything else, never raising.
+  - `ip_family(text)` returns `4` or `6`, or `None` for an invalid address.
+  - `split_valid(candidates)` returns `(good, bad)`: two lists in input order, with the stripped valid addresses in `good` and the original invalid entries in `bad`.
+
+  There are 2 bugs.
+hints:
+  - |
+    Feed the validator one IPv6 address and one piece of junk like `not-an-ip`. What happens in each case?
+  - |
+    The `ipaddress` module has a class for each IP version, plus a generic `ip_address()` that accepts both. Invalid input raises `ValueError`.
+  - |
+    Use `ipaddress.ip_address(...)` and wrap it in `try/except ValueError`, returning False.
+tags: [network, ipaddress, validation]
+lesson: |
+  The `ipaddress` module validates addresses properly: `ip_address()` accepts both IPv4 and IPv6 and raises `ValueError` for anything else. A validator has to convert that exception into a False result instead of letting it escape, otherwise one bad line in user input takes down the entire request. Pinning a check to `IPv4Address` also quietly locks out every IPv6 user, which matters as more networks run dual-stack.
+mistakes:
+  - "Validating with a regular expression, which accepts impossible addresses like 999.1.1.1."
+  - "Catching every exception with a bare `except`, which can hide real programming errors."

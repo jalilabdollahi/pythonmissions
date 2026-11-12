@@ -1,0 +1,28 @@
+title: Search Link Builder
+category: Network
+difficulty: 2
+xp: 100
+story: |
+  The status page at Orchard Cloud links to filtered log searches, for example by service name and message text.
+  Links containing spaces or an ampersand in a value break: the search shows the wrong filter, and one customer's service name literally cut the query in half.
+  Links for unfiltered searches also end with a stray question mark.
+description: |
+  links.py builds URLs.
+
+  - `build_query(params)` turns a dict into a query string with every key and value percent-encoded (spaces become `+`, `&` becomes `%26`, non-ASCII is UTF-8 encoded). Order follows the dict.
+  - `search_url(base, params)` returns `base?query`, or just `base` when there are no parameters.
+
+  There are 2 bugs.
+hints:
+  - |
+    Build a link with a value like `prod&eu` or `disk full`. What does the query string look like?
+  - |
+    Characters like `&`, `=`, `#` and spaces have special meaning in URLs and must be escaped. `urllib.parse` can do it.
+  - |
+    Use `urlencode(params)`, and return `base` unchanged when the query is empty.
+tags: [network, urllib, encoding]
+lesson: |
+  A query string is a tiny grammar where `&` separates pairs, `=` separates key from value and `#` starts the fragment, so any of those characters inside a value must be percent-encoded. `urllib.parse.urlencode` does this for keys and values, including non-ASCII text. Building URLs with string concatenation works in demos and breaks on real data, and unescaped input is also how parameter injection happens. Edge cases such as an empty parameter set should not leave a dangling `?`.
+mistakes:
+  - "Replacing spaces with `%20` by hand but forgetting `&`, `=` and `#`."
+  - "Encoding the whole URL with `quote`, which also escapes the `?` and `=` that structure the query."

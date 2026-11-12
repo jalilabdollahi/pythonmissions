@@ -1,0 +1,29 @@
+title: Scale Command Parser
+category: CLI
+difficulty: 2
+xp: 100
+story: |
+  The platform CLI at Silverline Retail has a scale command that raises the replica count in batches.
+  Run with explicit flags it blows up with a TypeError deep inside the planning code, but it works if you leave the flags off.
+  The parser hands the planner text where numbers are expected.
+description: |
+  scale.py defines the command line.
+
+  - `parse_args(argv)` takes an explicit list of arguments. Positional `service`, `--replicas` (default 2) and `--batch-size` (default 1) are both integers.
+  - `rollout_steps(args)` returns how many batches are needed: `ceil(replicas / batch_size)`.
+  - `describe(argv)` parses and returns text like `"api: 7 replicas in 3 steps"`.
+
+  There are 2 bugs.
+hints:
+  - |
+    Parse `["api", "--replicas", "7"]` and check the type of `args.replicas`.
+  - |
+    Everything on a command line arrives as text. `add_argument` has a parameter that converts it.
+  - |
+    Add `type=int` to both numeric options.
+tags: [cli, argparse, types]
+lesson: |
+  Command-line arguments are always strings. Without `type=int`, argparse hands you `"7"`, and arithmetic or comparisons then fail or, worse, silently misbehave (`"7" > "10"` is True). Declaring `type=int` converts the value and gives the user a clear usage error when they type something like `--replicas many`. Note that defaults are not converted when they are already non-strings, so tests should pass real argument lists and check the resulting types.
+mistakes:
+  - "Converting with `int(args.replicas)` in the planner, which spreads the fix around and leaves the parser lying about its types."
+  - "Changing the default to a string, which hides the problem when the flag is omitted."

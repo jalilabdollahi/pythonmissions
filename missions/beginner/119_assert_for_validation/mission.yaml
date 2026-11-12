@@ -1,0 +1,29 @@
+title: Replica Count Validator
+category: Errors
+difficulty: 2
+xp: 100
+story: |
+  The self-service portal at Evergreen Cloud lets teams request replicas for their service.
+  Validation was written with assert statements, and after the container image started running with Python's optimized mode, requests for 100000 replicas sailed straight through.
+  The invalid input also surfaces as an AssertionError that the web layer does not treat as a user mistake.
+description: |
+  manifest.py validates input.
+
+  - `validate_replicas(value)` returns the value when it is an `int` (not a bool) from 1 to 50 inclusive, and raises `ValueError` otherwise.
+  - `validate_environment(name)` returns the name when it is one of `dev`, `staging`, `prod`, and raises `ValueError` otherwise.
+  - `build_manifest(service, replicas, environment)` validates both values and returns a dict.
+
+  There are 2 bugs.
+hints:
+  - |
+    Run the module with `python -O` and call it with a bad value. Do the checks still happen? Which exception type do callers expect?
+  - |
+    `assert` is a debugging aid and is removed when Python runs with -O. Input validation must not depend on it.
+  - |
+    Replace each `assert cond, msg` with `if not cond: raise ValueError(msg)`.
+tags: [errors, validation, assert]
+lesson: |
+  `assert` statements document internal assumptions and are stripped entirely when Python runs with `-O`, so they must never be the only guard for user input. Real validation raises a specific exception, usually `ValueError` or `TypeError`, with a message that tells the caller what was wrong. Callers can then catch that exception and return a clean error to the user instead of crashing or, worse, accepting bad data in production.
+mistakes:
+  - "Catching AssertionError in the caller, which still vanishes under -O."
+  - "Raising a bare `Exception`, which callers cannot catch specifically."

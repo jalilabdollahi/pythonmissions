@@ -1,0 +1,29 @@
+title: Reproducible Canary Draw
+category: Random
+difficulty: 2
+xp: 100
+story: |
+  The release engineers at Lumen Freight pick a few hosts to receive each build first.
+  When a canary misbehaved, the incident review tried to replay the draw with the logged seed and got a completely different set of hosts.
+  The seed in the log was apparently decorative.
+description: |
+  canary.py selects hosts for staged rollouts.
+
+  - `pick_canaries(hosts, count, seed)` returns a sorted list of `count` distinct hosts. The same hosts, count and seed must always give the same answer, regardless of how the hosts were ordered and regardless of what other code did with the global random module.
+  - Asking for more hosts than exist raises `ValueError`.
+  - `plan_waves(hosts, wave_size, seed)` splits all hosts into waves using `pick_canaries`, each host appearing exactly once.
+
+  There is 1 bug.
+hints:
+  - |
+    Run the same call twice with the same seed. Do you get the same hosts? What if other code calls `random.seed` in between?
+  - |
+    The functions in the `random` module share one hidden global generator. A `random.Random` instance is private to you.
+  - |
+    Create `rng = random.Random(seed)` inside the function and call `rng.sample(...)`.
+tags: [random, seed, reproducibility]
+lesson: |
+  The module-level functions in `random` all use one shared generator, so any library or test that reseeds or draws from it changes your results. A `random.Random(seed)` object has its own state: the same seed always replays the same sequence. For anything you may need to audit later, such as canary selection, chaos experiments or sampled logs, record the seed and use a private generator.
+mistakes:
+  - "Calling `random.seed(seed)` before `random.sample`, which still depends on the shared global state if anything else touches it between calls."
+  - "Sorting the result and assuming that makes the draw reproducible, when the draw itself was not seeded."

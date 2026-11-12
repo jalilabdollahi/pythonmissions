@@ -1,0 +1,28 @@
+title: Dry Run Switch
+category: CLI
+difficulty: 2
+xp: 100
+story: |
+  The deploy tool at Cobalt Parcel has a --dry-run switch so engineers can preview a change.
+  Typing it at the end of a command is rejected with "expected one argument", and when it is typed in the middle it swallows the next option.
+  Worse, the preview check never knows whether the switch was given.
+description: |
+  deploytool.py defines the command line.
+
+  - `parse_args(argv)` takes an explicit list. It has a positional `target`, and two on/off switches `--dry-run` and `--force`. Neither takes a value, and each is `False` when not given.
+  - `describe(args)` returns `"DRY RUN: would deploy <target>"` for a dry run, otherwise `"deploying <target>"`, with `" (forced)"` appended when `--force` is set.
+
+  There are 2 bugs.
+hints:
+  - |
+    Parse `["web", "--dry-run"]` and then `["web"]`. Check what each switch contains.
+  - |
+    A flag that is either present or absent is a boolean, and argparse has an `action` for it.
+  - |
+    Use `action="store_true"` on both switches.
+tags: [cli, argparse, flags]
+lesson: |
+  By default an argparse option expects a value. A switch such as `--dry-run` carries no value: its presence is the information. `action="store_true"` stores True when the flag is given and False when it is not, which is what you want to test with `if args.dry_run:`. Without it the flag either demands an argument or leaves `None`, and a safety switch that cannot be reliably read is dangerous in deployment tooling.
+mistakes:
+  - "Giving the option `default=False` but no action, which still demands a value."
+  - "Checking `if args.dry_run is not None`, which treats any value as a dry run."

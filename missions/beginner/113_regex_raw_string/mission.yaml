@@ -1,0 +1,29 @@
+title: Replica Name Extractor
+category: Regex
+difficulty: 2
+xp: 100
+story: |
+  Incident notes at Granite Ledger mention hosts like db-12 and settings like port=5432 in free text.
+  A script was meant to collect them for the post-mortem and it returns empty lists for every note, even ones stuffed with matching names.
+  The regular expressions look right when read aloud.
+description: |
+  notes.py extracts data from text.
+
+  - `find_hosts(text)` returns every whole-word host name of the form `db-<digits>` in order of appearance (`mydb-3` and `db-9x` are not hosts).
+  - `find_ports(text)` returns the numbers after `port=` as ints, where `port=` must start at a word boundary.
+  - `summarize(text)` returns `"<n> hosts, <m> ports"`.
+
+  There are 2 bugs.
+hints:
+  - |
+    Print `repr(HOST_PATTERN)` and look closely at the first character after the opening quote.
+  - |
+    In a normal string literal, backslash sequences are interpreted by Python before the regex engine sees them. `\b` in Python source is the backspace character.
+  - |
+    Prefix the pattern strings with `r` to make them raw strings.
+tags: [regex, raw-strings, escaping]
+lesson: |
+  Python processes backslash escapes in ordinary string literals, so `"\b"` becomes a backspace character (code 8) instead of the two characters the regex engine expects to mean a word boundary. Raw strings, written `r"\bword\b"`, hand the backslashes through untouched. Always use raw strings for regular expressions: it avoids this silent failure and the deprecation warnings that newer Pythons emit for unknown escapes like `\d`.
+mistakes:
+  - "Doubling the backslash in only one of the two patterns and missing the other."
+  - "Compiling the pattern with `re.escape`, which treats the whole pattern as literal text."

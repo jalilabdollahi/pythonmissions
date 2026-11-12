@@ -1,0 +1,28 @@
+title: Artifact Fingerprint
+category: Hashing
+difficulty: 2
+xp: 100
+story: |
+  Quartz Robotics publishes firmware images and a checksum next to each one.
+  The release script either crashes on the binary image or prints a blob of unreadable bytes, so customers cannot verify their downloads.
+  A reference hash in the docs is a 64-character hex string.
+description: |
+  fingerprint.py hashes files.
+
+  - `file_sha256(path)` returns the SHA-256 of the file's raw bytes as a 64-character lowercase hex `str`. It reads in chunks so large files do not fill memory.
+  - `verify_checksum(path, expected)` returns True when the file's hash equals `expected`, ignoring case and surrounding whitespace.
+
+  There are 2 bugs.
+hints:
+  - |
+    Hash a file that contains arbitrary bytes, then look at the type and length of what comes back.
+  - |
+    Hash functions consume bytes, so files must be opened in binary mode. `digest()` and `hexdigest()` return different things.
+  - |
+    Open with mode `"rb"` and return `h.hexdigest()`.
+tags: [hashing, files, hashlib]
+lesson: |
+  Hashes are computed over bytes, so a file must be opened in binary mode (`"rb"`); text mode decodes it, mangles newlines and fails on bytes that are not valid text. `hashlib` objects offer `digest()`, which returns raw bytes, and `hexdigest()`, which returns the familiar hex string people paste into release notes. Reading in chunks keeps memory flat for multi-gigabyte images. Checksums are how you prove an artifact was not corrupted or swapped in transit.
+mistakes:
+  - "Opening in text mode with an explicit encoding, which still alters newlines and rejects binary data."
+  - "Calling `.hex()` on a string or converting digest bytes with `str()`."

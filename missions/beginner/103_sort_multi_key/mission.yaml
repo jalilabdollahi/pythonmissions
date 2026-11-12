@@ -1,0 +1,30 @@
+title: Incident Queue Order
+category: Lists
+difficulty: 2
+xp: 100
+story: |
+  The on-call board at Harbor Pay lists open incidents for the morning handover.
+  The critical ones are supposed to be at the top in alphabetical order, but the board shows them in reverse alphabetical order within each priority.
+  Nobody can find the checkout incident because it sits at the bottom of its group.
+description: |
+  board.py orders incidents.
+
+  - Each incident is a dict with `name` (str) and `priority` (int, a bigger number is more urgent).
+  - `sort_incidents(incidents)` returns a new list: highest priority first, and within the same priority alphabetical by name (A to Z, ignoring case).
+  - The input list is not modified.
+  - `top_names(incidents, limit)` returns the names of the first `limit` incidents in that order.
+
+  There is 1 bug.
+hints:
+  - |
+    Look at incidents that share the same priority. Which direction are their names sorted?
+  - |
+    `reverse=True` flips the whole key, every part of the tuple. Numbers can be negated to flip only their direction.
+  - |
+    Drop `reverse=True` and use a key such as `(-priority, name.lower())`.
+tags: [sorting, key, tuples]
+lesson: |
+  A sort key can be a tuple, and Python compares its parts left to right, so ties on the first part fall through to the second. `reverse=True` applies to the entire ordering, which is why it cannot give "descending priority, ascending name". Negate the numeric part to flip only that direction. Mixed-direction ordering shows up in every dashboard, alert list and report that ranks things.
+mistakes:
+  - "Sorting twice with reverse=True, which gets the first sort right and then scrambles it."
+  - "Sorting by name after priority, so the name order wins and priority is lost."

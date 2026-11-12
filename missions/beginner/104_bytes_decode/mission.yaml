@@ -1,0 +1,29 @@
+title: Silent Service Check
+category: Bytes
+difficulty: 2
+xp: 100
+story: |
+  The platform team at Redwood Telecom wrote a watchdog that asks the init system whether each unit is active.
+  Every unit is reported as failed, even the ones the operators can see running, and the pager has been firing all night.
+  Subprocess output is bytes, and somebody forgot that.
+description: |
+  watchdog.py reads output from a command runner. A runner is a function that takes an argv list and returns the command's stdout as `bytes`.
+
+  - `read_state(runner, unit)` returns the state as a lowercase `str` with surrounding whitespace removed (for example `"active"`).
+  - `failed_units(runner, units)` returns the units whose state is not `"active"`.
+  - `active_units(raw)` takes the bytes of a unit listing, one unit per line like `nginx.service loaded active running`, and returns the names whose third column is `active`. Blank lines are ignored.
+
+  There are 2 bugs.
+hints:
+  - |
+    Print `type(...)` of what the runner returns and compare it with the strings in the code.
+  - |
+    Bytes and str never compare equal, and bytes methods like `split` want bytes arguments. `bytes.decode()` produces a str.
+  - |
+    Decode with `raw.decode("utf-8")` before you strip, lowercase or split.
+tags: [bytes, subprocess, decode]
+lesson: |
+  `subprocess` pipes and sockets deliver `bytes`, while your messages, config values and comparisons are `str`. In Python 3 the two never compare equal, so `b"active" == "active"` is simply False and no error is raised. Decode once at the boundary where bytes enter your program (`raw.decode("utf-8")`) and work with text from then on. Forgetting this is a classic cause of checks that always pass or always fail.
+mistakes:
+  - "Comparing against `b\"active\"` in one place only and leaving the rest of the code mixed between bytes and str."
+  - "Using `str(raw)`, which produces the text `b'active\\\\n'` instead of decoding."
