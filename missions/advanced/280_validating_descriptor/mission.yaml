@@ -1,0 +1,39 @@
+title: Config Field Descriptors
+category: Metaprogramming
+difficulty: 4
+xp: 300
+story: |
+  Larkspur's platform library defines typed config models with validating descriptors, so that
+  `pool.size = 500` fails at the assignment instead of in production. Two pools created in the
+  same process started sharing their settings, a model with two fields kept returning one
+  field's value for the other, and `True` was accepted as a worker count.
+description: |
+  `Field` is a data descriptor: `__set_name__` gives each field its public name and a private
+  storage key, `__set__` validates and stores the value in the instance's `__dict__`, `__get__`
+  returns it (or the default, or raises `AttributeError` when required) and returns the
+  descriptor itself when accessed on the class. `IntRange` rejects non-ints, booleans and
+  out-of-range values; `OneOf` and `Text` validate other kinds. `Model` and `WorkerPool` show
+  the fields in use. There are 4 bugs.
+hints:
+  - |
+    Hint 1: Create two `WorkerPool` instances with different sizes and read both back. Then
+    define a model with two integer fields and assign different numbers to them.
+  - |
+    Hint 2: A descriptor object lives on the class, so it is shared by every instance. Per
+    instance state belongs in `instance.__dict__`, under a key built from the attribute name that
+    `__set_name__` receives. `bool` is a subclass of `int`.
+  - |
+    Hint 3: Store with `instance.__dict__[self.storage]`, set `self.storage = "_field_" + name`,
+    reject `isinstance(value, bool)`, and return `self` when `instance is None`.
+tags: [descriptors, set_name, validation, python-data-model]
+lesson: |
+  A descriptor instance is created once per class attribute, so anything you store on `self`
+  inside `__get__` or `__set__` is shared by every object of that class. Per-instance values
+  belong in the instance, under a key derived from the name Python passes to `__set_name__`; a
+  constant key makes all fields of a model overwrite each other. Descriptors are also called for
+  class access with `instance=None` and should return themselves so that tools and subclasses can
+  inspect them. Remember that `True` is an `int`, so numeric validators need an explicit bool check.
+mistakes:
+  - Storing the value on the descriptor itself, which makes it a hidden class-level global.
+  - Using one fixed storage name so that fields on the same object share a slot.
+  - Returning None or raising when the descriptor is accessed on the class.

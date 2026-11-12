@@ -1,0 +1,39 @@
+title: Plugin Hot Reload Host
+category: Runtime
+difficulty: 5
+xp: 300
+story: |
+  Northwind's automation server runs customer-written plugins, and restarting it drops every
+  long-lived connection. The hot-reload feature was meant to remove restarts, but new plugin
+  files are not always found, deleted plugins keep answering requests, and a plugin with a typo
+  floods the log with the same error every second.
+description: |
+  `PluginHost` manages modules named `<name>.py` in a directory, each exposing `handle(payload)`.
+  `load_new` imports files that appeared since the last scan, `refresh` reloads plugins whose
+  mtime changed, unloads plugins whose file vanished and then looks for new ones, and
+  `dispatch` calls the current handler. A failing reload keeps serving the previous handler,
+  records the error and is not retried until the file changes again. There are 4 bugs.
+hints:
+  - |
+    Hint 1: Reload a plugin, then call it through `dispatch`. Delete a plugin, re-create it and
+    check whether the old code comes back. Make a file appear immediately after a scan.
+  - |
+    Hint 2: The host caches a reference to `module.handle`, and Python caches both the
+    directory listing and the module object. Each cache has to be refreshed or dropped on purpose.
+  - |
+    Hint 3: Call `importlib.invalidate_caches()` before scanning, store the new handler after
+    `importlib.reload`, `sys.modules.pop(name, None)` when unloading, and record the mtime in the
+    `except` branch too.
+tags: [importlib, reload, plugins, sys-modules]
+lesson: |
+  Hot reloading means managing three caches yourself. The import system caches directory
+  listings, so a file created in the same filesystem timestamp tick can be invisible until you
+  call `importlib.invalidate_caches()`. `sys.modules` caches module objects, so a deleted plugin
+  must be popped or it silently returns stale code if the file comes back. Finally,
+  `importlib.reload` updates the module in place but any function object you stored earlier
+  still points at the old code, so rebind your own references after reloading. Failed reloads
+  should degrade gracefully and be remembered, or a typo turns into a retry storm.
+mistakes:
+  - Keeping a reference to the old function object after reload and believing the module update is enough.
+  - Deleting the plugin from your own tables but leaving the entry in sys.modules.
+  - Skipping the mtime update when a reload fails, so the broken file is re-imported on every poll.

@@ -1,0 +1,37 @@
+title: Ledgerlight Tamper Seal
+category: Security
+difficulty: 5
+xp: 300
+story: |
+  Ledgerlight Bank keeps an append-only audit log of privileged actions, protected by a hash
+  chain. In a red-team exercise the testers rewrote the first entry, forged an entry by moving a
+  delimiter between two fields, and deleted the last records of the log, and the verifier
+  reported everything as healthy.
+description: |
+  `AuditLog.append` adds records whose `hash` covers all fields plus the previous record's hash.
+  `record_hash` must use an unambiguous encoding. `verify_chain(records, anchor)` walks the
+  records from the start and returns `(ok, index, reason)` for sequence gaps, broken links and
+  modified records; the externally published `anchor` must match the final hash, which is how
+  truncation is detected. `actors_between` refuses to answer on a corrupted log. There are 4 bugs.
+hints:
+  - |
+    Hint 1: Modify only the first record, then only the middle one's `prev`, and finally cut
+    the log short, and check each time what `verify_chain` reports.
+  - |
+    Hint 2: The hash proves a record is self-consistent. Something else must prove it belongs
+    in this position, and something outside the log must prove nothing is missing at the end.
+  - |
+    Hint 3: Encode fields with `json.dumps` of a list, compare `rec["prev"]` with the previous
+    hash for every record starting at index 0, and compare the final hash with `anchor`.
+tags: [hash-chain, audit-log, integrity, tamper-evidence]
+lesson: |
+  A hash chain makes history tamper-evident because every record commits to its predecessor, but
+  only if verification checks everything the design promises. Hash inputs must be encoded
+  unambiguously, every record including the first needs its link verified, and a chain that
+  anyone with write access can truncate or fully rebuild needs its head published outside the
+  writer's control. Without the anchor, an attacker can delete the last evidence and the log
+  still verifies.
+mistakes:
+  - Joining fields with a separator that can also appear inside a field.
+  - Verifying each hash against its own contents but never checking the link to the previous record.
+  - Assuming a valid chain is a complete chain, without comparing the head with an external anchor.

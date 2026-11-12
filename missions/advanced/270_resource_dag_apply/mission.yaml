@@ -1,0 +1,37 @@
+title: Stackweaver Apply Order
+category: Infrastructure as Code
+difficulty: 5
+xp: 300
+story: |
+  Stackweaver applies cloud stacks in parallel batches computed from a dependency graph.
+  After a refactor, the application server was sometimes created beside its own database, a
+  typo in a dependency name was silently accepted, and tearing a stack down started with the VPC
+  and failed halfway.
+description: |
+  `levels(graph)` maps `name -> [dependencies]` to batches that can run in parallel; a resource
+  sits one level above its deepest dependency, cycles raise `CycleError` with the path, and
+  unknown dependencies raise `MissingDependency`. `apply_all` creates dependency-first and
+  skips everything downstream of a failure, transitively. `destroy_all` deletes in reverse and
+  skips anything whose dependents were not removed. There are 4 bugs.
+hints:
+  - |
+    Hint 1: Build a diamond where one resource depends on both an early and a late resource and
+    print the levels. Also try a dependency that is not a key of the graph.
+  - |
+    Hint 2: A parallel batch is only safe if every dependency is in an EARLIER batch, which
+    means taking the longest path. Think about which statuses block a dependent.
+  - |
+    Hint 3: Use `max` for depth, call `validate` first, iterate `reversed(levels(...))` for
+    destroy, and skip when any dependency status is not `"ok"`.
+tags: [dag, topological-sort, terraform, parallelism]
+lesson: |
+  Parallel apply is a layered topological sort: a node's level is one more than the deepest of
+  its dependencies, because the shortest path says nothing about when all prerequisites are
+  ready. Graph input needs validation, since a misspelled dependency otherwise behaves like no
+  dependency at all. Destroy mirrors create, with dependents removed first. Failure handling
+  must propagate through skipped nodes too: a resource downstream of a skipped node has just as
+  little right to run as one downstream of the failure itself.
+mistakes:
+  - Using the shortest dependency path (min) when assigning levels.
+  - Skipping only nodes whose direct dependency failed, so transitive dependents still run.
+  - Destroying in the same order as creating.

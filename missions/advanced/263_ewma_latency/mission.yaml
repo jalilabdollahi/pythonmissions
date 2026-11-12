@@ -1,0 +1,37 @@
+title: Harborlight Latency Smoother
+category: Observability
+difficulty: 4
+xp: 300
+story: |
+  Harborlight CDN smooths per-route latency with an exponentially weighted moving average to
+  decide when to shift traffic away from a slow origin. After a clock-skewed edge node
+  reported timestamps from the past, and a single NaN from a broken probe, the dashboard
+  graphs were stuck on nonsense and the video route looked fine during an incident.
+description: |
+  `LatencyEWMA.update(latency_ms, ts)` blends each sample into a running average with weight
+  `0.5 ** (dt / half_life)` kept for the old value. The very first sample becomes the average
+  as is. Non-finite or negative samples are rejected and counted. Timestamps that go
+  backwards must never extrapolate. `RouteBoard` keeps a fast and a slow tracker per route and
+  reports `degraded` when fast exceeds slow by `slow_factor`. There are 4 bugs.
+hints:
+  - |
+    Hint 1: Update a fresh tracker with one sample and print the result, then one half-life
+    later with a different sample and check whether old and new weigh the same.
+  - |
+    Hint 2: The decay factor describes how much of the OLD value remains. Also consider what
+    `dt` is when a timestamp arrives late, and what comparisons with NaN return.
+  - |
+    Hint 3: Seed with the sample itself, use `keep * old + (1 - keep) * new`, clamp `dt` at
+    zero, and reject anything that is not `math.isfinite` or is negative.
+tags: [ewma, latency, smoothing, observability]
+lesson: |
+  An EWMA is a weighted average whose weights decay geometrically, so the algebra has to be
+  exactly right: the decay factor belongs to the old value, the first sample must seed the
+  state (starting from zero biases every early reading low), and time-based decay needs a
+  non-negative interval. Bad inputs are the other half of the job. A single NaN is poisonous
+  because every later blend with it stays NaN, and `nan < 0` is False, so naive range checks let
+  it straight through.
+mistakes:
+  - Swapping the weights so new samples are damped and old ones amplified.
+  - Checking only `latency < 0`, which NaN passes silently.
+  - Starting the average at zero and letting it slowly climb towards reality.

@@ -1,0 +1,38 @@
+title: Checkout Error Spike Detector
+category: Observability
+difficulty: 4
+xp: 300
+story: |
+  Quillfeather Payments pages the on-call engineer when checkout errors per minute look unusual.
+  During last week's gateway outage the alert fired once, then went silent while the errors
+  kept climbing, and a quiet night of perfectly constant traffic crashed the detector's
+  scoring path. A sudden traffic drop also never paged anyone.
+description: |
+  `ZScoreDetector.observe(ts, value)` compares each value with a rolling baseline of the most
+  recent normal values and returns an `Anomaly(ts, value, z)` when the absolute z-score (using
+  the sample standard deviation) is strictly above the threshold. The first `warmup` values
+  just build the baseline. Anomalous values must not enter the baseline. A baseline with zero
+  spread flags any different value with an infinite z-score of the right sign. `scan` runs a
+  series and `group_incidents` merges nearby anomalies. There are 4 bugs.
+hints:
+  - |
+    Hint 1: Feed a calm baseline, then a huge spike twice in a row, and print what the
+    detector returns and what is in its window afterwards.
+  - |
+    Hint 2: Think about what data the baseline may contain at the moment you score a new
+    point, and what a negative z-score means for a threshold check.
+  - |
+    Hint 3: Score against `self.values` only, compare `abs(z)`, return after the check without
+    appending anomalies, and when std is 0 return `inf` with the sign of the deviation.
+tags: [anomaly-detection, statistics, z-score, alerting]
+lesson: |
+  A z-score measures distance from a baseline in standard deviations, so the baseline must be
+  independent of the point being judged: including the candidate shrinks its own score, and
+  adding anomalies to the window teaches the detector that the outage is normal. Detectors also
+  need explicit handling of degenerate statistics: zero variance means any change is
+  infinitely surprising, not a reason to return a calm score. Finally, anomalies are two-sided;
+  a collapse in traffic usually matters as much as a spike.
+mistakes:
+  - Appending every observation to the window, which lets an outage poison its own baseline.
+  - Returning a z-score of 0 whenever the standard deviation is 0.
+  - Comparing the raw z-score instead of its absolute value, so only spikes alert.

@@ -1,0 +1,39 @@
+title: Tidewater Capacity Crystal Ball
+category: Autoscaling
+difficulty: 4
+xp: 300
+story: |
+  Tidewater Streaming pre-warms video encoder replicas before the evening peak, using a trend
+  line fitted to recent CPU usage. Last night the forecast was wildly off for epoch-sized
+  timestamps, a flat afternoon crashed the planner with a ZeroDivisionError, and the fleet ran
+  hotter than the configured headroom allowed.
+description: |
+  `fit_trend(points)` returns the least-squares `(slope, intercept)` for `(unix_seconds, cores)`
+  samples. `recent_window` keeps samples in the last `span` seconds (both ends inclusive).
+  `predict` evaluates the line at a time, `seconds_until` says when the line reaches a limit
+  (0 if already there, `None` if never), `replicas_needed` sizes the fleet so every replica
+  stays at `1 - headroom` of its capacity, and `plan` ties them together.
+  There are 4 bugs.
+hints:
+  - |
+    Hint 1: Predict a point on a perfect line whose x values are around 1.7 billion and compare
+    with the true value. Then feed the planner a perfectly flat series.
+  - |
+    Hint 2: A least-squares line always passes through the centroid (mean x, mean y). Headroom
+    reduces usable capacity, it does not add to it. Check the comparison operators on slope and
+    window edges.
+  - |
+    Hint 3: intercept = mean_v - slope * mean_t, use `<=` for the window cutoff, treat
+    `slope <= 0` as "never", and multiply capacity by `(1 - headroom)`.
+tags: [forecasting, least-squares, capacity, autoscaling]
+lesson: |
+  Linear regression is simple, but each term matters: the intercept must be anchored at the same
+  point the slope is measured from, otherwise extrapolation drifts by slope times the offset,
+  which is huge with epoch timestamps. Forecasts also need guarded edge cases: a flat trend has
+  slope zero and must mean "never", not a division error. Window boundaries and headroom
+  arithmetic are classic off-by-one and sign mistakes that only show up as under-provisioned
+  fleets at peak time.
+mistakes:
+  - Anchoring the intercept at the first timestamp instead of the mean, which only works when x starts at zero.
+  - Guarding only negative slopes and letting a slope of exactly zero reach the division.
+  - Adding headroom to capacity instead of subtracting it, so the fleet is undersized.

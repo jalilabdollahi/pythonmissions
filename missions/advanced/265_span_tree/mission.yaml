@@ -1,0 +1,38 @@
+title: Lanternfish Trace Flamegraph
+category: Observability
+difficulty: 5
+xp: 300
+story: |
+  Lanternfish Retail's checkout traces arrive as flat span lists, and the performance team
+  builds flamegraphs from them. The numbers are nonsense: a gateway that fans out to two
+  services in parallel reports negative self time, spans from a sampled-out proxy vanish from
+  the picture, and children appear in the wrong order.
+description: |
+  `build_tree(spans)` turns flat spans (`id`, `parent`, `service`, `name`, `start`, `end`) into
+  nodes with sorted `children`; spans whose parent is absent become roots. `covered_time`
+  measures how long at least one child was running inside the parent's own bounds, and
+  `self_time` is duration minus that. `self_times`, `time_by_service` and `render` build on
+  these. There are 4 bugs.
+hints:
+  - |
+    Hint 1: Build a parent with two children that run at the same time and print its self time.
+    Then add a child that ends after the parent does.
+  - |
+    Hint 2: Self time is the parent's duration minus the length of the UNION of child
+    intervals, clipped to the parent. Also check how siblings are sorted and what happens when
+    the parent id is unknown.
+  - |
+    Hint 3: Extend `cur_end` with `max` when intervals overlap, clamp each child with
+    `max(start, lo)` and `min(end, hi)`, sort by `(start, end)`, and keep orphans as roots.
+tags: [tracing, interval-merge, trees, observability]
+lesson: |
+  Self time is what a span spent doing its own work rather than waiting for children. With
+  concurrent children you cannot just add durations; you need the union of the intervals, which
+  is the classic merge-overlapping-intervals algorithm, clipped to the parent's bounds because
+  clock skew between hosts routinely makes children stick out. Real trace data is also
+  incomplete, so a tree builder must keep orphans visible rather than silently discard the
+  work a dropped parent would have owned.
+mistakes:
+  - Summing child durations, which goes negative for parallel fan-out.
+  - Letting a skewed child extend past the parent and drive self time below zero.
+  - Dropping spans whose parent was not collected instead of treating them as roots.

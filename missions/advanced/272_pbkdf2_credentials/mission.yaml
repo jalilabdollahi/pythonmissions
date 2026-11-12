@@ -1,0 +1,37 @@
+title: Dockside Password Vault
+category: Security
+difficulty: 4
+xp: 300
+story: |
+  Dockside's internal admin portal stores password hashes using PBKDF2. A security review found
+  that two users with the same password had identical hashes, that raising the iteration count
+  locked everyone with an older hash out, and that a user with an accented password could log in
+  with a mangled version of it.
+description: |
+  `hash_password` returns `pbkdf2_sha256$iterations$salt_b64$hash_b64` using a fresh random salt
+  per call when none is given. `verify_password` recomputes the hash with the salt and iteration
+  count stored in the string and compares in constant time; malformed values must simply fail.
+  `needs_rehash` and `login` upgrade hashes below the target work factor, and `policy_report`
+  lists accounts that need attention. There are 4 bugs.
+hints:
+  - |
+    Hint 1: Hash the same password twice without a salt argument and compare the results. Then
+    verify a hash created with a different iteration count, and hash a password with an accent.
+  - |
+    Hint 2: Default argument values are evaluated once, when the function is defined. Verification
+    must trust the parameters stored with the hash, and bytes must be encoded losslessly.
+  - |
+    Hint 3: Use `salt=None` and call `os.urandom` inside the function, pass the stored
+    `iterations` to `_derive`, encode with UTF-8, and return False when `parse` gives None.
+tags: [pbkdf2, passwords, salts, hashing]
+lesson: |
+  A password hash is only as good as its salt, its work factor and its handling of input.
+  Salts must be generated per hash, which a default argument evaluated at import time silently
+  breaks. The iteration count and salt travel with the hash so you can raise the cost later while
+  old hashes keep verifying, and upgrade them on the next successful login. Encode passwords
+  losslessly, compare digests in constant time, and make every malformed or unknown format fail
+  closed instead of raising or, worse, passing.
+mistakes:
+  - Generating the salt in a default argument, so every password in the process shares one salt.
+  - Verifying with the current global iteration count instead of the one stored with the hash.
+  - Encoding with errors="ignore", which silently deletes characters from the password.
