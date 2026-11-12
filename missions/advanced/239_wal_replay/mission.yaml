@@ -1,0 +1,38 @@
+title: Crash-Safe Journal Replay
+category: Storage
+difficulty: 5
+xp: 300
+story: |
+  Tern's embedded key-value agent journals every change to a write-ahead log before applying
+  it. After a power cut on a fleet of edge boxes, some agents refused to start, some came back
+  with counters off by one, and others accepted new writes that vanished at the next restart.
+description: |
+  Each log record is `>II` (payload length, CRC32 of the payload) followed by a JSON payload
+  with `seq`, `op` (`set`, `del`, `incr`), `key` and `value`. `read_records` returns
+  `(records, good_offset, status)` where status is `clean`, `truncated` (the last record was
+  cut off: normal after a crash) or `corrupt` (a checksum mismatch). Scanning stops at the
+  first bad record. `replay` repairs the file by truncating it to `good_offset`, then applies
+  only records with `seq > after_seq`. There are 4 bugs.
+hints:
+  - |
+    Hint 1: Chop the last few bytes off a valid log and call read_records. Then replay it and
+    append another record. Does the new record survive a second replay?
+  - |
+    Hint 2: Once one record fails its checksum nothing after it can be trusted, because the
+    length field that locates the next record may be garbage. Also think about what the
+    snapshot's sequence number already covers.
+  - |
+    Hint 3: Check that the payload fits before slicing it, return at the first bad record,
+    truncate for any non-clean status, and apply seq strictly greater than after_seq.
+tags: [wal, checksum, crash-recovery, storage]
+lesson: |
+  A write-ahead log is only useful if recovery is predictable. A torn final record is expected
+  after a crash and must be detected by comparing the declared length with the bytes that are
+  actually there, then discarded. A checksum failure ends the trusted prefix; skipping ahead
+  would interpret garbage as headers. The file must be truncated to the last good offset so new
+  appends follow valid data, and records already covered by a checkpoint must not be applied
+  again, which matters for non-idempotent operations like increments.
+mistakes:
+  - Reading a short payload anyway and reporting the torn tail as corruption.
+  - Skipping a corrupt record and continuing to parse after it.
+  - Leaving the damaged tail in place so later appends are unreachable.

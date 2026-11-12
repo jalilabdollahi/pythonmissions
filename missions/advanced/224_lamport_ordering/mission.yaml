@@ -1,0 +1,37 @@
+title: Audit Log Interleaver
+category: Distributed Systems
+difficulty: 4
+xp: 300
+story: |
+  Compliance at Brindle Bank merges audit logs from a dozen payment workers that have no
+  shared clock. Auditors found a "refund issued" entry sorted before the "payment captured"
+  entry it was caused by, and two replicas of the merged log disagree about the order of
+  simultaneous events.
+description: |
+  Each worker owns a `LamportNode` (integer node id). `local_event` and `send` stamp a new
+  `Event(time, node, payload)`; `receive` advances the clock past the incoming event's time.
+  `total_order` sorts events by `(time, node)` so every replica derives the same sequence, and
+  `merge_logs` combines several logs, dropping exact duplicates of the same event only.
+  There are 4 bugs.
+hints:
+  - |
+    Hint 1: Compare the timestamp of a received message with the receiver's event that
+    follows it. Also look at what the very first event on a fresh node gets stamped with.
+  - |
+    Hint 2: Node ids are integers. Think about how 2 and 10 compare as numbers versus as
+    text, and what uniquely identifies an event.
+  - |
+    Hint 3: Tick first, then stamp. Receive is max(local, remote) + 1. Use (time, node) as
+    both the sort key and the identity of an event.
+tags: [lamport, logical-clock, ordering, distributed]
+lesson: |
+  A Lamport clock guarantees that if event a caused event b then time(a) < time(b), which
+  requires incrementing on every local event and setting the clock to max(local, remote) + 1 on
+  receive. Concurrent events can share a timestamp, so a deterministic tie-break such as the
+  node id is needed to get one total order that every replica agrees on. The tie-break must
+  compare ids with their natural type, and event identity must include the node, or distinct
+  events get merged away.
+mistakes:
+  - Sorting by time only and relying on input order to break ties.
+  - Comparing node ids as strings so that 10 sorts before 2.
+  - Deduplicating events by timestamp alone.

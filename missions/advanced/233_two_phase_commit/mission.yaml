@@ -1,0 +1,38 @@
+title: Cross-Region Booking Commit
+category: Transactions
+difficulty: 5
+xp: 300
+story: |
+  Kestrel Travel books a flight seat, a hotel room and a rental car in three separate regional
+  services using two-phase commit. After a hotel outage the ops dashboard showed seats that
+  were "held" forever, and in another incident a booking was recorded as confirmed in one
+  region and cancelled in another.
+description: |
+  `Coordinator.run(txn_id, plan)` asks every participant in `plan` (name -> amount) to
+  `prepare`. If ANY participant votes no or raises, the transaction aborts: the decision is
+  logged, and every participant that already prepared is rolled back. If all vote yes the
+  decision `commit` is logged FIRST and then every participant is told to commit; a failing
+  commit must not stop the remaining participants from being told. `Participant` holds
+  reservations against a capacity. There are 4 bugs.
+hints:
+  - |
+    Hint 1: Make the second participant vote no and look at what happens to the first one's
+    reservation. Then make a participant raise during prepare.
+  - |
+    Hint 2: In 2PC the decision must be durable before anyone is told about it, and once the
+    decision is commit the coordinator must reach every participant.
+  - |
+    Hint 3: Track the prepared list, roll it back on abort, treat exceptions as a no vote, write
+    the log before phase two, and catch errors per participant during commit.
+tags: [two-phase-commit, transactions, rollback, atomicity]
+lesson: |
+  Two-phase commit gives atomicity across services: phase one collects votes, phase two applies a
+  single global decision. Any no vote (or failure to answer) forces an abort, and everyone who
+  already promised to commit must be told to release their reservation. The decision has to be
+  written to a durable log before it is announced, otherwise a coordinator crash leaves
+  participants blocked with no way to learn the outcome, and a commit decision must be
+  delivered to all participants even if one of them fails.
+mistakes:
+  - Aborting on the first no vote without rolling back the participants that voted yes.
+  - Counting an exception during prepare as a yes vote, or letting it escape and skip rollback.
+  - Stopping the commit loop at the first failing participant.

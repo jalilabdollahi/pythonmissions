@@ -1,0 +1,35 @@
+title: Replica Delta Finder
+category: Distributed Systems
+difficulty: 5
+xp: 300
+story: |
+  The Quill key-value store repairs drifted replicas with anti-entropy: instead of shipping
+  the whole dataset, replicas exchange Merkle trees and copy only what differs. The repair
+  job keeps re-copying identical data, and sometimes leaves a stale key behind for days.
+description: |
+  Keys are assigned to `BUCKETS` fixed buckets by hash. `leaf_hash` summarises one bucket,
+  `build_tree` returns a list of levels (leaves first, root last) where a parent hashes its two
+  children, and `diff_buckets` walks two trees from the root, descending only into children
+  whose hashes differ. `diff_keys` returns the sorted keys whose values differ, including keys
+  present on only one side. There are 4 bugs.
+hints:
+  - |
+    Hint 1: Two replicas with identical contents inserted in a different order must have the
+    same root. And two different contents must never produce the same bucket hash.
+  - |
+    Hint 2: When comparing children, both subtrees may differ. Also consider keys that exist
+    on only one replica.
+  - |
+    Hint 3: Sort the items before hashing, put delimiters between fields, visit both children,
+    and diff over the union of keys.
+tags: [merkle-tree, anti-entropy, hashing, replication]
+lesson: |
+  A Merkle tree lets two replicas find their differences in O(log n) comparisons when they
+  agree on the tree shape and the hash input is canonical. Canonical means a deterministic
+  order and unambiguous encoding: without sorting, insertion order changes the hash, and without
+  delimiters ("a"+"bc" vs "ab"+"c") different data collides. The walk must explore every
+  differing child, and the final key comparison must cover keys missing on either side.
+mistakes:
+  - Hashing dict items in iteration order.
+  - Concatenating key and value with no separator.
+  - Following only the first differing child, so half the tree is never repaired.

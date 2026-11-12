@@ -1,0 +1,36 @@
+title: Top Talker Sketch
+category: Data Structures
+difficulty: 4
+xp: 300
+story: |
+  Netwatch counts requests per client IP across edge routers, but exact counters would need
+  gigabytes of RAM. The team switched to a count-min sketch, and now the "top talkers" list is
+  full of innocent clients with wildly inflated counts, and the global total from merging two
+  routers is lower than either router alone.
+description: |
+  `CountMinSketch(epsilon, delta)` has width = ceil(e / epsilon) columns and depth =
+  ceil(ln(1 / delta)) rows. Each row hashes an item with its own row-specific salt. `update`
+  adds a count to one cell per row, `estimate` returns the MINIMUM over the rows (never an
+  undercount), and `merge` adds two sketches of identical shape cell by cell.
+  There are 4 bugs.
+hints:
+  - |
+    Hint 1: Estimates should never be below the true count and should rarely be far above it.
+    Compare the shape of a fresh sketch with the formulas in the description.
+  - |
+    Hint 2: Collisions only average out if each row hashes differently. And what is the right
+    way to combine counts that were gathered separately on two routers?
+  - |
+    Hint 3: Salt the hash with the row number, take min() across rows, merge with +, and use
+    math.e / epsilon for the width.
+tags: [count-min-sketch, streaming, probabilistic, hashing]
+lesson: |
+  A count-min sketch overestimates because different items collide in a cell, never
+  underestimates, so the minimum across independent rows is the tightest bound. Independence
+  needs a different hash per row; with identical rows the depth buys nothing. Width controls
+  the error (epsilon * total count) and depth controls the confidence (1 - delta). Sketches
+  from different shards merge by adding cells, since counts are additive, never by taking max.
+mistakes:
+  - Taking the maximum across rows, which keeps the worst collision.
+  - Using the same hash for every row, so a collision in one row is a collision in all.
+  - Merging by max, which loses counts seen on only one side.

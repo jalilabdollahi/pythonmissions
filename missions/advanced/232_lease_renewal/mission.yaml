@@ -1,0 +1,36 @@
+title: Scheduler Lease Heartbeat
+category: Distributed Systems
+difficulty: 5
+xp: 300
+story: |
+  The Tidewater batch scheduler runs two instances and lets whichever holds a 15-second lease
+  in the coordination store dispatch jobs. During a slow-store incident both instances
+  dispatched the same jobs for a few seconds: the old leader believed it still held a lease
+  that the store had already given away.
+description: |
+  `LeaseStore` holds one lease record; `acquire` succeeds if the lease is free, expired
+  (`now >= expires_at`) or already owned by the caller, and `renew` succeeds ONLY for the
+  current unexpired owner. `Elector.tick()` acquires or renews as needed. The leader's local
+  deadline is measured from the moment BEFORE the store call was sent, minus a safety margin;
+  `is_leader()` is true strictly before that deadline, and a failed renewal steps down
+  immediately. There are 4 bugs.
+hints:
+  - |
+    Hint 1: Make the store slow (it advances the clock during a call) and compare when the
+    leader thinks its lease ends with when the store actually ends it.
+  - |
+    Hint 2: Who may renew a lease? And what should a leader do the moment a renewal is refused?
+  - |
+    Hint 3: Capture `started = clock()` before calling the store, use `<` for the deadline, check
+    the owner in renew, and clear the leader state on failure.
+tags: [lease, leader, clocks, renewal]
+lesson: |
+  A leader must stop acting before the store stops believing in it. Because a request takes time,
+  the safe local deadline is computed from the instant the request was sent, never from when the
+  reply arrived, and it is shortened by a margin for clock drift. Expiry boundaries need one
+  convention shared by every component, renewals must be compare-and-set on the owner, and
+  a refused renewal means leadership is already lost, so the node must step down at once.
+mistakes:
+  - Timestamping the lease when the response comes back, which extends the leader's belief.
+  - Letting any node renew the lease, which silently steals leadership.
+  - Waiting for the local deadline to pass after a refused renewal instead of stepping down.

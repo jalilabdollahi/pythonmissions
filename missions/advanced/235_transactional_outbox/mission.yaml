@@ -1,0 +1,38 @@
+title: Order Event Outbox
+category: Messaging
+difficulty: 5
+xp: 300
+story: |
+  Marlow Market's order service must emit an "order.created" event for every order, but after a
+  broker outage finance found orders with no event and warehouse found events for orders that
+  did not exist. After the fix attempt, some events started arriving out of order and one
+  consumer double-charged a customer.
+description: |
+  `create_order` writes the order row AND an outbox row in a single SQLite transaction, so
+  either both exist or neither does. `relay_once` publishes unpublished outbox rows in id order
+  and marks each one published only AFTER the broker accepted it; on the first publish failure
+  it stops so ordering is preserved. This gives at-least-once delivery, so
+  `IdempotentConsumer` ignores an event id it has already handled successfully.
+  There are 4 bugs.
+hints:
+  - |
+    Hint 1: Make the payload serialization fail halfway through create_order, then make the
+    broker fail halfway through a relay run, and look at the database afterwards.
+  - |
+    Hint 2: Marking before publishing turns at-least-once into at-most-once. Continuing after a
+    failure reorders the stream. Marking an event as handled before the handler succeeds loses it.
+  - |
+    Hint 3: Use one `with conn:` block for both inserts, publish then UPDATE, `break` on error,
+    and record the event id only after the handler returns.
+tags: [outbox, at-least-once, idempotency, sqlite]
+lesson: |
+  The transactional outbox solves the dual-write problem: you cannot atomically write a database
+  and a message broker, so you write the event into the same database transaction as the state
+  change and let a relay ship it later. The relay must mark rows only after the broker confirms,
+  accepting duplicates in exchange for never losing events, and it must stop at the first
+  failure to keep order. Duplicates are then neutralised by a consumer that remembers handled
+  event ids, recorded only once handling has really succeeded.
+mistakes:
+  - Committing the order first and the outbox row second, which reintroduces the dual write.
+  - Setting published=1 before calling the broker.
+  - Recording the event id as processed before running the handler.

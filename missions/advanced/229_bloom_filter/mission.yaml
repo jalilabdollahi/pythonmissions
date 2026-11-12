@@ -1,0 +1,34 @@
+title: Seen-Hash Bloom Gate
+category: Data Structures
+difficulty: 4
+xp: 300
+story: |
+  Ferrous Logistics screens billions of package-scan IDs through a Bloom filter before hitting
+  the database. The filter was sized for a 1% false-positive rate but the DB is being hit by
+  five times as many "maybe seen" lookups, and QA found a scan ID that was inserted yet reported
+  as new.
+description: |
+  `BloomFilter(expected_items, fp_rate)` sizes its bit array with m = -n ln(p) / (ln 2)^2 bits
+  (rounded up) and uses k = (m / n) ln 2 hash functions (rounded to the nearest integer, at
+  least 1). The k bit positions of an item come from double hashing: `(h1 + i * h2) % m` with
+  an odd h2. An item is reported present only if ALL its bits are set. There are 4 bugs.
+hints:
+  - |
+    Hint 1: Compare the measured false-positive rate with the target, and check an inserted
+    item with contains() immediately after add().
+  - |
+    Hint 2: Re-derive the sizing formulas, especially the denominator, and look at how the k
+    probe positions are generated from the two base hashes.
+  - |
+    Hint 3: (ln 2) is squared, positions use i * h2, membership is all(), k is rounded.
+tags: [bloom-filter, hashing, probabilistic, sizing]
+lesson: |
+  A Bloom filter trades exactness for memory: no false negatives, but a tunable false-positive
+  rate. That guarantee depends on correct sizing (m bits and k hashes from n and p), on k
+  positions that behave like independent hashes (double hashing needs a non-trivial step
+  derived from a second hash), and on requiring every bit to be set. Mis-sizing silently
+  inflates the false-positive rate, which only shows up as unexplained database load.
+mistakes:
+  - Forgetting to square ln 2 in the bit-count formula.
+  - Using any() instead of all() when testing membership.
+  - Using h1 + i as the probe sequence so that neighbouring items share almost all bits.

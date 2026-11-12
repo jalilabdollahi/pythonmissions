@@ -1,0 +1,39 @@
+title: Payout Retry Guard
+category: APIs
+difficulty: 4
+xp: 300
+story: |
+  Copperline's payout API is called by mobile clients on flaky networks, so every request
+  carries an Idempotency-Key header. Support has tickets about customers paid twice, about a
+  retry that returned someone else's receipt, and about a key that returned "in progress"
+  for days after a bank timeout.
+description: |
+  `IdempotencyStore.execute(tenant, key, payload, handler)` runs `handler(payload)` at most
+  once per (tenant, key). A repeat with the same payload returns the stored response without
+  calling the handler. A repeat with a DIFFERENT payload raises `KeyConflict`, and so does a
+  repeat while the first call is still in flight. If the handler raises, the key is released so
+  the client can retry. Stored keys expire after `ttl` seconds on the injected clock (expired
+  when `now - created >= ttl`). Payloads are compared by a canonical fingerprint.
+  There are 4 bugs.
+hints:
+  - |
+    Hint 1: Send the same logical payload with keys in a different order, and send two tenants
+    using the same key string.
+  - |
+    Hint 2: What should a reused key with a different body do? And what state is left behind if
+    the handler throws?
+  - |
+    Hint 3: Fingerprint with sort_keys=True, namespace the record by (tenant, key), compare
+    fingerprints before returning a cached response, and clean up in an except block.
+tags: [idempotency, api, retries, hashing]
+lesson: |
+  Idempotency keys let clients retry unsafe requests without duplicating side effects. The server
+  must treat the key as a promise about one specific request: same key and same body replays the
+  original answer, same key and a different body is a client bug and must be rejected, not
+  answered with an unrelated cached result. Keys are scoped per caller, bodies are compared
+  canonically so field order is irrelevant, and a failed attempt must free the key, otherwise
+  the client is locked out of retrying.
+mistakes:
+  - Returning the cached response for a reused key without checking the request body.
+  - Using the raw key as the global cache key so tenants collide.
+  - Leaving the key marked in progress when the handler raises.

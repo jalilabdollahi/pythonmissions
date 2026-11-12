@@ -1,0 +1,38 @@
+title: Log-Structured Compactor
+category: Storage
+difficulty: 5
+xp: 300
+story: |
+  Anvil DB, a small log-structured store used for telemetry metadata, compacts its sorted runs
+  in the background. After the weekend compaction, keys that operators had deleted came back to
+  life, some values reverted to old versions, and disk usage never went down after a full
+  compaction.
+description: |
+  A run is a key-sorted list of `(key, value)` pairs; a deleted key is stored as the
+  `TOMBSTONE` marker. `merge_runs(runs, last_level)` takes runs ordered NEWEST FIRST and returns
+  one sorted run with a single entry per key, where the newest entry wins. Tombstones are kept
+  unless `last_level` is true (no older data exists below), in which case they are dropped.
+  `get` searches newest to oldest and a tombstone means "deleted" (returns None).
+  `LsmTree` flushes memtables and compacts. There are 4 bugs.
+hints:
+  - |
+    Hint 1: Overwrite a key in a newer run and delete a key that also exists in an older run,
+    then compare the compacted result and a plain lookup with what you expect.
+  - |
+    Hint 2: A tombstone is the only thing hiding older versions of a key in deeper runs, so when
+    it may be discarded is decided by what lies BELOW the runs being merged.
+  - |
+    Hint 3: Newest wins on ties, tombstones are removed only when last_level is true, and get
+    must stop at the first run that mentions the key, tombstone or not.
+tags: [lsm-tree, compaction, tombstones, storage]
+lesson: |
+  In a log-structured merge tree, newer runs shadow older ones, so compaction must resolve
+  duplicates in favour of the newest entry. Deletions are written as tombstones rather than
+  erased, because older runs further down may still contain the key. A tombstone can only be
+  dropped when compacting into the last level, where nothing older remains; dropping it earlier
+  resurrects deleted data, while never dropping it leaks space forever. Reads follow the same
+  rule: the first run that knows the key decides, even if what it knows is "deleted".
+mistakes:
+  - Letting the oldest value win when merging runs.
+  - Dropping tombstones on every compaction, not just at the last level.
+  - Skipping over a tombstone during a read and returning an older version.
