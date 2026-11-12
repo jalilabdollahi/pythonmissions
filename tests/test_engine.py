@@ -71,6 +71,12 @@ def test_missions_are_ordered_by_level_then_number(tmp_path):
     assert missions[0].mistakes == ["one", "two"]
 
 
+def test_hint_number_prefix_is_stripped(tmp_path):
+    make_mission(tmp_path, "beginner", "001_a", GOOD_YAML.replace("  - two\n", "  - |\n    Hint 2: look closer\n"))
+    missions, _ = load_missions(tmp_path)
+    assert missions[0].hints[1] == "look closer"
+
+
 def test_sandbox_keeps_edits_and_reset_restores(tmp_path):
     mission = make_mission(tmp_path, "beginner", "001_ok")
     box = prepare_sandbox(tmp_path, mission)

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Tuple
@@ -55,6 +56,14 @@ def _as_str_list(value) -> List[str]:
     return [str(v).strip() for v in value if str(v).strip()]
 
 
+_HINT_PREFIX = re.compile(r"^\s*hint\s*\d+\s*[:.)-]\s*", re.IGNORECASE)
+
+
+def _clean_hints(value) -> List[str]:
+    """The UI numbers hints itself, so drop a leading 'Hint 1:' written by authors."""
+    return [_HINT_PREFIX.sub("", h, count=1) for h in _as_str_list(value)]
+
+
 def load_missions(base_path: Path) -> Tuple[List[Mission], List[str]]:
     """Scan missions/ and return (missions sorted by level then number, load_errors).
 
@@ -89,7 +98,7 @@ def load_missions(base_path: Path) -> Tuple[List[Mission], List[str]]:
                         xp=int(data.get("xp", 100)),
                         description=str(data.get("description", "")).strip(),
                         story=str(data.get("story", "")).strip(),
-                        hints=_as_str_list(data.get("hints")),
+                        hints=_clean_hints(data.get("hints")),
                         tags=_as_str_list(data.get("tags")),
                         path=mission_dir,
                         lesson=str(data.get("lesson", "")).strip(),
