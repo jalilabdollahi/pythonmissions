@@ -1,0 +1,40 @@
+title: Rename Without Downtime
+category: Databases
+difficulty: 5
+xp: 300
+story: |
+  Corvid Health renamed a patient column in one migration and the old app version, still
+  serving traffic during the rollout, started throwing 500s for six minutes. The DBA team now
+  runs every migration plan through a linter that enforces the expand, migrate, contract
+  sequence, but the linter misses unsafe orderings and flags safe plans.
+description: |
+  `validate_plan(steps)` walks a list of migration steps and returns `(index, message)` for each
+  violation. Rules: a new column must be nullable or have a default (old code does not know
+  it); `dual_write` needs the column to exist; `backfill` must come AFTER dual writes start, or
+  rows written in between are missed; `switch_reads` needs a finished backfill; and
+  `drop_column(old, replaced_by=new)` is only allowed once reads have switched to `new`. State is
+  tracked per table and column. An empty list means the plan is safe.
+  There are 4 bugs.
+hints:
+  - |
+    Validate the canonical rename (add, dual write, backfill, switch reads, drop) and print
+    the errors. Then try a NOT NULL column with a default, and the same column name on two tables.
+  - |
+    A column is identified by table AND name. A default value makes NOT NULL safe. A drop must
+    look at the state of the replacement column, and backfill has its own prerequisite.
+  - |
+    Key the state by `(table, column)`, accept `"default" in step`, require `current["dual"]` for
+    backfill, and check `column_state(table, step["replaced_by"])["switched"]` for drop.
+tags: [migrations, expand-contract, schema, ordering]
+lesson: |
+  Zero-downtime schema changes work because old and new application versions overlap during a
+  rollout, so every intermediate schema must be valid for both. That is why the new column is
+  added nullable, written from both sides before the backfill starts (otherwise rows created
+  mid-backfill are lost), read only after the backfill is complete, and the old column is
+  dropped last. A linter for this is a small state machine, and its state must be keyed exactly
+  by the thing it models, here the table and column pair, or one table's progress will excuse
+  another's mistakes.
+mistakes:
+  - Keying state by column name only, so users.status and orders.status share progress.
+  - Requiring every new column to be nullable even when a default makes NOT NULL safe.
+  - Checking the old column's own state before dropping it instead of the replacement's.

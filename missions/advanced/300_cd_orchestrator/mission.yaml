@@ -1,0 +1,52 @@
+title: Release Train Conductor
+category: Capstone
+difficulty: 5
+xp: 300
+story: |
+  Vantage Rail's platform team has one orchestrator that ships the whole microservice fleet:
+  staging first, then production behind a two-person approval. On the night of the big release
+  it treated a service whose dependency was not in the release as a cycle, accepted two approvals
+  from the same reviewer, left the half-deployed service on the new version after a failed
+  health check, and then remembered the broken version as the one to roll back to next time.
+  This is the final boss: four bugs that touch ordering, approvals, state and rollback.
+description: |
+  `Orchestrator.release(release_id, author, versions)` deploys a release stage by stage
+  (`staging`, then `prod`). Within a stage, services deploy in dependency order (`plan_order`:
+  dependencies first, ties alphabetical; dependencies that are NOT part of the release are
+  assumed already deployed; real cycles raise `CycleError`). Each service moves through the
+  `TRANSITIONS` state machine. A gated stage (`prod`) requires an `ApprovalBook` approval first:
+  `required` DISTINCT reviewers, never the author, each within `ttl` seconds; without it the
+  release stops with status `awaiting_approval` before touching that stage. If a deploy or health
+  check fails, every service whose deploy STARTED in that stage (including the one that failed)
+  is rolled back, newest first, to its previously recorded version, or removed if it did not
+  exist before. A failing rollback is recorded and the others still run
+  (`rollback_incomplete`). Versions are recorded in `current[env]` only for stages that finished
+  `live`.
+  There are 4 bugs.
+hints:
+  - |
+    Release only `api` and `web` while `api` depends on `db`. Then approve a release twice with
+    the same reviewer, and make the last service of a stage fail its health check.
+  - |
+    Ordering: which dependencies count when deciding a service is ready? Approvals: what
+    data structure collapses duplicates? Rollback: which runs were started, and what state is a
+    service in after a failed health check? Recording: when is it safe to say "this is now the
+    deployed version"?
+  - |
+    Count only dependencies inside the release, return a `set` of valid approvers, roll back
+    `reversed(runs)` without filtering on `live`, and update `current[env]` only after the stage
+    outcome is `live`.
+tags: [cd, orchestration, state-machine, rollback, approvals]
+lesson: |
+  A deployment orchestrator is a handful of small invariants that must all hold at once.
+  Ordering must come from the dependency graph restricted to what is actually being released.
+  Every service follows an explicit state machine so illegal jumps are impossible. Approvals are
+  a count of distinct, non-author, unexpired people, which is a set operation and not a list
+  length. Rollback undoes everything that started (the failed service may be half-deployed) in
+  reverse order, using the versions recorded BEFORE the release, and the record of "what is
+  deployed" changes only after a stage fully succeeds, otherwise the next rollback targets the
+  very version that just failed.
+mistakes:
+  - Counting every declared dependency, even those outside the release, so ready-services never appear.
+  - Counting approvals with len() of a list, which lets one person approve twice.
+  - Rolling back only the services that reached live and leaving the failed one on the new version.

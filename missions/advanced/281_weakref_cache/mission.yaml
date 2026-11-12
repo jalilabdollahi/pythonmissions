@@ -1,0 +1,40 @@
+title: Texture Cache Leak
+category: Memory
+difficulty: 5
+xp: 300
+story: |
+  Prismworks runs a render farm where hundreds of jobs share the same sky and terrain
+  textures. The cache was supposed to be weak so memory drops after a render finishes, but the
+  workers climb past 40 GB every night and the scheduler keeps killing them. Blank placeholder
+  textures are also being reloaded from disk on every single request.
+description: |
+  `TextureCache(loader)` hands out shared `Texture` objects by name. It must hold them only
+  weakly, so a texture nobody uses is garbage collected and disappears from `cached_names()`.
+  `pin(name)` is the one exception: a pinned texture stays alive (strongly held) until
+  `unpin(name)`. `get` counts `loads` and `hits`, and `load_log` records the NAMES of what was
+  loaded for auditing. Even an empty (zero-pixel) texture is a valid cached value.
+  There are 4 bugs.
+hints:
+  - |
+    Run a get, drop your last reference with `del`, call `gc.collect()` and print
+    `cached_names()`. Then try a texture with zero pixels, and pin one.
+  - |
+    A weak reference can only point at objects that support it, and anything else that stores
+    the object (a log, a list, a dict) is a strong reference. Also remember that `__len__`
+    changes an object's truthiness.
+  - |
+    Add `__weakref__` to `__slots__`, log `tex.name`, test with `is not None`, and store the
+    texture itself (not a weakref to it) in the pin table.
+tags: [weakref, cache, gc, memory]
+lesson: |
+  A WeakValueDictionary only frees entries when nothing else references the value, so any
+  convenience structure that also stores the object (an audit log, a listener list) silently
+  turns the cache back into a leak. Classes using `__slots__` need an explicit `__weakref__`
+  slot before they can be weakly referenced at all. When you look a value up, test for
+  `None` rather than truthiness, because objects defining `__len__` or `__bool__` can be falsy
+  while perfectly alive. Finally, "keep this alive" has to be a strong reference, a weakref
+  cannot pin anything.
+mistakes:
+  - Calling gc.collect() in the cache to force cleanup instead of removing the stray strong reference.
+  - Replacing the weak dictionary with a normal dict plus a manual eviction timer.
+  - Checking `name in cache` and then indexing, which can race with collection.

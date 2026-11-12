@@ -1,0 +1,39 @@
+title: Conveyor Backpressure
+category: Data Processing
+difficulty: 5
+xp: 300
+story: |
+  Halden Freight's parcel-scanning pipeline chains parse, enrich and publish stages through
+  small queues. During Monday peaks the dashboard says nothing was dropped, yet parcels vanish
+  and the enrich queue sometimes holds one more item than its limit. Ops wants overload to be
+  visible and bounded, not silent.
+description: |
+  `BoundedBuffer(capacity, policy)` never holds more than `capacity` items. With policy
+  `reject` a full buffer refuses the new item (`offer` returns False, `rejected` +1). With
+  `drop_oldest` it evicts the oldest queued item to make room (`dropped` +1) and accepts the
+  new one. A `Pipeline` of `Stage`s advances each stage by one item per `step`, last stage
+  first. When the next stage refuses an item, the item must stay in its current stage's
+  buffer (that is backpressure) and be retried on the next step.
+  There are 4 bugs.
+hints:
+  - |
+    Offer more items than a buffer can hold and print `len`, the surviving items and the
+    counters for each policy. Then block a downstream stage and see where the item goes.
+  - |
+    Check the comparison that decides "full", which end of a deque is the oldest, and whether
+    every eviction is counted. For the pipeline, ask what happens to an item whose handoff
+    was refused.
+  - |
+    Use `>=` for full, `popleft()` for the oldest, increment `dropped` on eviction, and only
+    pop the item from the upstream buffer when the downstream `offer` returned True.
+tags: [backpressure, queues, deque, pipelines]
+lesson: |
+  Backpressure means a slow consumer pushes its slowness back to the producer instead of
+  letting memory grow or data disappear without a trace. Every bounded queue has to choose a
+  policy: reject new work, or shed the oldest. Whichever you choose, the invariants are the
+  same: never exceed capacity, shed the right end, count everything you shed, and never remove
+  an item from its current queue until the next one has accepted it.
+mistakes:
+  - Making the queues unbounded to stop the data loss.
+  - Evicting the newest item under drop_oldest because pop() "feels" like the natural call.
+  - Retrying a refused handoff by re-offering the same item to the same queue forever without keeping it.

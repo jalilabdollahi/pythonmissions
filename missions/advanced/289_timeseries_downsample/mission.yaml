@@ -1,0 +1,38 @@
+title: Metric Rollup
+category: Observability
+difficulty: 4
+xp: 300
+story: |
+  Tern Analytics stores CPU samples every 10 seconds and charts them at one-minute resolution.
+  After switching to the new rollup function the dashboards shifted by half a bucket, outages
+  disappeared because empty minutes were skipped, and the "last value" series showed stale
+  numbers whenever a collector delivered its batch out of order.
+description: |
+  `downsample(points, step, agg, start, end)` groups `(timestamp, value)` pairs into buckets of
+  `step` seconds aligned to the epoch (a timestamp belongs to the bucket that starts at
+  `ts - ts % step`). The result lists EVERY bucket between the first and last one in order, and
+  a bucket without samples has value `None`. Input can be unsorted, and `last` means the sample
+  with the latest timestamp. `avg` is a true average. `start` is inclusive and `end` exclusive.
+  There are 4 bugs.
+hints:
+  - |
+    Downsample samples at 0, 50, 65 and 119 seconds into 60-second buckets, then remove the
+    samples in the middle and see whether the empty bucket is still reported.
+  - |
+    A timestamp belongs to the bucket that CONTAINS it (floor), never the nearest one. Also
+    consider whether input order matters for `last`, and what `//` does to an average of 1 and 2.
+  - |
+    Use `ts - ts % step`, append `None` for empty buckets, sort the points first, and use true
+    division in `avg`.
+tags: [time-series, downsampling, buckets, metrics]
+lesson: |
+  Downsampling is only trustworthy when bucket boundaries are a pure function of the timestamp
+  and the step: floor to the epoch, never round and never anchor to the first sample, otherwise
+  two queries over the same data disagree. Missing data must stay visible as an explicit gap,
+  because a rollup that drops empty buckets makes an outage look like a shorter graph. "Last"
+  aggregations depend on time order, not arrival order, and integer division quietly turns
+  averages into truncated numbers.
+mistakes:
+  - Starting the first bucket at the first sample's timestamp.
+  - Filling empty buckets with 0, which is indistinguishable from a real zero reading.
+  - Sorting only inside the last aggregation instead of before bucketing.

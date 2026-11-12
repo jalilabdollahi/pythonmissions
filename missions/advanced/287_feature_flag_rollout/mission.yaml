@@ -1,0 +1,41 @@
+title: Gradual Rollout Gate
+category: Release Engineering
+difficulty: 5
+xp: 300
+story: |
+  Lumen Commerce ramps new checkout code from 1 percent to 100 percent of shoppers. After the
+  last rollout, customers flickered between the old and new page on every refresh, the "beta"
+  group was the same set of unlucky users for every feature, and the kill switch did nothing for
+  QA accounts that were on the allow list.
+description: |
+  `is_enabled(flag, user_id)` must be stable: the same user gets the same answer on every call,
+  in every process, and raising `percent` only ever adds users. Each flag buckets users
+  independently (the flag name takes part in the hash) into 10,000 buckets; a user is in the
+  rollout when their bucket is below `round(percent * 100)`. Precedence is kill switch
+  (`enabled=False` disables everyone), then the deny list, then the allow list, then the
+  percentage.
+  There are 4 bugs.
+hints:
+  - |
+    Compute `bucket("checkout-v2", "user-42")` in two separate Python processes, then compare
+    which users land in the first 50 percent for two different flags.
+  - |
+    Python's built-in `hash()` of a string changes between runs. Think about what must be in
+    the hashed text so flags are independent, how a float like 8.2 times 100 behaves, and
+    which check has to run first.
+  - |
+    Hash with sha256, hash `flag:user`, use `round()` for the threshold, and test `flag.enabled`
+    before the deny and allow lists.
+tags: [feature-flags, hashing, rollout, release]
+lesson: |
+  A percentage rollout is a deterministic function of the user and the flag, never a coin flip:
+  hashing with a stable algorithm (not the per-process randomized `hash()`) keeps each user's
+  experience consistent, and monotonic buckets guarantee that going from 10 to 20 percent only
+  adds people. Mixing the flag name into the hash decorrelates cohorts so the same users do not
+  absorb every experiment. Floating point is not exact, so `int(8.2 * 100)` is 819; round
+  instead of truncating. Finally, a kill switch exists for emergencies and must beat every
+  override, including allow lists.
+mistakes:
+  - Using random.random() per request, which makes users flip between variants.
+  - Salting with the process ID or startup time so deploys reshuffle the cohort.
+  - Putting the allow list above the kill switch because "QA must always see it".

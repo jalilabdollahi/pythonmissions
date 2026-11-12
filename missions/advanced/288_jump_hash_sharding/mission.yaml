@@ -1,0 +1,37 @@
+title: Shard Router
+category: Data Structures
+difficulty: 5
+xp: 300
+story: |
+  Kestrel Messaging shards its inbox database by account id. Adding a sixth database last
+  quarter reshuffled nearly every account and the migration took the weekend. The router also
+  crashed once with an index error, and one shard holds twice as many accounts as another.
+description: |
+  `jump_hash(key, buckets)` implements jump consistent hashing on a 64-bit integer key and
+  returns an index in `[0, buckets)`. `route(key, shards)` hashes a string key and picks a
+  shard name; the shard list is append-only. Growing from N to N+1 shards must move only about
+  1/(N+1) of the keys, and every moved key must land on the NEW shard. `plan_resize` reports the
+  movement.
+  There are 4 bugs.
+hints:
+  - |
+    Route a few thousand keys over 4 shards and print the distribution; then add a fifth shard
+    whose name sorts first and see which keys move and where they land.
+  - |
+    The algorithm relies on 64-bit wraparound, so every step must keep the key inside 64 bits.
+    Check the loop bound, how a string becomes a 64-bit integer, and whether the shard list order
+    is allowed to change.
+  - |
+    Mask with `& MASK`, loop `while j < buckets`, hash with sha256, and do not sort the shards.
+tags: [consistent-hashing, sharding, algorithms, routing]
+lesson: |
+  Plain `hash(key) % n` remaps almost every key when n changes. Jump consistent hash moves
+  only the keys that must move, but it is exact arithmetic: a linear congruential generator that
+  depends on 64-bit overflow, which Python's unbounded integers will not do for you unless you
+  mask. The result is an index into your shard list, so the list's order is part of the
+  contract; sorting it on the fly silently re-maps keys. Finally, jump hash is only as even as the
+  integer you feed it, so string keys need a real hash, not a sum of bytes.
+mistakes:
+  - Using hash(key) % len(shards), which moves most keys when a shard is added.
+  - Sorting shard names for "determinism", which breaks append-only growth.
+  - Clamping the result with min(result, buckets - 1) to hide an out-of-range index.

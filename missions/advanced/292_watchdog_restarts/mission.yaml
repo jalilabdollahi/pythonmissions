@@ -1,0 +1,41 @@
+title: Watchdog Restarts
+category: Reliability
+difficulty: 4
+xp: 300
+story: |
+  Juniper Streams has a sidecar that restarts the ingest daemon when its health probe fails.
+  One flaky night it restarted the daemon every 30 seconds for two hours, a second night it
+  refused to restart a genuinely dead daemon right after boot, and when the restart script
+  itself crashed the sidecar died with it.
+description: |
+  `Watchdog.tick()` probes health once. A healthy probe resets the failure streak. After
+  `threshold` CONSECUTIVE failed probes the watchdog restarts the service, unless a restart
+  happened less than `cooldown` seconds ago (then it reports `cooling_down`). After a restart
+  attempt the failure streak starts again from zero and the cooldown clock starts, even if the
+  restart hook raised: a failing hook is recorded and reported as `restart_failed`, never
+  propagated. The very first restart is never blocked by cooldown.
+  There are 4 bugs.
+hints:
+  - |
+    Use a fake clock that starts at 100 and a cooldown of 300. Probe fail, fail, fail and see
+    whether the restart happens; then alternate fail, ok, fail, ok, fail.
+  - |
+    Ask what "consecutive" means for the streak, what value means "never restarted", what
+    should be zeroed after an attempt, and what a monitoring loop must do with an exception from
+    the thing it is trying to repair.
+  - |
+    Reset the streak on a healthy probe and again after each restart attempt, use `None` for no
+    previous restart, and wrap the restart hook in try/except.
+tags: [watchdog, health-check, cooldown, reliability]
+lesson: |
+  A watchdog needs three guards. A failure streak must be consecutive: any success clears it,
+  or slow, scattered errors add up to a restart. A cooldown prevents restart storms, but "never
+  restarted" must be a distinct state (`None`), not time zero, or a young clock makes the first
+  restart wait. After acting, reset the streak so the next restart requires fresh evidence.
+  Finally the repair hook is the least trustworthy code in the loop, so its exceptions are
+  caught and recorded, and the cooldown still applies, otherwise you retry a broken restart
+  every probe.
+mistakes:
+  - Counting total failures since startup instead of consecutive ones.
+  - Initialising last_restart to 0 and relying on the clock being large.
+  - Starting the cooldown only after a successful restart, so a broken hook is retried every probe.

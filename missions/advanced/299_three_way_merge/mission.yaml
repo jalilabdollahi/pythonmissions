@@ -1,0 +1,40 @@
+title: Config Merge
+category: Config
+difficulty: 5
+xp: 300
+story: |
+  Alder Platform's config repo is edited by two teams at once: SRE tunes timeouts while the
+  data team changes pool sizes in the same service block. The merge bot reports a conflict for
+  the whole block, cannot tell a deleted setting from a setting explicitly set to null, names the
+  wrong key in its conflict report, and sometimes edits the original branch's data while merging.
+description: |
+  `three_way_merge(base, ours, theirs)` merges nested dicts and returns `(merged, conflicts)`.
+  For each key: if a side did not change it, the other side's value (or deletion) wins; if both
+  made the same change it is accepted; if both changed it differently the dotted path is added
+  to `conflicts` and ours is kept; but if both new values are dicts they are merged recursively.
+  A key that is ABSENT is different from a key whose value is `None`. The inputs must never be
+  mutated and the result must not share nested objects with them.
+  There are 4 bugs.
+hints:
+  - |
+    Merge a base where `db` has `host` and `port` with ours changing host and theirs changing
+    port. Then make `base = {"debug": None}` and delete the key on one side.
+  - |
+    `dict.get` hides the difference between missing and None unless you pass a sentinel. Nested
+    dicts need recursion before you give up. A path is the whole chain of keys. Mutating the
+    merged output must not touch the inputs.
+  - |
+    Use the `MISSING` sentinel in every `get`, keep the recursive branch, build the dotted path
+    from `prefix`, and `copy.deepcopy` values you place in the result.
+tags: [merge, config, recursion, conflicts]
+lesson: |
+  A three-way merge is decided key by key by asking who changed what relative to the common
+  ancestor. That only works if "absent" is representable: use a unique sentinel rather than
+  None, or a deletion becomes indistinguishable from `null`. Recursing into nested dicts is what
+  turns a coarse block-level conflict into a clean merge of independent edits, and conflict
+  paths must be full dotted paths so humans can find them. Finally, merge functions should be
+  pure: deep-copy what you return so later edits to the result do not rewrite your inputs.
+mistakes:
+  - Treating None as "missing", so explicit nulls disappear or deletions resurrect.
+  - Declaring a conflict on the parent whenever both sides touched the same section.
+  - Returning references to the input dicts and mutating them later.

@@ -1,0 +1,42 @@
+title: Adaptive Timeout
+category: Resilience
+difficulty: 5
+xp: 300
+story: |
+  Granite Pay calls a card-network gateway whose latency swings between 80 ms and 4 seconds
+  depending on the hour. A fixed 2-second timeout kills good requests at peak and wastes
+  threads at night, so the team built a timeout that follows recent p99 latency. In production
+  it never recovers after a slow patch, ignores the ceiling when the gateway degrades, and
+  stays stubbornly low when every request starts timing out.
+description: |
+  `AdaptiveTimeout` keeps a sliding window of the last `window` latencies. Once it has
+  `min_samples` it returns `p99 * multiplier`, clamped to `[floor, ceiling]` AFTER the
+  multiplication; before that it returns `default`. p99 uses the nearest-rank definition
+  (rank = ceil(q * n)). A request that hits the limit never reveals its real latency, so
+  `record_timeout(limit)` stores the limit itself as a sample, otherwise the timeout can never
+  grow when the dependency degrades. `settle` ties the pieces together.
+  There are 4 bugs.
+hints:
+  - |
+    Record latencies 1 to 100 and print the p99. Then record 50 slow and 50 fast values in a
+    window of 50 and see how the timeout reacts. Finally, time out every request and watch.
+  - |
+    A deque without maxlen never forgets. Nearest-rank uses `ceil`, and its index is rank minus
+    one. The clamp is the last step, not a step before the multiplier. A timed-out request is
+    "at least this slow" information.
+  - |
+    Use `deque(maxlen=window)`, `ordered[ceil(q*n) - 1]`, `min(ceiling, max(floor, p99 *
+    multiplier))`, and append `limit` to the samples in `record_timeout`.
+tags: [timeouts, percentiles, adaptive, resilience]
+lesson: |
+  Adaptive timeouts trade a hand-tuned constant for a feedback loop, and feedback loops need
+  their invariants kept exact. The window must forget old data or the timeout can never come
+  down; the percentile index must follow its definition or p99 quietly becomes the maximum;
+  and the safety clamp must be the final step so the floor and ceiling are truly hard limits.
+  Most subtle is censoring: a request cancelled at the timeout only tells you the latency was
+  at least the limit, so recording it at the limit lets the loop widen the timeout during an
+  incident instead of staying stuck.
+mistakes:
+  - Dropping timed-out requests from the statistics because their latency is unknown.
+  - Clamping the percentile and then multiplying, so the ceiling is exceeded.
+  - Using sorted(samples)[int(0.99 * n)], which returns the maximum for n = 100.
