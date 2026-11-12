@@ -1,0 +1,40 @@
+title: Parallel Preflight Checks
+category: Async
+difficulty: 5
+xp: 300
+story: |
+  Meridian Deploy runs a dozen preflight checks in parallel before every release. When one check
+  fails, the pipeline reports the wrong error, leaves half the checks running against production
+  for minutes, and a cancelled check shows up in the settled report as a success with a strange
+  exception object as its "value".
+description: |
+  `run_fail_fast(checks, timeout)` starts every check coroutine function, returns results in
+  submission order, and on the first exception cancels all siblings, waits until they have
+  finished unwinding and raises that exception. A timeout cancels whatever still runs and raises
+  `asyncio.TimeoutError`. Cancelling the caller must cancel the children as well.
+  `run_settled(named_checks)` runs everything and returns an `Outcome` per check, marking raised
+  errors and cancellations as failed. `summarize`, `format_report` and `preflight` build on them.
+  There are 4 bugs.
+hints:
+  - |
+    Log in a `finally` block inside a slow check and compare when the log line appears with when
+    `run_fail_fast` returns. Also try cancelling the caller itself.
+  - |
+    Think about `asyncio.wait(return_when=...)`, what `Task.cancel()` does and does not wait for,
+    and which names are bound if the caller is cancelled while still waiting. Remember where
+    `CancelledError` sits in the exception hierarchy.
+  - |
+    Use `FIRST_EXCEPTION`, cancel `tasks` (not just `pending`) in `finally`, await them with
+    `gather(..., return_exceptions=True)`, and test results with `isinstance(result, BaseException)`.
+tags: [asyncio, gather, cancellation, structured-concurrency]
+lesson: |
+  Concurrent fan-out needs an ownership rule: whoever starts the tasks must also make sure none
+  of them outlive the call, whether it ends by success, failure, timeout or cancellation of the
+  caller. `Task.cancel()` only requests cancellation, so the cleanup code inside the children runs
+  later; awaiting the tasks afterwards is what makes "cancelled" actually mean "finished".
+  `gather(return_exceptions=True)` hands back cancellations as objects too, and since
+  `CancelledError` is a `BaseException` a check for `Exception` misclassifies them.
+mistakes:
+  - Using `FIRST_COMPLETED`, which treats the first success as the end of the fan-out.
+  - Calling `task.cancel()` on siblings and returning without awaiting them.
+  - Only cancelling the tasks that `asyncio.wait` reported as pending.

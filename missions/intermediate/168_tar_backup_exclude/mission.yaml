@@ -1,0 +1,30 @@
+title: Tidy Tarball
+category: Archives
+difficulty: 3
+xp: 200
+story: |
+  The Heron CMS nightly backup produced a 9 GB tarball: it swallowed the whole `cache/` folder it was told to skip,
+  ignored the `uploads/*.tmp` rule, and when the restore team extracted it on a spare host, files landed under
+  `/srv/heron/site/...` instead of the restore directory.
+description: |
+  `make_backup(src, archive_path, exclude)` writes a gzip tar of everything below `src` and returns the number of files added.
+  Member names are relative to `src` (`pages/index.html`, never absolute paths or the `src` prefix). `exclude` is a list of `fnmatch`
+  patterns, tested against the bare name and also against the path relative to `src` (with `/` separators), for files and directories alike.
+  An excluded directory is skipped together with all its contents. `list_backup(archive_path)` returns the sorted member names of regular files.
+  There are 3 bugs.
+hints:
+  - |
+    Hint 1: Back up a small tree that contains `cache/tmp.bin` with `exclude=["cache"]`, then try `exclude=["pages/*.swp"]`, and print `list_backup`.
+  - |
+    Hint 2: `tar.add(name, arcname=...)` decides the stored name. With `os.walk` you can remove entries from `dirnames` in place to prune a walk. A pattern containing a slash can never match a bare file name.
+  - |
+    Hint 3: Use `arcname=rel`, `dirnames[:] = [d for d in dirnames if not is_excluded(...)]`, and let `is_excluded` also test `fnmatch.fnmatch(rel, pattern)`.
+tags: [tarfile, archives, exclude, arcname]
+lesson: |
+  A tar member name is whatever you pass as `arcname`, so adding a full path bakes the machine's directory layout into the archive and makes
+  restores unpredictable; always store names relative to the backup root. Exclusion has to prune whole directories: matching only file names lets
+  everything inside `cache/` through, and with `os.walk` you prune by editing `dirnames` in place. Patterns that mention a directory, such as `uploads/*.tmp`,
+  only work if you also match against the relative path and not just the bare name.
+mistakes:
+  - Excluding by checking `"cache" in full_path` as a substring, which also drops `mycache.txt`.
+  - Using `tar.add(src)` recursively and trying to filter afterwards.

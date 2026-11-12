@@ -1,0 +1,43 @@
+title: Hedged Requests
+category: Resilience
+difficulty: 5
+xp: 300
+story: |
+  Saffron Search fans a query out to three replicas, but only after the first one has been
+  quiet for a while: a "hedged" request that shaves the slow tail off p99. During the last
+  load test the hedging doubled the traffic for requests that were already fast, a replica
+  that failed instantly was returned as the answer, and the cancellation list was full of
+  requests that had long finished.
+description: |
+  `hedged_call(replicas, hedge_delay)` simulates the policy on a fake timeline. Replica `i`
+  is sent the request at time `i * hedge_delay`, but only if no successful attempt has already
+  finished by that moment (finishing exactly at the launch time counts as already finished).
+  An attempt finishes at its start time plus its latency. The winner is the successful attempt
+  that finishes FIRST; failed attempts never win, and if every launched attempt fails,
+  `AllAttemptsFailed` is raised. `cancelled` lists the other attempts that were still running
+  when the winner finished. `launched` counts attempts sent.
+  There are 4 bugs.
+hints:
+  - |
+    Try a primary that takes 5 seconds with a backup that takes 1 second and a hedge delay of
+    1 second; print the winner, its finish time, and what was cancelled. Then make the primary
+    fail instantly.
+  - |
+    A finish time is on the shared timeline, so a late start matters. A failure is not an
+    answer. Think about what "still running" means for the cancel list, and what `<` versus
+    `<=` means when a response lands exactly on the hedge deadline.
+  - |
+    Use `start + latency`, require `not attempt.fail` to become the winner, test
+    `best.finish <= start` before launching, and cancel only attempts finishing after the winner.
+tags: [hedging, tail-latency, simulation, resilience]
+lesson: |
+  Hedged requests cut tail latency by racing a backup against a slow primary, but the policy is
+  only a win if it is precise. Everything lives on one timeline, so each attempt's finish is
+  its start plus its latency. The race is for the first SUCCESS, so an instant error must not
+  end it. A hedge is sent only when no answer has arrived by the deadline, with ties counting
+  as arrived, otherwise you add load exactly when things are healthy. And cancellation applies
+  to work that is still in flight, not to attempts that already completed.
+mistakes:
+  - Returning the first response that comes back, even when it is an error.
+  - Measuring each attempt's finish from zero instead of from its own start.
+  - Cancelling every non-winning attempt, including ones that already finished.

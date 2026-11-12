@@ -1,0 +1,30 @@
+title: Noisy Config Diffs
+category: JSON
+difficulty: 1
+xp: 100
+story: |
+  The platform team at Harborline stores generated configs in git, and code review is drowning in noise.
+  Every regeneration reorders the keys, and the snapshot files are one unreadable line.
+  Reviewers cannot tell a real change from a shuffle, so the diff bot keeps flagging identical configs as changed.
+description: |
+  snapshots.py renders dictionaries to JSON text for version control.
+
+  - `render_manifest(data)` returns JSON with keys sorted alphabetically (indentation of 2 spaces).
+  - `render_snapshot(data)` returns the same, again with sorted keys and an indent of 2.
+  - `write_snapshot(path, data)` saves the snapshot with a trailing newline.
+  - `has_changed(old, new)` compares the rendered text of two dicts.
+
+  There are 2 bugs.
+hints:
+  - |
+    Render the same dict built in two different insertion orders and compare the text. Then print one snapshot.
+  - |
+    Deterministic output needs two things: a fixed key order, and a layout humans can diff line by line.
+  - |
+    `json.dumps(data, sort_keys=True, indent=2)`: each function is missing one of those arguments.
+tags: [json, dumps, determinism]
+lesson: |
+  A dictionary remembers insertion order, so two equal configs built in different orders dump to different text. For anything stored in git or compared by hash you need deterministic output: `sort_keys=True` fixes the order and `indent=2` makes every key its own line so diffs stay small. Apply it everywhere you serialise for humans or for comparison. Otherwise tools report changes that never happened.
+mistakes:
+  - "Sorting the dict by hand before dumping, which does not sort nested dicts."
+  - "Adding indent only, which makes pretty output that still reorders."

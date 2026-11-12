@@ -1,0 +1,29 @@
+title: Safe Config Swap
+category: Files
+difficulty: 3
+xp: 200
+story: |
+  The Willow proxy fleet reads `proxy.json` on every request. Last week a deploy script was killed
+  half way through writing it, and 40 proxies read a truncated file and returned 500s. The team switched to
+  "write a temp file then rename", but the new helper still leaves debris and is not safe on a crash.
+description: |
+  `atomic_write_text(path, text)` replaces `path` so that readers see either the complete old content or the complete new
+  content, never a mix. It writes to a temporary file in the same directory as `path`, forces the data to disk (`os.fsync`),
+  and then swaps it in with `os.replace`. If anything fails, the old file is untouched and no temporary file is left behind.
+  `update_config(path, updates)` merges a dict into a JSON file using that helper. There are 3 bugs.
+hints:
+  - |
+    Hint 1: Pass a non-string as `text` and look at the directory afterwards. Also check where the temporary file is created relative to the target.
+  - |
+    Hint 2: `os.replace` is only atomic inside one filesystem, so the temp file must live next to the target. Data should be flushed to disk before the swap, and failures need cleanup.
+  - |
+    Hint 3: `tempfile.mkstemp(dir=<target directory>)`, `os.fsync(handle.fileno())` after `flush()`, and `try/except BaseException` that removes the temp file and re-raises.
+tags: [files, atomic, os.replace, fsync, tempfile]
+lesson: |
+  Writing a config in place exposes readers to partial content if the process dies. The standard fix is write-then-rename: build the new
+  file under a temporary name and swap it in with `os.replace`, which is atomic on POSIX and Windows when source and target are on the same
+  filesystem, hence the temp file must be created in the target directory. Call `flush()` and `os.fsync()` first, or a power cut can
+  leave a renamed but empty file. Finally clean the temp file on errors so failed writes do not accumulate junk next to your config.
+mistakes:
+  - Creating the temp file in `/tmp`, which may be another filesystem where `os.replace` raises or copies.
+  - Opening the real path with mode "w", which truncates it before the new data exists.

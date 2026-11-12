@@ -1,0 +1,33 @@
+title: Counter Crashes Mid-Run
+category: Functions
+difficulty: 2
+xp: 100
+story: |
+  Smoke tests at Alder Finance run after each deployment and count how many checks
+  failed so the pipeline can decide on a rollback. The runner crashed with an
+  `UnboundLocalError` on the very first failing check, so every bad deploy looked like
+  a runner failure rather than a rollback candidate.
+description: |
+  `run_checks(checks)` takes a dict of `{name: callable}` where each callable returns
+  `True` for pass. It returns the number of failing checks. Each call must be
+  independent: running the same checks twice gives the same count both times.
+  `verdict(checks)` returns `"rollback"` if more than one check failed, otherwise
+  `"ship"`.
+  There is 1 bug.
+hints:
+  - |
+    Read the error message: which variable is "referenced before assignment"?
+  - |
+    Assigning to a name inside a function makes it local, even if a global of that name exists.
+  - |
+    Do not reach for `global`. Create the counter inside the function and return it, so each call starts clean.
+tags: [functions, scope, unboundlocalerror, state]
+lesson: |
+  Python decides at compile time that a name assigned inside a function (including with
+  `+=`) is local to it, so `count += 1` fails with `UnboundLocalError` when `count`
+  only exists at module level. Adding `global count` silences the error but makes the
+  function remember state between calls, which makes tests and reruns unreliable. Prefer
+  starting the counter inside the function and returning the result.
+mistakes:
+  - Adding `global failures`, which makes the second run report an inflated count.
+  - Resetting the module-level counter by hand in the tests or in verdict().

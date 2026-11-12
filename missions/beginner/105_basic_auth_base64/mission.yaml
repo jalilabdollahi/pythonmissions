@@ -1,0 +1,28 @@
+title: Registry Login Header
+category: Bytes
+difficulty: 2
+xp: 100
+story: |
+  The build farm at Copperline Labs pushes images to a private registry that wants HTTP Basic authentication.
+  The helper that builds the Authorization header crashes before the first request is even sent.
+  Passwords may contain non-ASCII characters, so the encoding has to be right too.
+description: |
+  registry_auth.py builds and reads Basic auth headers.
+
+  - `basic_auth_header(user, password)` returns the string `"Basic <token>"`, where token is the base64 of `user:password` encoded as UTF-8. The result must be a `str`.
+  - `read_basic_auth(header)` is the reverse: it returns `(user, password)`, splitting only on the first colon, and raises `ValueError` when the header is not a Basic header.
+
+  There are 2 bugs.
+hints:
+  - |
+    Run `basic_auth_header` and read the traceback. Which types are involved?
+  - |
+    `base64.b64encode` takes bytes and returns bytes. `str.encode()` and `bytes.decode()` convert between them.
+  - |
+    Encode the `user:password` text to bytes before `b64encode`, then `.decode("ascii")` the result before joining it to `Basic `.
+tags: [bytes, base64, http]
+lesson: |
+  Base64 works on bytes, not text: `b64encode` wants bytes in and gives bytes out. So building a header means encoding the credentials to bytes (UTF-8 is the safe choice), base64 them, and decode the result to ASCII text before putting it in a string. Skipping either conversion raises a TypeError, and skipping the UTF-8 step breaks non-ASCII passwords. Remember that base64 is an encoding, not encryption: anyone can reverse it, so Basic auth must only travel over TLS.
+mistakes:
+  - "Wrapping the result in `str(...)`, which gives text like `b'abc='` including the b and quotes."
+  - "Treating base64 as protection for the password."

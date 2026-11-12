@@ -1,0 +1,39 @@
+title: Render Slot Pool
+category: Async
+difficulty: 5
+xp: 300
+story: |
+  Prism Studios renders thumbnails on a fixed number of GPU slots shared by asyncio tasks.
+  Every deploy cancels in-flight requests, and after a few hours the service reports zero
+  free slots while nothing is rendering. Cancelled jobs are leaking their slot, and sometimes
+  a freed slot is passed to a request that no longer exists.
+description: |
+  `SlotPool(capacity)` limits concurrent jobs. `acquire()` takes a free slot or queues a future
+  and receives the slot by direct hand-off when someone calls `release()`. `release()` gives
+  the slot to the oldest live waiter, or lowers `in_use` when nobody waits. `run(job)` acquires,
+  awaits the job and always gives the slot back, even if the job fails or is cancelled.
+  A waiter cancelled while queued never owned a slot. A waiter cancelled after it was handed a
+  slot must return it. `try_acquire` never waits, `grow(n)` adds capacity and serves waiters,
+  `stats()` reports the counters and `render_all` runs many jobs and collects results.
+  There are 3 bugs.
+hints:
+  - |
+    Cancel a running job, then check `pool.in_use`. Next cancel a waiter in the same event-loop
+    tick in which a slot is released to it.
+  - |
+    In Python 3.8 and later `CancelledError` derives from `BaseException`, so `except Exception`
+    does not see it. Futures that are already done cannot receive another result.
+  - |
+    Use `try/finally` in `run`, skip futures that are `done()` in `release`, and call
+    `self.release()` when a cancelled waiter had already been given the slot.
+tags: [asyncio, cancellation, semaphore, resource-leak]
+lesson: |
+  Cancellation is just an exception delivered at an await point, but it is a `BaseException`,
+  so handlers written as `except Exception` skip it and leak whatever they were guarding. A
+  hand-rolled semaphore also has a nasty window: between the moment a waiter's future is
+  resolved and the moment its task resumes, the task can be cancelled. Correct pools skip dead
+  waiters when handing off and return a slot that was granted to a task that is gone.
+mistakes:
+  - Using `except Exception` for cleanup, which misses cancellation.
+  - Releasing in `finally` around `acquire()` itself, which over-releases when a queued waiter is cancelled.
+  - Assuming a queued future is always pending when `release()` runs.

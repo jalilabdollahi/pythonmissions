@@ -1,0 +1,32 @@
+title: IPv6 Replica Endpoints
+category: Strings
+difficulty: 2
+xp: 100
+story: |
+  Postgres replicas at Harbor Analytics are listed as `host:port` strings in a
+  shared config. When the platform team added an IPv6 replica written as
+  `[::1]:5433`, the connection pool crashed on startup with a confusing unpacking
+  error and the reporting dashboards went dark.
+description: |
+  `parse_endpoint(text, default_port=5432)` returns a `(host, port)` tuple with the
+  port as an int. It accepts `"db1:5433"`, a bare `"db1"` (default port), and
+  bracketed IPv6 like `"[::1]:5433"`, where the returned host has no brackets.
+  `replica_map(entries)` maps each host to its port.
+  There are 2 bugs.
+hints:
+  - |
+    Try parsing `[::1]:5433` by hand: how many colons does it contain?
+  - |
+    Only the last colon separates host and port. `str.rsplit(sep, maxsplit)` splits from the right.
+  - |
+    Use `text.rsplit(":", 1)` and then `host.strip("[]")` to drop the IPv6 brackets.
+tags: [strings, parsing, rsplit, ipv6]
+lesson: |
+  `split(":")` cuts at every colon, which is only safe when the text has exactly one.
+  IPv6 addresses contain many colons, so the port is whatever follows the last one.
+  `rsplit(":", 1)` splits once, from the right, and leaves the rest of the address
+  alone. Bracketed IPv6 notation is only there to disambiguate, so strip the brackets
+  before handing the host to a socket library.
+mistakes:
+  - Using text.split(":")[1] for the port, which returns the wrong piece for IPv6.
+  - Removing every colon or bracket from the host, which corrupts the IPv6 address.

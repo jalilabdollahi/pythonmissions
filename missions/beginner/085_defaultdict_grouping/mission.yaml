@@ -1,0 +1,29 @@
+title: Hosts by Region
+category: Collections
+difficulty: 1
+xp: 100
+story: |
+  The capacity review at Skyline Hosting needs servers grouped by data-centre region.
+  The inventory export works for the first host and then explodes with a KeyError as soon as it tries to add the next one to a region.
+description: |
+  inventory.py takes a list of `(hostname, region)` tuples.
+
+  - `group_by_region(hosts)` returns a dict of region to the list of hostnames in that region, in input order.
+  - `region_sizes(hosts)` returns a dict of region to number of hosts.
+  - `largest_region(hosts)` returns the region with the most hosts (`None` if there are no hosts).
+  - `report(hosts)` returns lines such as `eu-west: a, b` in alphabetical region order.
+
+  There is 1 bug.
+hints:
+  - |
+    Read the KeyError carefully. Which key does it mention, and has it been created yet?
+  - |
+    A plain dict does not create missing entries. The `collections` module has a dict that creates a default value on first access.
+  - |
+    `defaultdict(list)` creates an empty list the first time a region is seen, so you can append straight away.
+tags: [collections, defaultdict, grouping, keyerror]
+lesson: |
+  Grouping needs "the list for this key, creating it if it is missing". With a plain dict that takes an `if key not in d` check on every iteration, and forgetting it raises KeyError the first time a new key appears. `collections.defaultdict(list)` does it automatically: the first lookup of a missing key calls `list()` and stores the result. Grouping hosts by region, errors by service or files by extension are all one-liners with it.
+mistakes:
+  - "Initialising the dict with the region names you know about today; new regions will break it again."
+  - "Using `d[key] = [host]` for every host, which overwrites the earlier ones instead of appending."

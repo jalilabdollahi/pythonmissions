@@ -1,0 +1,30 @@
+title: Slowest Endpoints Board
+category: Algorithms
+difficulty: 3
+xp: 200
+story: |
+  The Tidewater API gateway logs millions of (endpoint, latency) samples a day, and the
+  weekly performance review wants the slowest endpoints. The report keeps a heap of
+  size k so memory stays flat, but it currently shows the *fastest* endpoints, in the wrong
+  order, with averages that look suspiciously small.
+description: |
+  `average_latencies(samples)` returns the mean latency in ms per endpoint from `(endpoint, ms)` pairs.
+  `slowest_endpoints(samples, k)` returns the `k` endpoints with the highest average as `(endpoint, avg)` tuples,
+  slowest first, using a bounded heap of size `k`. `format_board(rows)` renders them as text lines.
+  There are 3 bugs.
+hints:
+  - |
+    Start with `average_latencies` on two endpoints that have a different number of samples. Then check whether `slowest_endpoints` returns the slow ones or the fast ones.
+  - |
+    `heapq` is a min-heap: `heappop` removes the smallest item. To keep the k largest values you push the real values and pop the smallest whenever the heap grows beyond k.
+  - |
+    Divide each total by that endpoint's own sample count, push `(avg, endpoint)` without negating, and finish with `sorted(heap, reverse=True)`.
+tags: [heapq, top-k, min-heap, aggregation]
+lesson: |
+  A bounded min-heap is the standard way to keep the top k items of a stream in O(n log k) time: the smallest of the current
+  winners sits at the root, so it is the one to evict when a better candidate arrives. If you negate the values (the usual trick
+  to simulate a max-heap) the evicted element becomes the best one, which inverts the result. The heap itself is only
+  partially ordered, so sort it before presenting it, and make sure averages are computed with the right denominator.
+mistakes:
+  - Using `heapq.heappop` on a max-oriented heap and assuming it removes the smallest real value.
+  - Reversing the returned list after the loop without fixing which items were kept.

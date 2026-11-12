@@ -1,0 +1,38 @@
+title: Exporter Registry Metaclass
+category: Metaprogramming
+difficulty: 5
+xp: 300
+story: |
+  Brightcart's reporting service lets teams add export formats just by subclassing `Exporter`.
+  After a clean-up the `/formats` endpoint started listing the abstract base class, one team's
+  TSV exporter disappeared because its parent was abstract, and two exporters silently fought
+  over the name `csv` with the last import winning.
+description: |
+  `ExporterMeta` registers each concrete subclass in `ExporterMeta.registry` under a lowercase
+  format name taken from its own class body (`format = ...`) or derived from the class name by
+  stripping an `Exporter` suffix. The root `Exporter` is never registered, and neither is a class
+  that declares `abstract = True` in its own body. Neither `abstract` nor `format` is inherited
+  from a parent for this purpose. Registering an existing name raises `DuplicateFormat`.
+  There are 4 bugs.
+hints:
+  - |
+    Hint 1: Print `available()` and look for names that should not be there or are missing, then
+    define a subclass of `CsvExporter` that does not set a format.
+  - |
+    Hint 2: `cls.abstract` looks the attribute up through the inheritance chain, while the class
+    `namespace` dict only holds what this class body defined. The root class has no bases.
+  - |
+    Hint 3: Return early when `not bases`, read both flags with `namespace.get(...)`, and raise
+    `DuplicateFormat` when the lowercase key is already in the registry.
+tags: [metaclass, registry, inheritance, plugins]
+lesson: |
+  A metaclass `__init__` runs for every class statement, including the root of the hierarchy and
+  abstract intermediates, so a registry must decide explicitly what to skip. Attributes like
+  `abstract` or `format` are inherited by normal attribute lookup, which is exactly wrong for
+  per-class declarations; read them from the class `namespace` instead. Finally, a registry is a
+  global namespace, so collisions should fail loudly at definition time rather than silently
+  replacing an earlier entry depending on import order.
+mistakes:
+  - Reading cls.abstract, which sees the parent's value and hides concrete subclasses of abstract classes.
+  - Registering the root class because the bases check was left out.
+  - Letting a later registration overwrite an earlier one without raising.

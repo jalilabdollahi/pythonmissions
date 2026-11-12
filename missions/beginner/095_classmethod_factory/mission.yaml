@@ -1,0 +1,29 @@
+title: Parsing Servers From Strings
+category: Classes
+difficulty: 2
+xp: 100
+story: |
+  The inventory importer at Driftwood Cloud builds server objects from `"host:port"` strings found in old spreadsheets.
+  It crashes on the standard server type, and for the TLS variant it quietly returns plain servers that forget to use HTTPS.
+description: |
+  servers.py defines `Server(host, port)` and its subclass `TlsServer`.
+
+  - `Server.from_string("db1:5432")` returns a `Server` with `host="db1"` and `port=5432` (an int).
+  - `TlsServer.from_string("web:443")` must return a `TlsServer`, not a plain `Server`.
+  - `url()` returns `http://host:port` for `Server` and `https://host:port` for `TlsServer`.
+  - `load_all(cls, lines)` builds one object per line using the given class.
+
+  There are 2 bugs.
+hints:
+  - |
+    Call `Server.from_string("db1:5432")` and read the error. Then call it on `TlsServer` and check the type you get back.
+  - |
+    An alternative constructor receives the class instead of an instance, and it needs a decorator that says so.
+  - |
+    Mark it `@classmethod`, take `cls` as the first parameter, and return `cls(host, int(port))`.
+tags: [classes, classmethod, factory, inheritance]
+lesson: |
+  A `@classmethod` receives the class itself as `cls`, which makes it the right tool for alternative constructors such as `from_string`. Without the decorator Python treats the first argument as `self` and the call fails. If the body hard-codes `Server(...)`, subclasses inherit a factory that still returns the base type, losing their behaviour. Writing `cls(...)` makes the factory work for every subclass.
+mistakes:
+  - "Adding @staticmethod, which still gets no class argument."
+  - "Overriding from_string in the subclass instead of using `cls` in the base."

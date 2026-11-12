@@ -1,0 +1,38 @@
+title: Event Loop Blocker Lint
+category: Metaprogramming
+difficulty: 5
+xp: 300
+story: |
+  Parcelhive's async gateway froze twice last month because someone called `time.sleep` inside a
+  coroutine. The platform team wrote an `ast.NodeVisitor` lint rule to block such changes in CI,
+  but it misses calls wrapped in other calls, reports odd line numbers, flags harmless thread
+  helpers, and does not understand `import ... as`.
+description: |
+  `lint_source(source)` parses code and returns `Finding(line, col, code, message)` for every call
+  in `BLOCKING` made directly from an `async def` body (the call's own start line, 1-based
+  column). A nested plain function or lambda is a new context that runs elsewhere, and an async
+  function nested in a sync one is checked again. Import aliases must be resolved. A syntax error
+  yields one `E999` finding. There are 4 bugs.
+hints:
+  - |
+    Hint 1: Lint `json.loads(requests.get(u).text)` inside a coroutine, a call spread over several
+    lines, and a nested sync helper, and print the findings.
+  - |
+    Hint 2: A NodeVisitor method that handles a node must still call `self.generic_visit(node)`
+    to reach its children. The context stack must grow when entering every kind of function.
+  - |
+    Hint 3: Push `False` and pop in `visit_FunctionDef`, use `node.lineno` rather than
+    `end_lineno`, map `alias.asname or alias.name`, and call `generic_visit` at the end of
+    `visit_Call`.
+tags: [ast, nodevisitor, linting, asyncio]
+lesson: |
+  `ast.NodeVisitor` only visits the children of a node if its `visit_X` method calls
+  `generic_visit`, so a rule that handles `Call` must still descend into the call's arguments.
+  Lint rules also depend on scope: the same call is a bug in a coroutine and fine inside a
+  helper that runs in a thread, so the visitor keeps a stack of contexts and must push for
+  every kind of function. Report positions come from the node that is actually at fault, and
+  names must be resolved through the import table, otherwise `import time as t` evades the rule.
+mistakes:
+  - Overriding visit_Call without calling generic_visit and silently skipping nested expressions.
+  - Tracking only async functions in the scope stack so nested sync defs inherit the async context.
+  - Using node.end_lineno or the enclosing function's line for a finding.

@@ -1,0 +1,29 @@
+title: Least Recently Used
+category: Caching
+difficulty: 3
+xp: 200
+story: |
+  The Basalt CI farm keeps the last N build artifacts in memory for quick downloads. Developers
+  complain that the artifact they downloaded a second ago is the first to be thrown out, while
+  ancient builds stay forever.
+description: |
+  `LRUCache(capacity)` keeps at most `capacity` items. Reading a key with `get` or writing it with `put`
+  makes it the most recently used. When the cache is over capacity, the least recently used item is evicted.
+  `get` returns `None` for unknown keys. `keys()` lists keys from least to most recently used.
+  There are 3 bugs.
+hints:
+  - |
+    Hint 1: Put a, b, c in a cache of 2 and see who is evicted. Then read `a` before adding `c`, and finally overwrite `a` before adding `c`.
+  - |
+    Hint 2: `OrderedDict` keeps insertion order, and assigning to an existing key does not move it. Look at the two ends: `move_to_end` and `popitem(last=...)`.
+  - |
+    Hint 3: Call `self._data.move_to_end(key)` in `get` and in `put` for existing keys, and evict with `popitem(last=False)`.
+tags: [caching, lru, ordereddict, eviction]
+lesson: |
+  An LRU cache is just an ordered dictionary where the right end means "recently used" and the left end means "evict me".
+  Every access has to move the key to the right end: reads as well as overwrites, because assigning to an existing key in an
+  `OrderedDict` leaves its position unchanged. Eviction then pops from the left with `popitem(last=False)`; popping from the right
+  throws away the newest data. Forgetting any of these three steps still looks plausible in a quick demo, so test eviction order explicitly.
+mistakes:
+  - Evicting with `popitem()` and no argument, which removes the newest entry.
+  - Tracking recency with a separate list that is never kept in sync.

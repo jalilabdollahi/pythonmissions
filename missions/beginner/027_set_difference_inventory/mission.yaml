@@ -1,0 +1,32 @@
+title: Unwatched Servers Audit
+category: Sets
+difficulty: 1
+xp: 100
+story: |
+  Compliance at Brightwater Hosting is auditing monitoring coverage before a
+  certification review. The auditor's report claims every host is covered, yet two
+  database servers crashed unnoticed last month. Someone has to find out why the
+  report never lists any gaps.
+description: |
+  `unmonitored_hosts(cmdb, monitored)` returns a sorted list of hosts that exist in
+  the inventory (`cmdb`) but have no monitoring entry. `stale_monitors(cmdb,
+  monitored)` returns a sorted list of monitoring entries for hosts that are no
+  longer in the inventory. Both inputs are iterables of hostnames.
+  There are 2 bugs.
+hints:
+  - |
+    Compare the hosts the report returns with the hosts that really lack monitoring.
+  - |
+    Set operators do different jobs: `|` union, `&` intersection, `-` difference, `^` symmetric difference.
+  - |
+    "In A but not in B" is `A - B`. For stale monitors you need only the entries that are in `monitored` but not in `cmdb`, so use difference there too, with the sets in the right order.
+tags: [sets, difference, inventory, audit]
+lesson: |
+  Gap analysis is a set-difference problem: "what do I have that they lack?" Union
+  merges both sides and so can never reveal a gap, and symmetric difference mixes both
+  directions into one answer. Use `a - b` and be careful about which side comes first,
+  because `a - b` and `b - a` answer opposite questions. Sets also make this fast on
+  inventories with tens of thousands of hosts.
+mistakes:
+  - Using `^` for both reports; it returns gaps in both directions at once.
+  - Swapping the operands of the difference and reporting the wrong direction.

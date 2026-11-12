@@ -1,0 +1,39 @@
+title: NDJSON Firehose
+category: Data Processing
+difficulty: 4
+xp: 300
+story: |
+  Marlowe Logistics exports 30 GB of scan events per day as newline-delimited JSON, and the
+  nightly summary job now runs out of memory before it prints a single number. When it does
+  finish, the "malformed lines" count includes harmless blank lines and the reported line
+  numbers never match what the data team sees in their editor.
+description: |
+  `iter_records(lines, stats)` is a generator that takes any iterable of text lines and yields
+  one `dict` per valid record, updating the `stats` dict as it goes. It must stay lazy: reading
+  the first record may only consume the first line. Blank lines are counted under `blank`.
+  Lines that are not valid JSON, or are valid JSON but not an object, are counted under
+  `malformed` and their 1-based line numbers appended to `bad_line_numbers`. `batched` and
+  `count_by` build on the stream.
+  There are 4 bugs.
+hints:
+  - |
+    Feed `iter_records` a generator that counts how many lines it handed out, take just one
+    record, and look at the counter. Then feed it blank lines and a line containing `[1, 2]`.
+  - |
+    Wrapping an iterable in `list()` loads everything. `json.loads` happily returns lists and
+    numbers, and `enumerate` has a `start` argument.
+  - |
+    Iterate `lines` directly, count blanks separately, reject anything that is not a `dict`,
+    and number lines starting at 1.
+tags: [ndjson, generators, streaming, json]
+lesson: |
+  Generators let a pipeline process data of any size in constant memory, but a single
+  `list(...)` or `readlines()` anywhere in the chain quietly undoes that. Valid JSON is not the
+  same as a valid record: a stream may contain arrays, strings or numbers, so check the type
+  you actually need. Error reports are only useful when they speak the same coordinates as
+  the tools people use, and editors number lines from one. Counting categories separately
+  (blank versus malformed) keeps your data-quality metrics honest.
+mistakes:
+  - Reading the whole file with read().splitlines() and then looping over it.
+  - Catching Exception around json.loads, which also hides bugs in your own code.
+  - Treating any successful json.loads result as a record.

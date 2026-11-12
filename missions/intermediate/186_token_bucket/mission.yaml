@@ -1,0 +1,29 @@
+title: Bucket Of Tokens
+category: Resilience
+difficulty: 3
+xp: 200
+story: |
+  Foxglove API throttles each customer with a token bucket: 5 requests of burst, refilled at 2 per second. A customer who
+  went quiet overnight came back with a bucket that held thousands of tokens and hammered the database. In the load test, requests that
+  should have been rejected were allowed, and a bucket with exactly enough tokens refused the call.
+description: |
+  `TokenBucket(capacity, rate, clock)` starts full. `rate` tokens per second are added based on the injected `clock()` time, but the
+  bucket never holds more than `capacity`. `allow(cost=1)` takes `cost` tokens and returns `True` if the bucket had at least that many, otherwise it
+  changes nothing and returns `False`. `retry_after(cost=1)` returns how many seconds until `cost` tokens are available (0.0 if they are
+  already). There are 3 bugs.
+hints:
+  - |
+    Hint 1: Drain the bucket, advance the fake clock by 1000 seconds and check how many requests are allowed afterwards.
+  - |
+    Hint 2: Two things must happen on every refill: the token count is clamped to `capacity`, and the time of the last refill moves forward. Also read the boundary: "at least `cost`" includes equality.
+  - |
+    Hint 3: `self.tokens = min(self.capacity, self.tokens + elapsed * self.rate)`, then `self.last = now`, and compare with `>=`.
+tags: [rate-limiting, token-bucket, clock-injection, math]
+lesson: |
+  A token bucket needs three invariants: tokens never exceed capacity, time between refills is counted exactly once (so `last` must advance each time you
+  refill), and a request costing N succeeds when tokens >= N. Forgetting the cap lets idle clients accumulate unlimited burst; forgetting to advance `last`
+  makes every later refill re-count old time and mint tokens out of thin air. Injecting the clock turns time into a plain function argument, so tests can jump
+  ahead a thousand seconds instantly and assert exact results with no sleeping.
+mistakes:
+  - "Refilling with `time.time()` directly, which makes the limiter impossible to test."
+  - "Using `>` for the comparison, so a bucket holding exactly `cost` tokens rejects the call."

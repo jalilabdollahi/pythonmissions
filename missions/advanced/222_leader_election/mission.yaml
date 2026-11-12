@@ -1,0 +1,36 @@
+title: Ballot Box Election
+category: Distributed Systems
+difficulty: 5
+xp: 300
+story: |
+  The Halyard control plane runs a five-node consensus group. During a network flap the group
+  elected two leaders in the same term and later accepted a candidate whose log was missing
+  committed entries. The postmortem points straight at the vote-granting code.
+description: |
+  `RaftNode` implements the voter side of a Raft-style election. `handle_request_vote`
+  returns `(term, granted)`. A vote is granted only if the request term is not stale, the node
+  has not already voted for someone else in that term, and the candidate's log is at least as
+  up to date as the node's own. `start_election` bumps the term and votes for self, and
+  `run_election` asks every peer and wins with a strict majority of the whole cluster.
+  There are 4 bugs.
+hints:
+  - |
+    Hint 1: Write down the three conditions for granting a vote and the one thing that must
+    happen when a request carries a higher term. Check each against the code.
+  - |
+    Hint 2: "Up to date" compares the term of the last log entry first and only uses the index
+    to break ties. A majority is more than half of the cluster, not half.
+  - |
+    Hint 3: voted_for belongs to a term; a new term clears it. A node may repeat a vote for the
+    same candidate but never switch candidates within a term.
+tags: [raft, consensus, election, distributed]
+lesson: |
+  Raft's safety rests on two vote rules: at most one vote per term, and never vote for a
+  candidate whose log is behind yours (term of the last entry beats log length). The persisted
+  voted_for only has meaning inside a term, so seeing a higher term must reset it, otherwise a
+  node stays silent forever. Majorities are computed against the full membership: with four
+  nodes two votes is a tie, not a quorum, and two leaders can appear.
+mistakes:
+  - Comparing last log index before last log term when judging whether a log is up to date.
+  - Treating half of the cluster as a quorum.
+  - Refusing to repeat a vote for the same candidate, which breaks retried RPCs.

@@ -1,0 +1,29 @@
+title: Bytes That Add Up To Nonsense
+category: CSV
+difficulty: 1
+xp: 100
+story: |
+  FinOps at Parcelwise is reviewing the cost of cross-region traffic, using a CSV export from the network team.
+  The report claims the `ingest` service moved 100250 bytes when its two rows say 100 and 250.
+  It also names a 9 ms endpoint as the slowest in the fleet.
+description: |
+  netcost.py reads rows with `csv.DictReader` (rows are dicts such as `{"service": "ingest", "bytes": "100", "latency_ms": "9"}`).
+
+  - `bytes_by_service(rows)` returns a dict of service to total bytes as integers.
+  - `slowest_row(rows)` returns the row with the highest numeric latency.
+  - `load(path)` reads the file and returns the list of row dicts.
+
+  There are 2 bugs.
+hints:
+  - |
+    Print the types of the values inside one row. Then look at what `+` and `max` do with them.
+  - |
+    CSV has no number type: every field comes back as text, and text adds by joining and compares letter by letter.
+  - |
+    Convert with `int(row['bytes'])` and use `int(row['latency_ms'])` as the key for max.
+tags: [csv, types, conversion]
+lesson: |
+  `csv` never converts anything: every cell is a string. Adding strings concatenates them (`'100' + '250'` is `'100250'`), and comparing strings is alphabetical, so `'9'` is bigger than `'120'`. Neither raises an error, which is why the wrong answer ends up in a report. Convert explicitly with `int()` or `float()` as soon as you read the value, and keep the converted number from then on.
+mistakes:
+  - "Converting only the total at the end, after the strings were already joined."
+  - "Sorting with key=str, which keeps the alphabetical order."

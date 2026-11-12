@@ -1,0 +1,35 @@
+title: Ticket Sale Burn Alarm
+category: Observability
+difficulty: 5
+xp: 300
+story: |
+  Mossbridge Ticketing promises 99.9 percent successful requests over 30 days and pages
+  on-call when the error budget burns too fast. On the night a major tour went on sale the
+  pager stayed silent for an hour of real failures, then fired for a quiet overnight window
+  with no traffic at all.
+description: |
+  `window_counts` sums minute buckets in `(now - seconds, now]`. `error_ratio` is errors over
+  total requests (0 when there was no traffic). `burn_rate` divides the ratio by the error
+  budget `1 - slo`. `evaluate` walks the multi-window `POLICIES` and returns an alert only
+  when BOTH the long and the short window burn at or above the threshold. There are 4 bugs.
+hints:
+  - |
+    Hint 1: Compute the ratio for a bucket with 100 requests and 10 errors by hand and compare
+    it with the function, then evaluate an empty traffic list.
+  - |
+    Hint 2: The error budget is the allowed failure fraction, not the success target. Think
+    about what each of the two windows is there to prove.
+  - |
+    Hint 3: Divide by `total`, use `1 - slo` as the budget, return 0.0 when `total == 0`, and
+    combine the two window checks with `and`.
+tags: [slo, burn-rate, alerting, error-budget]
+lesson: |
+  A burn rate expresses how many times faster than sustainable you are spending the error
+  budget, which is `1 - slo`, so 99.9 percent gives a budget of 0.1 percent. Multi-window
+  alerts require the long window to prove the problem is significant and the short window to
+  prove it is still happening. Using `or` destroys both guarantees, and treating empty
+  windows as failures turns quiet nights into pages.
+mistakes:
+  - Using the SLO target itself as the budget, which makes every burn rate tiny.
+  - Dividing errors by successes instead of by all requests.
+  - Alerting when either window is hot, which pages on blips and on already-recovered incidents.

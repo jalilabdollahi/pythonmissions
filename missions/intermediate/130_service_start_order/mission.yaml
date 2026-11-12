@@ -1,0 +1,30 @@
+title: Boot Sequence
+category: Graphs
+difficulty: 3
+xp: 200
+story: |
+  The Alder orchestrator boots a stack of microservices on a single host. Last
+  deploy it started `api` before the `db` it depends on, because `db` was only
+  ever mentioned as a dependency. Then someone added a circular dependency and the
+  orchestrator happily started a partial stack.
+description: |
+  `start_order(deps)` takes `{service: [services it depends on]}` and returns a list in which every service
+  appears after all of its dependencies. Services that appear only as dependencies are included too.
+  Ties are broken alphabetically so the result is deterministic. If there is a dependency cycle it
+  raises `ValueError` whose message contains the word `cycle`. There are 3 bugs.
+hints:
+  - |
+    Hint 1: Try `{"api": ["db"]}`. Is `db` in the result? Then try a cycle `a -> b -> a` and see what comes back.
+  - |
+    Hint 2: Kahn's algorithm: repeatedly take nodes with no unmet dependencies. If you run out of such nodes before every node has been placed, there is a cycle. Collect the node set from keys and values.
+  - |
+    Hint 3: Build `nodes` from both keys and dependency lists, always pop the alphabetically smallest ready node (`ready.sort()` and `pop(0)`), and raise if `len(order) != len(nodes)`.
+tags: [graph, topological-sort, dependencies, cycles]
+lesson: |
+  Startup order is a topological sort of the dependency graph. Kahn's algorithm repeatedly removes nodes that have no remaining
+  dependencies; if the graph still has nodes when nothing is ready, those nodes sit on a cycle and no valid order exists.
+  Returning a partial order silently is the worst outcome, so detect it and fail loudly. Remember that a node can appear only as a
+  dependency, so build the node set from both keys and values. A deterministic tie-break keeps deployments reproducible.
+mistakes:
+  - Only iterating over the dictionary keys, which forgets leaf services.
+  - Sorting the output alphabetically at the end, which ignores the dependencies.

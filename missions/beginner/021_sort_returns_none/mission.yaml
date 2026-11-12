@@ -1,0 +1,29 @@
+title: Failover Order Is None
+category: Lists
+difficulty: 1
+xp: 100
+story: |
+  Marlin Streaming runs a failover script that must try standby hosts in alphabetical order.
+  During the last game-day drill it died with "NoneType is not iterable" at the very first failover.
+  The ordering helper had just been tidied up.
+description: |
+  failover.py decides which standby to try first.
+
+  - `failover_order(hosts)` returns a new, alphabetically sorted list. The input list must not be modified.
+  - `first_standby(hosts)` returns the first host in that order, or `None` when there are no hosts.
+  - `describe(hosts)` returns `"try: a -> b -> c"` or `"no standbys"`.
+
+  There is 1 bug.
+hints:
+  - |
+    Print what failover_order returns and compare it with what you expected.
+  - |
+    `list.sort()` sorts in place and returns None. There is another tool that returns a new list.
+  - |
+    Use `sorted(hosts)` and assign its result.
+tags: [lists, sort, none]
+lesson: |
+  `list.sort()` mutates the list in place and returns `None`, so `hosts = hosts.sort()` throws your data away. `sorted(iterable)` returns a new sorted list and leaves the original alone. The general rule in Python is that methods which mutate in place return None, which is a deliberate signal that the call was for its side effect.
+mistakes:
+  - "Assigning the result of sort() and then sorting again."
+  - "Sorting the caller's list in place when the contract says the input must not change."

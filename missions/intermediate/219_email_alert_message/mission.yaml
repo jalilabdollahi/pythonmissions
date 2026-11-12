@@ -1,0 +1,30 @@
+title: Alert Mail Builder
+category: Messaging
+difficulty: 3
+xp: 200
+story: |
+  Harbor Freight's monitoring sends alert emails through an internal relay. Mails to more than one
+  on-call engineer are rejected by the relay as malformed, the escalation step crashes when it tries to mark a
+  message urgent, and people on the Cc line are never handed to the relay, so they never receive the alert.
+description: |
+  `build_alert(subject, body, to, cc=(), date=None)` returns an `EmailMessage` from `alerts@harbor.example`; `to` and `cc` are lists of
+  addresses that become a single comma-separated header each. `mark_urgent(msg)` prefixes the subject with `[URGENT] ` (the message must
+  keep exactly one Subject header) and sets `X-Priority: 1`. `envelope_recipients(msg)` returns the sorted, de-duplicated addresses
+  the relay must deliver to: everyone in To and Cc. `add_html(msg, html_body)` adds an HTML alternative. There are 3 bugs.
+hints:
+  - |
+    Build an alert with two recipients, then call `mark_urgent` on it. Finally call `envelope_recipients` on a message that has a Cc.
+  - |
+    Several addresses in one header must be separated by commas, not spaces. Assigning to `msg["Subject"]` again does not replace the header, it adds one more (and `EmailMessage` refuses a second Subject). The envelope is made of all the recipient headers, which `get_all` collects.
+  - |
+    Join addresses with `", ".join(to)`, use `msg.replace_header("Subject", ...)` (or `del msg["Subject"]` first) and parse `msg.get_all("To", []) + msg.get_all("Cc", [])` with `getaddresses`.
+tags: [email, headers, emailmessage, smtp]
+lesson: |
+  Email headers are text. Several recipients live in one header as a comma-separated list, so join them before assigning. Assigning
+  `msg[name] = value` never replaces: it appends another header of that name, which for singletons like Subject is invalid;
+  use `replace_header` or delete first. The headers shown to people are not the same as the SMTP envelope: to deliver a message you
+  have to collect every address from To, Cc (and Bcc, which is deliberately never written to the headers) and parse them with `email.utils.getaddresses`
+  so display names and commas inside quoted names are handled correctly.
+mistakes:
+  - Splitting header values with `str.split(",")`, which breaks on display names such as "Doe, Jane".
+  - Deleting the Cc header to avoid duplicates and thereby dropping those recipients from delivery.

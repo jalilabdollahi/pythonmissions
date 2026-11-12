@@ -1,0 +1,40 @@
+title: Pipeline Notation
+category: Compilers
+difficulty: 5
+xp: 300
+story: |
+  Quill CI lets teams describe a pipeline in one line such as `build -> test & lint -> deploy`.
+  The parser rejects job names like `unit-test`, quietly accepts `build -> test ->` with a
+  missing final stage, lets the same job appear twice and run twice, and its error messages
+  point to the end of the line instead of the real mistake.
+description: |
+  `parse(text)` turns the notation into a list of stages, each a list of job names that run in
+  parallel: `->` separates stages and `&` separates jobs inside a stage. Job names start with a
+  letter or underscore and may contain digits, underscores and inner hyphens (`unit-test`). Every
+  job name must be unique across the pipeline. Whitespace is optional (`a->b&c` is valid).
+  Problems raise `ParseError` whose `pos` is the 0-based offset of the offending token (or the
+  end of the text when input ends too early).
+  There are 4 bugs.
+hints:
+  - |
+    Parse `lint-py -> test`, then `build ->`, then `a -> a`, then `build -> & test` and look
+    at each result or error position.
+  - |
+    A hyphen inside a name must not swallow the `->` arrow. An arrow must always be followed by
+    a stage. Uniqueness needs memory across stages. The error offset should come from the token
+    where the parser stopped.
+  - |
+    Use a name pattern with `(?:-\w+)*`, do not return after consuming an arrow, keep a `seen`
+    set, and report the position of the token at index `i` when it exists.
+tags: [parser, tokenizer, dsl, regex]
+lesson: |
+  A small hand-written parser is a tokenizer plus a loop that always knows what it expects
+  next. Tokenizer regexes must be written to cooperate: a name pattern that allows hyphens has
+  to require a word character after each hyphen so that the `->` arrow is not swallowed. The
+  parser's grammar rules become invariants: an arrow is followed by a stage, names are unique,
+  and every error carries the position where the input stopped making sense, because that is
+  what a user needs to fix their line.
+mistakes:
+  - Allowing a bare hyphen in names, so `a->b` tokenizes as the single name `a-` followed by `>`.
+  - Returning success as soon as the token list runs out, even when the grammar expects more.
+  - Reporting len(text) for every error because it is always available.

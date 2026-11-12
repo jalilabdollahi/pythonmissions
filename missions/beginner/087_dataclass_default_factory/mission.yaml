@@ -1,0 +1,29 @@
+title: Release Manifest Dataclass
+category: Classes
+difficulty: 2
+xp: 100
+story: |
+  The release tooling at Foxglove Apps models each deployment as a dataclass.
+  A teammate added a `services` list with an empty default, and now the module will not even import, which has blocked the whole release train.
+description: |
+  manifest.py defines the `Release` dataclass with `version`, `services` (list, defaults to empty) and `notes` (list, defaults to empty).
+
+  - `Release("1.2.0")` must give a release with no services and no notes.
+  - `add_service(name)` appends to that release's own services and returns the release.
+  - `add_note(text)` appends to that release's own notes.
+  - `summary()` returns text like `1.2.0: api, web (1 notes)`.
+
+  There is 1 bug.
+hints:
+  - |
+    Read the error raised when the module is imported. It names the field and the type of default.
+  - |
+    Dataclasses refuse mutable defaults because one object would be shared by every instance. There is a helper in `dataclasses` for this.
+  - |
+    Use `field(default_factory=list)` for each list field.
+tags: [classes, dataclasses, default_factory, mutable-defaults]
+lesson: |
+  A plain default like `services: list = []` would be created once and shared by every instance, the same trap as a mutable default argument, so dataclasses reject it with a ValueError at class creation. `field(default_factory=list)` calls `list()` for each new instance so every object gets its own list. Use it for lists, dicts and sets in dataclass fields.
+mistakes:
+  - "Using `None` as the default and never replacing it with a list, so append fails later."
+  - "Fixing only one of the two list fields."

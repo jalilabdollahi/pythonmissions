@@ -1,0 +1,36 @@
+title: Seat Pool Rehydration
+category: Event Sourcing
+difficulty: 4
+xp: 300
+story: |
+  Vantage Software keeps software-licence seat pools as event streams with periodic snapshots
+  so the billing service starts fast. After a deploy, some customers were charged for seats
+  twice, one pool lost a revoked user's removal, and a pool silently skipped three days of events.
+description: |
+  A pool is an aggregate with `seats` (int) and `assigned` (a set of users). Events are dicts
+  with a `version`, `type` (`seats_added`, `seat_assigned`, `seat_revoked`) and `data`.
+  `take_snapshot(state, version)` must return an independent copy. `rehydrate(snapshot, events)`
+  rebuilds the current state from the snapshot plus ONLY events newer than the snapshot,
+  applied in version order, and raises `ValueError` if the newer events are not contiguous.
+  There are 4 bugs.
+hints:
+  - |
+    Hint 1: Take a snapshot, keep mutating the live pool, then inspect the snapshot. Also see
+    which event versions get applied when an event has the same version as the snapshot.
+  - |
+    Hint 2: Events can arrive from storage shuffled, and a missing event means the rebuilt state
+    is wrong, not merely incomplete.
+  - |
+    Hint 3: Copy the set, filter with `version > snapshot_version`, sort by version, and check
+    each version is the previous one plus one.
+tags: [event-sourcing, snapshot, replay, aggregates]
+lesson: |
+  A snapshot is the aggregate state as of a specific event version, so rebuilding means applying
+  strictly newer events: replaying the boundary event double counts it. Snapshots must be deep
+  copies, or later commands mutate history. Events must be applied in version order, and a gap
+  in versions has to fail loudly because every later event assumes the earlier ones happened.
+  Silent gaps are how state quietly drifts away from the truth.
+mistakes:
+  - Using >= when selecting events after a snapshot.
+  - Storing the live set inside the snapshot instead of a copy of it.
+  - Trusting the order in which the event store returned the events.

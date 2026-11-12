@@ -1,0 +1,37 @@
+title: Gullwing Key Rotation
+category: Security
+difficulty: 5
+xp: 300
+story: |
+  Gullwing's partner API signs webhooks with an HMAC key that the security team rotates every
+  quarter. The last rotation broke every in-flight request for ten minutes, the old key kept
+  signing new tokens afterwards, and a key that had been revoked after a leak was still being
+  accepted.
+description: |
+  `KeyStore` holds keys ordered by `activate_at`. A key signs from activation until a newer key
+  activates and verifies until `grace` seconds after that (the end is exclusive). Pending keys
+  never verify, revoked keys never verify or sign. `sign` always uses the newest usable key,
+  `verify` looks the key up by id, and `rotation_report` labels each key pending, active,
+  retiring, retired or revoked. There are 4 bugs.
+hints:
+  - |
+    Hint 1: Add two keys with an overlap and print which key id signs at several moments, and
+    what verify says about a key before its activation time.
+  - |
+    Hint 2: Signing and verifying have different validity windows. The signer wants the most
+    recent trustworthy key; the verifier also accepts recently retired ones.
+  - |
+    Hint 3: Pick `active[-1]`, filter revoked keys out of the signing candidates, reject
+    `now < key.activate_at` in `can_verify`, and compare with `now < retire_at`.
+tags: [rotation, hmac, secrets, grace-period]
+lesson: |
+  Rotating a shared secret without downtime needs an overlap: the new key starts signing at once
+  while the old one keeps verifying for as long as old signatures can still be in flight. Each
+  half has strict rules. Signing must always use the newest trusted key, otherwise the old key
+  never leaves service. Verification must reject keys that are not yet active, accept retiring
+  keys only inside an exact half-open window, and treat revocation as an override that skips the
+  grace period entirely.
+mistakes:
+  - Signing with the first key that still verifies, which keeps the old key in service forever.
+  - Using an inclusive end for the grace window, extending every key by one tick.
+  - Treating revocation like a normal retirement and keeping the leaked key valid during overlap.

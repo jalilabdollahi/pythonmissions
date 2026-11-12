@@ -1,0 +1,38 @@
+title: Quotas Without Crosstalk
+category: Multi-tenancy
+difficulty: 4
+xp: 300
+story: |
+  Forgeline runs a shared build platform where each team gets resource quotas. Support keeps
+  getting tickets that one team's quota change affected a different team, that audit histories
+  contain other teams' reservations, and that a team managed to reserve far more than its limit
+  after a cleanup job released resources twice.
+description: |
+  `Tenant` starts from `DEFAULT_LIMITS` plus optional overrides and tracks `used` and a private
+  `history`. `reserve` is all-or-nothing and validates the whole request first. `release` can
+  never push usage below zero. `QuotaManager` registers tenants and reports noisy ones by
+  utilization. No tenant may share mutable state with another or with the defaults.
+  There are 4 bugs.
+hints:
+  - |
+    Hint 1: Create two tenants, give one an override and an action, then print the other tenant's
+    limits and history and the module-level defaults.
+  - |
+    Hint 2: Look for places where a mutable object is reused instead of copied, including default
+    argument values. Then look at the order of check and mutate in `reserve`, and the arithmetic
+    in `release`.
+  - |
+    Hint 3: Use `dict(DEFAULT_LIMITS)`, `history=None` with a fresh list inside, check every
+    resource before incrementing any, and clamp with `max(0, ...)`.
+tags: [multi-tenancy, quotas, shared-state, isolation]
+lesson: |
+  Tenant isolation fails quietly through shared mutable state: an alias of a defaults dict, or a
+  default argument like `history=[]` that is created once and reused by every instance. Copy
+  defaults per tenant and create containers inside the function. Quota accounting has its own
+  invariants too: multi-resource reservations must be atomic, so validate everything before
+  changing anything, and usage must be clamped at zero because a double release otherwise
+  creates capacity that was never granted.
+mistakes:
+  - Assigning the shared defaults dict directly to each tenant instead of copying it.
+  - Using a mutable default argument for per-instance state.
+  - Incrementing usage inside the same loop that checks limits, leaving partial reservations behind.

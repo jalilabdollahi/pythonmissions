@@ -1,0 +1,38 @@
+title: Environment Spin-Up Undo
+category: Transactions
+difficulty: 5
+xp: 300
+story: |
+  Brightwell's platform team spins up a preview environment as a saga: network, database, DNS
+  record, then app deploy. When the deploy step fails, the cleanup leaves orphaned databases
+  costing money, tries to delete resources that were never created, and removes the network
+  before the database that lives inside it.
+description: |
+  A saga is a list of `Step(name, action, compensate)`. `run_saga` executes actions in order,
+  remembering each completed step with the value its action returned. When a step raises, the
+  saga compensates only the COMPLETED steps, newest first, passing each compensation the value
+  its own action returned. A compensation that fails is recorded and the remaining ones still
+  run. The result reports `status`, `completed`, `compensated` and `compensation_errors`.
+  There are 4 bugs.
+hints:
+  - |
+    Hint 1: Make the third step fail and print the order in which undo functions were called
+    and which steps were included.
+  - |
+    Hint 2: Dependencies are undone in reverse order of creation, and a step that raised never
+    produced anything to undo. Each undo needs the handle returned by its own action.
+  - |
+    Hint 3: Iterate reversed(completed), append to completed only after the action succeeds,
+    store (step, result) pairs, and catch exceptions around each compensation.
+tags: [saga, compensation, rollback, orchestration]
+lesson: |
+  A saga replaces a distributed transaction with a chain of local ones plus compensating
+  actions. Compensation must mirror the forward path: undo only what actually completed, in
+  reverse dependency order, using the identifiers that each forward step produced. Because
+  undo is itself a network call that can fail, the orchestrator must keep going and report
+  leftovers instead of stopping at the first failed compensation, otherwise one flaky delete
+  leaks every resource created before it.
+mistakes:
+  - Compensating the step that failed, which never created anything to delete.
+  - Undoing in creation order, which deletes a network before the database inside it.
+  - Aborting the cleanup on the first compensation error.

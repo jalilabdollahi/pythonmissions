@@ -1,0 +1,29 @@
+title: Naive Meets Aware
+category: Dates
+difficulty: 2
+xp: 100
+story: |
+  The token janitor at Sable Identity deletes API tokens whose expiry has passed.
+  After the vendor started returning timezone-aware timestamps, the janitor crashes with a TypeError about comparing offset-naive and offset-aware values, and old tokens pile up.
+description: |
+  tokens.py works with UTC timestamps.
+
+  - `utc_now()` returns the current time as a timezone-aware UTC datetime.
+  - `parse_expiry("2025-06-01T08:30:00")` returns a timezone-aware UTC datetime for a timestamp string without an offset (the vendor always sends UTC).
+  - `is_expired(token, now)` is True when the token's `expires` string is before or equal to `now` (an aware datetime).
+  - `expired_ids(tokens, now)` returns sorted ids of expired tokens.
+
+  There are 2 bugs.
+hints:
+  - |
+    Read the TypeError message. Which of the two datetimes has no timezone information?
+  - |
+    Naive datetimes carry no timezone and cannot be compared with aware ones. Attach UTC explicitly instead of guessing local time.
+  - |
+    Use `.replace(tzinfo=timezone.utc)` after parsing and `datetime.now(timezone.utc)` for the current time.
+tags: [dates, timezone, utc, aware-datetime]
+lesson: |
+  Python refuses to compare a naive datetime (no timezone) with an aware one because the answer would be a guess. The robust rule for ops code is to keep everything timezone-aware in UTC: parse timestamps and attach `timezone.utc`, and get the current time with `datetime.now(timezone.utc)`. `datetime.utcnow()` is a trap, because it returns a naive value even though it holds UTC. Convert to local time only when displaying to humans.
+mistakes:
+  - "Stripping the timezone from the aware value to make the comparison run, which hides offsets."
+  - "Using `datetime.utcnow()`, which is still naive."

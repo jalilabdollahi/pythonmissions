@@ -1,0 +1,29 @@
+title: Port From The Environment
+category: Environment
+difficulty: 2
+xp: 100
+story: |
+  Cobalt Streams moved its relay service onto a platform that injects the PORT variable at launch.
+  The service now crashes while opening its secondary metrics listener, and the privileged-port check blows up too.
+  Both worked fine when the port was a constant in the code.
+description: |
+  ports.py derives listener settings from the environment.
+
+  - `read_port(env)` returns the PORT variable as an int, defaulting to 8000.
+  - `listen_ports(env)` returns `[main_port, metrics_port]` where metrics is main + 1.
+  - `needs_root(env)` is True when the main port is below 1024.
+
+  There is 1 bug.
+hints:
+  - |
+    Look at the exact TypeError in the failing tests. What type does read_port return?
+  - |
+    Everything in os.environ is a str. Arithmetic and comparisons with ints need a conversion.
+  - |
+    Wrap the value with `int(...)` once, inside read_port, so every caller gets a number.
+tags: [environment, int, typeerror]
+lesson: |
+  Values read from os.environ are always strings, so `PORT + 1` raises a TypeError and `PORT < 1024` fails to compare. Convert once at the boundary, in the function that reads the variable, and the rest of the program can treat the port as a number. This also gives you one place to add validation later, such as rejecting values that are not digits.
+mistakes:
+  - "Casting in each caller instead of once in read_port, so one of them is eventually forgotten."
+  - "Casting the default but not the value that comes from the environment."

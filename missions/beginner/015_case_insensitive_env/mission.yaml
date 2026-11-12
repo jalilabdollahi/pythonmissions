@@ -1,0 +1,29 @@
+title: PROD Is Not prod
+category: Strings
+difficulty: 2
+xp: 100
+story: |
+  During a quarterly cloud audit at Slate Mobility, security counted production instances by their Environment tag.
+  The count came back far too low: engineers had typed PROD, Prod and "prod " in the console over the years.
+  The auditors need a number they can trust by Monday.
+description: |
+  audit.py counts instances by environment tag.
+
+  - `is_production(tag)` is True for `prod` or `production` regardless of letter case or surrounding spaces; False for everything else, including None or empty tags.
+  - `count_production(instances)` counts instances (dicts with an optional `"environment"` key) that are production.
+  - `by_environment(instances)` returns a dict of normalized lower-case environment name to count; missing tags count as `"untagged"`.
+
+  There is 1 bug.
+hints:
+  - |
+    Which spellings of production does your test data contain? Compare them with what the function accepts.
+  - |
+    Normalize before comparing: letter case and stray spaces should not matter.
+  - |
+    Apply `.strip().lower()` (or `.casefold()`) to the tag before testing membership.
+tags: [strings, normalization, lower]
+lesson: |
+  Human-typed labels are messy: "PROD", "Prod" and "prod " all mean the same thing but compare as different strings. Normalize both sides before you compare, with `strip()` and `lower()` (or `casefold()` for international text), and decide in one function what counts as a match. Counting on raw tags undercounts, and in a security audit an undercount is the dangerous direction.
+mistakes:
+  - "Lower-casing the tag but forgetting strip(), so \"prod \" still fails."
+  - "Checking `\"prod\" in tag.lower()`, which also matches \"preprod\"."

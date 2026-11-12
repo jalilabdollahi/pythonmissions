@@ -1,0 +1,32 @@
+title: Silent Zip Truncation
+category: Loops
+difficulty: 2
+xp: 100
+story: |
+  During a datacenter migration at Orbit Telecom, a script pairs the new hostnames
+  with the new IP addresses from two spreadsheets. One sheet was missing a row, and
+  the script quietly produced a DNS file with a server less than expected. Nobody
+  noticed until a service could not be resolved on cut-over night.
+description: |
+  `pair_hosts(hostnames, addresses)` returns a dict mapping each hostname to its
+  address. If the two lists have different lengths it must raise `ValueError` whose
+  message mentions both counts, instead of returning a partial mapping.
+  `render_zone(mapping)` renders `"<host> IN A <ip>"` lines.
+  There is 1 bug.
+hints:
+  - |
+    Call `pair_hosts` with lists of different length and see what comes back.
+  - |
+    `zip` stops at the shortest input without any warning.
+  - |
+    Compare `len(hostnames)` and `len(addresses)` before zipping and raise `ValueError` with both numbers.
+tags: [loops, zip, validation, dns]
+lesson: |
+  `zip` quietly stops when the shortest iterable runs out, so mismatched inputs lose
+  data without any error. For ops data (hosts and IPs, names and owners) a length
+  mismatch is nearly always a mistake worth failing loudly on. Check the lengths first,
+  or use `zip(a, b, strict=True)` on Python 3.10+ (or `itertools.zip_longest`
+  when you need to see the leftovers).
+mistakes:
+  - Padding the shorter list with None instead of reporting the mismatch.
+  - Catching the problem after zipping by comparing the dict size, which hides duplicates too.

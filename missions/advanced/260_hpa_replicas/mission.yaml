@@ -1,0 +1,39 @@
+title: Pod Autoscaler Math
+category: Autoscaling
+difficulty: 4
+xp: 300
+story: |
+  Redwood Analytics scales its report workers with a homegrown autoscaler modeled on the
+  Kubernetes HPA. In production it added an extra pod whenever the numbers were "exactly" on
+  target, scaled in because one metrics source had a hiccup, and ignored the busy memory metric
+  whenever CPU looked calm.
+description: |
+  For each metric the proposal is `ceil(current * value / target)`, unless the ratio is within
+  `tolerance` of 1.0 (inclusive), in which case the proposal is `current`. Metrics with no data
+  (`value is None`) are ignored. With several metrics the largest proposal wins; with no usable
+  metric the current size is kept. The result is clamped to `[min_replicas, max_replicas]`.
+  `Autoscaler.decide` additionally holds scale-downs back for a stabilization window by using the
+  highest recommendation seen inside it, and limits a single scale-up to double the fleet or four
+  extra pods, whichever is larger.
+  There are 4 bugs.
+hints:
+  - |
+    Feed `desired_replicas` a ratio of exactly 1.1 with tolerance 0.1, current=2 with 2.1 / 0.7,
+    and a mix of one real metric and one with `value=None`.
+  - |
+    Floating point makes "exact" values slightly off, so both the tolerance comparison and the
+    ceiling need care. Several metrics are an OR: any one of them can demand more capacity.
+  - |
+    Round the product before `ceil`, compare with `<= tolerance`, use `max(proposals)`, and return
+    `None` when a metric has no value.
+tags: [autoscaling, hpa, kubernetes, floating-point]
+lesson: |
+  The HPA formula looks trivial, but its edges decide whether a service flaps. The tolerance band
+  is inclusive so a load that sits exactly on the threshold does nothing, floating point must be
+  rounded before `ceil` or "exactly 30" becomes 31, and with several metrics the autoscaler must
+  follow the one asking for the most capacity. A metric with no data is an unknown, not a zero:
+  treating a monitoring outage as "idle" is how autoscalers scale production down during incidents.
+mistakes:
+  - Rounding to the nearest integer instead of always rounding up when scaling.
+  - Averaging or minimizing across metrics so the busiest resource is ignored.
+  - Treating missing metrics as zero load.

@@ -1,0 +1,29 @@
+title: Crash Log Tail
+category: Collections
+difficulty: 3
+xp: 200
+story: |
+  When a Meridian worker crashes, the supervisor attaches the last 50 log lines to the
+  incident ticket. Memory on the workers is tight, but the tail buffer keeps growing, the
+  tickets contain the *oldest* lines, and a request for zero lines dumps the whole buffer.
+description: |
+  `LogTail(capacity)` remembers only the most recent `capacity` lines. `add(line)` stores one line without its trailing
+  newline, `add_chunk(text)` stores every line of a multi-line chunk (a trailing newline does not create an empty line),
+  and `tail(n)` returns the last `n` stored lines oldest first. `tail(0)` returns an empty list. `ticket_text()` joins
+  the whole buffer. There are 3 bugs.
+hints:
+  - |
+    Add 10 lines to a `LogTail(3)` and look at how many it keeps. Then call `tail(0)` and `add_chunk("a\nb\n")`.
+  - |
+    `collections.deque` can bound itself with `maxlen`. Slicing with `[-0:]` means `[0:]`, and `str.split("\n")` differs from `splitlines()` for a trailing newline.
+  - |
+    Create the deque with `maxlen=capacity`, return `[]` when `n` is 0 before slicing from the end, and iterate over `text.splitlines()`.
+tags: [deque, maxlen, ring-buffer, slicing]
+lesson: |
+  A ring buffer is a fixed-size queue that silently drops its oldest element when a new one arrives, which is exactly what
+  `deque(maxlen=N)` does with O(1) appends. Without `maxlen` the structure grows without bound, a classic memory leak in
+  long-running supervisors. Keep an eye on slicing edge cases as well: `items[-n:]` returns everything when `n` is 0, and
+  `split("\n")` leaves an empty string after a trailing newline, whereas `splitlines()` does not.
+mistakes:
+  - Trimming the list manually with `pop(0)` after every append, which is O(n) and easy to get wrong.
+  - Using `appendleft` and then reversing in `tail`, which doubles the places where order can go wrong.

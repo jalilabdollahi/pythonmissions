@@ -1,0 +1,29 @@
+title: Uptime Clock Display
+category: Dates
+difficulty: 2
+xp: 100
+story: |
+  The wallboard in the Northwind NOC shows how long each edge router has been up.
+  Yesterday it displayed "0:5:1" for one router and "1:2:5" for another, and the night shift could not tell if that meant minutes or hours.
+  The formatter needs to produce a proper clock string.
+description: |
+  uptime.py turns seconds into clock text.
+
+  - `format_duration(total_seconds)` returns `HH:MM:SS`, every field zero-padded to two digits. Hours may exceed 24 and are never wrapped into days (for example `100:00:00`).
+  - Negative input raises `ValueError`.
+  - `board_line(host, total_seconds)` returns `"<host> up <HH:MM:SS>"`.
+
+  There are 2 bugs.
+hints:
+  - |
+    The output for 3725 seconds is not what a clock would show. Look at each field separately.
+  - |
+    `divmod(a, b)` returns `(a // b, a % b)`: the quotient first, then the remainder. Format specs like `:02d` pad numbers.
+  - |
+    Unpack as hours, remainder, then minutes, seconds, and format each field with `:02d`.
+tags: [dates, divmod, formatting]
+lesson: |
+  `divmod(a, b)` gives the quotient and the remainder in that order, so the order of the names you unpack into matters: swapping them silently swaps minutes and seconds. Clock fields also need zero padding, which an f-string handles with `{value:02d}`. Durations show up in uptime panels, job runtimes and SLA reports, where "1:2:5" is ambiguous and a swapped field is simply wrong.
+mistakes:
+  - "Using `datetime.timedelta` and `str()`, which prints days for values over 24 hours and does not pad hours."
+  - "Padding with `str(x).zfill(2)` only for seconds and forgetting minutes and hours."

@@ -1,0 +1,30 @@
+title: Patient Reconnect
+category: Resilience
+difficulty: 3
+xp: 200
+story: |
+  Orion Telemetry's agents reconnect to the ingest gateway after every outage. During the last
+  restart 4,000 agents waited minutes between tries, and some waited far longer than the documented
+  30 second ceiling. The retry planner needs a second look.
+description: |
+  `backoff_delay(attempt, base, factor, cap, jitter)` returns how long to wait before retry number
+  `attempt` (starting at 0). The raw delay is `base * factor ** attempt`, never more than `cap`.
+  `jitter` is an injectable function that takes that capped delay and returns the real wait (the default keeps it unchanged).
+  `schedule(retries, ...)` returns the list of delays for `retries` retries, and `total_wait` sums it.
+  There are 3 bugs.
+hints:
+  - |
+    Hint 1: Print `schedule(8, 1, 2, 30)`. Do the values stop at 30? Then pass a jitter that halves the delay and check what changes.
+  - |
+    Hint 2: The cap belongs on the exponential value, and jitter is applied to the capped value last so the ceiling is still respected. Check how many delays `schedule` returns.
+  - |
+    Hint 3: `min(cap, base * factor ** attempt)`, then `jitter(that)`. Use `range(retries)`.
+tags: [backoff, retry, jitter, resilience]
+lesson: |
+  Exponential backoff spreads reconnect storms over time, but only if the cap really bounds the delay and the number of attempts is right.
+  Apply the cap to the exponential term, then apply jitter to the capped value so randomization can only shorten the wait.
+  Injecting the jitter function keeps the maths testable: tests pass a deterministic one while production passes `random.uniform`-based
+  logic. Off-by-one errors in the attempt count are common because attempt numbers start at zero.
+mistakes:
+  - Capping only the base, which leaves the exponent unbounded.
+  - Calling `random.random()` inside the function, which makes the schedule impossible to test.

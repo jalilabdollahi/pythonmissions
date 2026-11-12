@@ -1,0 +1,30 @@
+title: Glob Into The Depths
+category: Files
+difficulty: 2
+xp: 200
+story: |
+  The Brindle platform team keeps one directory per service, each with nested `logs/` and `releases/` folders.
+  The nightly log shipper claims it uploaded everything, yet auditors found weeks of missing logs. Somebody
+  wrote `**` in a glob pattern and assumed it would descend into every subfolder.
+description: |
+  `find_logs(root)` returns the sorted, `/`-separated relative paths of every `*.log` file at any depth below `root`
+  (including files directly in `root`). `find_manifests(root)` does the same for `*.yaml` files, but only real files count,
+  never directories that happen to be named like one. `logs_per_service(root)` returns a dict mapping the first directory
+  name under `root` to how many logs it holds; logs sitting directly in `root` are counted under `"(root)"`. There are 3 bugs.
+hints:
+  - |
+    Hint 1: Create `a.log` in the root and `svc/deep/b.log` two levels down. Does `find_logs` return both?
+  - |
+    Hint 2: `glob.glob` only treats `**` as "any depth" when you pass `recursive=True`. Also remember that `Path.rglob` yields directories too.
+  - |
+    Hint 3: Pass `recursive=True`, filter `rglob` results with `p.is_file()`, and take the first element of the relative path parts, not the last.
+tags: [glob, pathlib, recursion, files]
+lesson: |
+  Without `recursive=True`, `glob.glob("root/**/*.log")` treats `**` like a single `*`, so it matches exactly one directory level
+  and silently skips top-level and deeply nested files. `pathlib` offers `rglob` which recurses by default, but it yields
+  directories as well as files, so a folder named `old.yaml` sneaks in unless you check `is_file()`. Silent under-matching is
+  dangerous in ops tooling such as log shippers and backup jobs because nothing crashes while data is quietly left behind.
+  Always test file discovery with a fixture that has files at depth 0, 1 and 2.
+mistakes:
+  - "Adding more `*/` segments to the pattern by hand instead of enabling recursion."
+  - "Using `os.listdir` on the root only, which never looks into subfolders."

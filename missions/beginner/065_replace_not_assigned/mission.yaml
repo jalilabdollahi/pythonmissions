@@ -1,0 +1,29 @@
+title: Hostnames That Never Changed
+category: Strings
+difficulty: 1
+xp: 100
+story: |
+  Delta Cargo migrates its servers into a new DNS zone, and the migration script must produce valid hostnames.
+  The generated names still contain underscores and spaces, so the DNS provider rejects them in bulk.
+  The code calls `replace` twice and the output looks untouched.
+description: |
+  hostnames.py cleans up inventory names for DNS.
+
+  - `sanitize_hostname(name)` strips surrounding whitespace, lower-cases, replaces underscores with hyphens and removes inner spaces.
+  - `fqdn(name, zone)` returns `<sanitized>.<zone>`.
+  - `sanitize_all(names)` returns a list of sanitized names with duplicates removed, keeping first-seen order.
+
+  There are 2 bugs.
+hints:
+  - |
+    Print the result of `sanitize_hostname('Web_Server 01')`. Which of the replacements had any effect?
+  - |
+    Strings are immutable, so string methods return a new string rather than changing the old one.
+  - |
+    Assign the result of each `replace` back to the variable (or chain the calls).
+tags: [strings, immutability, replace]
+lesson: |
+  Strings in Python cannot be modified in place. Every method such as `replace`, `strip` or `lower` returns a new string and leaves the original unchanged, so a call whose result is thrown away does nothing at all. The code runs without error and the output simply looks wrong. Assign the result (`name = name.replace(...)`) or chain the calls, and be suspicious of any statement that is just a method call on a string.
+mistakes:
+  - "Calling replace on the original argument again at the end, which still discards the result."
+  - "Assuming `strip()` changes the string and not assigning it."

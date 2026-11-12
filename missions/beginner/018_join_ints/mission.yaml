@@ -1,0 +1,29 @@
+title: Firewall Rule Builder
+category: Strings
+difficulty: 1
+xp: 100
+story: |
+  The network team at Basalt Games generates iptables-style allow rules from a list of open ports.
+  The generator was fine for years while ports came from a text config, but after the switch to a typed YAML file the whole rollout pipeline stopped at the first rule.
+  Ports are now real integers.
+description: |
+  rules.py builds firewall rule text.
+
+  - `port_list(ports)` returns the ports as a comma-separated string, e.g. `"80,443"`.
+  - `allow_rule(proto, ports)` returns `"allow <proto> <port_list>"`.
+  - `rules_for(services)` takes `{service: (proto, ports)}` and returns a rule per service, sorted by service name.
+
+  There is 1 bug.
+hints:
+  - |
+    Read the TypeError message from str.join closely.
+  - |
+    `str.join` only accepts strings. Integers must be converted first.
+  - |
+    Use `",".join(str(p) for p in ports)` or `",".join(map(str, ports))`.
+tags: [strings, join, typeerror]
+lesson: |
+  `separator.join(items)` requires every item to already be a string; passing integers raises `TypeError: sequence item 0: expected str instance, int found`. Convert explicitly with `map(str, items)` or a generator expression. The explicit conversion also documents intent, and you can format each item differently (for example zero-padding) while you are at it.
+mistakes:
+  - "Converting the list with str(ports), which gives \"[80, 443]\" and not a joined string."
+  - "Joining with an f-string in a loop and leaving a trailing comma."

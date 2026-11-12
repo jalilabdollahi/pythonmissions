@@ -1,0 +1,30 @@
+title: Truthy Minus One
+category: Strings
+difficulty: 1
+xp: 100
+story: |
+  Rook Systems greps application logs for the word ERROR to decide whether to page someone.
+  At 3 a.m. a log with a first line starting with `ERROR` produced no page, while a clean log full of INFO lines paged the whole team.
+  The helper that detects errors uses `str.find`.
+description: |
+  logscan.py inspects log lines.
+
+  - `has_error(line)` is True when the line contains `ERROR` anywhere (case-sensitive).
+  - `error_lines(lines)` returns the lines for which `has_error` is True.
+  - `first_error_index(lines)` returns the index of the first line with an error, or `-1` when there is none.
+  - `should_page(lines)` is True when any line has an error.
+
+  There is 1 bug.
+hints:
+  - |
+    Check `has_error('ERROR: disk full')` and `has_error('INFO: all good')`. Both answers are wrong.
+  - |
+    `find` returns an index, and index 0 is falsy while `-1` (not found) is truthy.
+  - |
+    Use the `in` operator, or compare with `>= 0`.
+tags: [strings, find, truthiness]
+lesson: |
+  `str.find` returns the position of a match, or `-1` if there is none. Used directly in an `if`, a match at position 0 counts as false (zero is falsy) and a miss counts as true (non-zero is truthy), exactly backwards. To test whether text contains a substring, write `'ERROR' in line`. Use `find` only when you need the position, and then compare against `-1` explicitly.
+mistakes:
+  - "Writing `if line.find('ERROR') != 0`, which still treats misses as hits."
+  - "Using `index`, which raises ValueError when the text is missing."

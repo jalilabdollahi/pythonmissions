@@ -1,0 +1,35 @@
+title: Flag Replica Causality
+category: Distributed Systems
+difficulty: 4
+xp: 300
+story: |
+  Switchyard stores feature-flag values in three regional replicas that accept writes during
+  partitions. Support keeps seeing a flag silently revert to an old value, and the reconcile
+  job claims two clearly different edits were "equal". The version-vector helpers are suspect.
+description: |
+  A vector clock is a dict mapping replica name to a counter; a missing replica counts as 0.
+  `tick(clock, node)` returns a NEW clock with that node's counter incremented. `merge`
+  returns the element-wise maximum over the union of replicas. `compare(a, b)` returns
+  "equal", "before", "after" or "concurrent". `receive(local, remote, node)` merges a remote
+  clock and then records the receive as a local event. `resolve_siblings` keeps only the
+  versions that no other version dominates. There are 4 bugs.
+hints:
+  - |
+    Hint 1: Check what happens to the caller's original dict after tick, and what compare says
+    when one clock mentions a replica the other has never heard of.
+  - |
+    Hint 2: A vector clock is defined over the union of replica names. Receiving a message is
+    itself an event.
+  - |
+    Hint 3: Copy before mutating, iterate over set(a) | set(b), use get(k, 0), and tick after merge.
+tags: [vector-clock, causality, replication, distributed]
+lesson: |
+  Vector clocks capture causality: a happened before b only if every component of a is less
+  than or equal to b and at least one is strictly less. If neither dominates, the writes are
+  concurrent and both must be kept as siblings for the application to reconcile. Treating
+  absent replicas as missing instead of zero, or mutating clocks that other versions share,
+  silently turns concurrent updates into overwrites and loses data.
+mistakes:
+  - Comparing only the keys present in the first clock.
+  - Mutating the clock in place, which corrupts every stored version that shares the dict.
+  - Using wall-clock timestamps to decide which concurrent write wins.

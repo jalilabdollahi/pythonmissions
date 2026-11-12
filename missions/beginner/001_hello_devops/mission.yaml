@@ -1,25 +1,29 @@
-title: "Hello, DevOps!"
-category: "Variables"
+title: Hello Status Banner
+category: Basics
 difficulty: 1
 xp: 100
 story: |
-  It's your first day on the job. The previous engineer left a
-  "server info" script that prints basic deployment details.
-  Your team lead needs it running in 5 minutes. It's broken.
-  Fix it.
+  The on-call terminal at Lumen Freight greets engineers with a status banner when they SSH into a box.
+  Since this morning the banner crashes with a traceback and the greeting never shows.
+  Someone "improved" it to include the listening port.
 description: |
-  The script should print the server name, port, and environment.
-  It also exposes a get_server_info() function that returns a dict.
+  status.py builds the lines of the login banner.
 
-  There are 2 bugs:
-    1. A variable name is used incorrectly (Python is case-sensitive!)
-    2. You cannot concatenate a string and an integer with +
+  - `banner(host, port)` returns `"Host <host> is listening on port <port>"`.
+  - `replica_line(service, replicas)` returns `"<service> is running <n> replicas"`.
+  - `full_banner(host, port, service, replicas)` joins both lines with a newline.
+
+  There is 1 bug.
 hints:
-  - "Python variable names are case-sensitive. Check every usage of server_name."
-  - "You can't do 'Port: ' + 8080. Use an f-string: f'Port: {port}'"
-  - "The fix: change `server_Name` -> `server_name` and use an f-string for the port line."
-tags:
-  - variables
-  - print
-  - f-strings
-  - types
+  - |
+    Run the tests and read the exception type. Python is strict about what you can add together.
+  - |
+    You cannot join a str and an int with `+`. Either convert the number first or use an f-string.
+  - |
+    Use `f"Host {host} is listening on port {port}"`, and do the same in the replica line.
+tags: [strings, typeerror, f-strings]
+lesson: |
+  Python never converts types silently: `"port " + 8080` raises a TypeError because `+` between a str and an int is ambiguous. Ops scripts constantly mix text with numbers (ports, counts, exit codes), so the safest habit is an f-string, which calls str() for you. Build messages that way and this class of crash disappears from your logs and banners.
+mistakes:
+  - "Wrapping only the port in str() but leaving the replica count as an int in the second function."
+  - "Catching the TypeError and printing nothing; the banner should be correct, not silent."

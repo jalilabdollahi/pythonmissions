@@ -1,0 +1,32 @@
+title: Blocklist Out of Order
+category: Sets
+difficulty: 1
+xp: 100
+story: |
+  The edge team at Fernhill CDN pushes a firewall blocklist every night, and the
+  list must put the most aggressive scrapers first because the rule table has a
+  hard cap. After last night's push, the worst offender was missing from the
+  table while a harmless crawler made it in.
+description: |
+  `unique_offenders(log_lines)` reads access-log lines of the form
+  `"<ip> - <message>"` and returns each client IP once, in the order it first
+  appeared. `build_blocklist(log_lines, limit)` returns the first `limit`
+  offenders. Blank lines are ignored.
+  There is 1 bug.
+hints:
+  - |
+    Run the tests and compare the order of the IPs you get with the order in the log.
+  - |
+    A `set` removes duplicates but does not remember insertion order.
+  - |
+    Dictionaries keep insertion order since Python 3.7. `dict.fromkeys(items)` gives you unique keys in first-seen order.
+tags: [sets, dedupe, ordering, firewall]
+lesson: |
+  A `set` is a fast way to remove duplicates, but it is unordered, so converting a list
+  to a set and back scrambles it. In ops work order often carries meaning: priority,
+  first occurrence, rule precedence. To dedupe and keep order, use
+  `list(dict.fromkeys(items))`, or keep a `seen` set next to a result list. Use a set
+  alone only when you truly do not care about order.
+mistakes:
+  - "Wrapping the result in sorted(); that gives alphabetical order, not first-seen order."
+  - Dropping the set but forgetting to remove the duplicates at all.

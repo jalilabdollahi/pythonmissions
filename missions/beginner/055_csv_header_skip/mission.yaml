@@ -1,0 +1,30 @@
+title: Header Row Counted As Host
+category: CSV
+difficulty: 1
+xp: 100
+story: |
+  The capacity team at Tidewater Retail exports a CSV of request counts per web host every night.
+  The weekly report says the fleet has one more host than the inventory, and the nightly job sometimes dies on a strange ValueError.
+  Someone noticed the extra "host" is called `host`.
+description: |
+  traffic.py summarises a CSV file with the header `host,requests`.
+
+  - `load_rows(path)` returns a list of `[host, requests]` lists, one per data row.
+  - `host_count(path)` is the number of hosts.
+  - `total_requests(path)` sums the requests as integers.
+  - `busiest_host(path)` returns the host name with the most requests.
+
+  There is 1 bug.
+hints:
+  - |
+    Print `load_rows(path)` for a small file. What is the first row?
+  - |
+    The first line of the file describes the columns, it is not a host.
+  - |
+    `csv.reader` is an iterator: call `next(reader)` once to consume the header before reading the data rows.
+tags: [csv, header, reader]
+lesson: |
+  A CSV reader returns every line, including the header, as ordinary data. If you do not skip it, counts are off by one and numeric conversion fails on the column names. Consume the header with `next(reader)` before looping, or use `csv.DictReader`, which reads it for you and uses it as keys. Check the first and last row of any parsed file before trusting totals.
+mistakes:
+  - "Subtracting one from the count at the end, which leaves total_requests crashing on the header text."
+  - "Skipping rows[1:] in only one of the summary functions."

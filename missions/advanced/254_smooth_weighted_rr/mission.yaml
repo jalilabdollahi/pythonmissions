@@ -1,0 +1,39 @@
+title: Smooth Weighted Balancer
+category: Load Balancing
+difficulty: 4
+xp: 300
+story: |
+  Skyline Gateway fronts its API fleet with a weighted balancer that should interleave heavy and
+  light backends smoothly. After the last change, traffic arrives in bursts that knock over the
+  small instances, a backend marked down still steals a share of the weight, and a server that
+  returns from maintenance gets a flood of requests to "catch up".
+description: |
+  `SmoothBalancer` implements smooth weighted round-robin: on each `pick`, every available
+  backend's `current` score grows by its weight, the highest score wins (the first one in
+  configuration order on ties) and the winner's score drops by the total weight of the available
+  backends. Backends that are down or have zero weight take no part. `mark_up` and `set_weight`
+  reset a backend's score. Over one full cycle each backend is chosen exactly `weight` times.
+  `sequence`, `shares`, `add` and `remove` are helpers.
+  There are 4 bugs.
+hints:
+  - |
+    Print `lb.sequence(7)` for weights 5, 1, 1 and compare it with the textbook result, then mark
+    one backend down and count picks over a long run.
+  - |
+    The score a winner pays back must balance what everyone gained that round. Think about which
+    backends participate in a round, how ties are resolved and what stale state survives an outage.
+  - |
+    Subtract the sum of available weights, compute `total` over `candidates`, compare with
+    strict `>`, and reset `current` in `mark_up`.
+tags: [load-balancing, round-robin, weights, algorithms]
+lesson: |
+  Smooth weighted round-robin keeps a running credit per backend. Each round everyone earns their
+  weight and the winner pays the sum of all weights, so total credit stays at zero and the
+  schedule repeats exactly every `sum(weights)` picks without bursts. Correctness depends on the
+  payment equalling the sum of the weights that actually earned credit this round, so unavailable
+  backends must be excluded from both sides. Credit that is frozen while a server is away must
+  not come back with it, otherwise recovery produces a thundering herd.
+mistakes:
+  - Paying back only the winner's own weight, which makes scores drift upward forever.
+  - Computing the total from the configured list instead of the healthy list.
+  - Using `>=` in the comparison so the last of equal candidates wins and order flips.

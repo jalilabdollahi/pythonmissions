@@ -1,0 +1,31 @@
+title: Port Scan Matrix Mixup
+category: Loops
+difficulty: 2
+xp: 100
+story: |
+  The security team at Granite Bank runs a nightly sweep that checks a list of ports
+  on every host in the DMZ. The morning report shows the same long list of open ports
+  for every server, and one run only listed a single host at all.
+description: |
+  `scan_matrix(hosts, ports, is_open)` returns a dict mapping each host to the list of
+  its open ports, where `is_open(host, port)` is a probe function. Each host must get
+  only its own open ports, and every host must appear in the result.
+  `count_exposed(matrix)` returns the total number of open ports.
+  There are 2 bugs.
+hints:
+  - |
+    Look at where `open_ports = []` and `results[host] = ...` sit relative to the two `for` loops.
+  - |
+    Indentation decides which loop a statement belongs to: per-host work belongs in the outer loop body, per-port work in the inner one.
+  - |
+    The list must be created fresh for each host, and stored once per host after the port loop ends, still inside the host loop.
+tags: [loops, nested-loops, indentation, scanning]
+lesson: |
+  In Python, indentation is the structure. In nested loops, a statement placed one level
+  too shallow runs once instead of once per item, and one level too deep runs more often
+  than intended. State that must be fresh for every host (an accumulator list) has to be
+  initialised inside the outer loop; results that are stored per host have to be stored
+  inside it too. When a matrix result looks "smeared" across rows, check the indentation first.
+mistakes:
+  - Creating a new dict for every host, which loses the earlier hosts.
+  - Using list.copy() on a shared accumulator instead of creating the list in the right place.

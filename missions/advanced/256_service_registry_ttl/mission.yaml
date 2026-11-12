@@ -1,0 +1,38 @@
+title: Service Registry TTL
+category: Service Discovery
+difficulty: 4
+xp: 300
+story: |
+  Harbor Mesh keeps a small in-memory registry so services can find each other. After a network
+  blip, clients kept getting addresses for instances that died minutes ago, restarted instances
+  showed up twice, and short-lease instances were treated as if they had the default lease.
+description: |
+  `Registry(clock, default_ttl)` stores instances per service. An instance is alive while
+  `now < expires_at`, so it disappears exactly when its TTL has elapsed. `heartbeat` extends the
+  lease by the instance's own TTL and returns `True`; for unknown or already expired instances it
+  returns `False` and an expired one is removed so it has to register again. Registering an
+  existing id replaces the old entry. `deregister` and `sweep` record events. `lookup` returns
+  sorted addresses of live instances, optionally filtered by tag.
+  There are 4 bugs.
+hints:
+  - |
+    Advance a fake clock to exactly the TTL, and to well past it before sending a heartbeat.
+    Register the same instance id twice and look at the result of `lookup`.
+  - |
+    Lease deadlines are half-open intervals. Each instance remembers its own TTL, and a lease that
+    already ended cannot be extended by a message that arrives afterwards.
+  - |
+    Use `now < expires_at`, check `entry.alive(now)` in `heartbeat`, add `entry.ttl` (not the
+    default) and drop older entries with the same id before appending.
+tags: [service-discovery, ttl, heartbeat, registry]
+lesson: |
+  A registry is only as good as its failure detection: if an instance stops heartbeating, its
+  lease must lapse and clients must stop receiving its address. Lease deadlines are half-open,
+  so at the deadline the instance is already gone. A heartbeat that arrives after expiry cannot
+  be trusted because clients may already have acted on its absence, so the instance has to
+  register again, which also refreshes its address and metadata. Each lease uses the TTL the
+  instance asked for, and identities must be unique so restarts replace rather than duplicate.
+mistakes:
+  - Treating the deadline as inclusive so dead instances linger for one more tick.
+  - Letting a late heartbeat silently revive an instance that clients had already forgotten.
+  - Appending on every registration instead of replacing the entry with the same id.

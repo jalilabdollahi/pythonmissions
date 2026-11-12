@@ -4,15 +4,19 @@
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from engine.ui import GameUI
 
 
-def main():
+def main() -> int:
     ui = GameUI()
-    ui.run()
+    try:
+        ui.run()
+    except (KeyboardInterrupt, EOFError):
+        print("\n\nGoodbye! Your progress and sandbox edits are saved.")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

@@ -1,0 +1,29 @@
+title: The Shared Allow-List
+category: Lists
+difficulty: 2
+xp: 100
+story: |
+  Dune Robotics builds per-customer proxy configs from a shared default allow-list of CIDR ranges.
+  A customer asked to add one extra range, and an hour later every other customer's proxy was letting that range in too.
+  Security opened an incident titled "config bleed".
+description: |
+  proxyconf.py builds proxy configurations.
+
+  - `DEFAULT_ALLOWED` is the module-wide default list of CIDR ranges. It must never change.
+  - `build_config(customer, extra_ranges)` returns `{"customer": ..., "allowed": [...]}` where `allowed` is the defaults followed by the extra ranges.
+  - `allowed_count(config)` returns how many ranges the config allows.
+
+  There is 1 bug.
+hints:
+  - |
+    Call build_config for two customers, then print DEFAULT_ALLOWED.
+  - |
+    `allowed = DEFAULT_ALLOWED` does not copy the list. Both names point at the same object.
+  - |
+    Make a real copy with `list(DEFAULT_ALLOWED)` (or `DEFAULT_ALLOWED.copy()`).
+tags: [lists, aliasing, copy]
+lesson: |
+  Assignment in Python binds a second name to the same object; it never copies. So `allowed = DEFAULT_ALLOWED` followed by `allowed.append(...)` modifies the shared default for everyone. Make an independent list with `list(x)`, `x.copy()` or `x[:]` before you change it. Shared defaults that mutate are a classic cause of configuration bleeding between tenants.
+mistakes:
+  - "Reassigning with allowed = allowed + extra only in some code paths, but still appending in others."
+  - "Copying the extra ranges instead of the default list."

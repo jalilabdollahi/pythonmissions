@@ -1,0 +1,29 @@
+title: Uptime Calculator Crash
+category: Classes
+difficulty: 1
+xp: 100
+story: |
+  The status bot at Lakeshore Hosting calls helper methods on a `Machine` object to print uptime lines for the morning stand-up.
+  Since the helpers were moved into the class, every call fails with a confusing message about too many arguments, although the call site passes none.
+description: |
+  machine.py defines `Machine(name, boot_epoch)`.
+
+  - `uptime_seconds(now)` returns seconds since `boot_epoch`.
+  - `uptime_days(now)` returns whole days of uptime (integer division).
+  - `needs_reboot(now, limit_days)` is True when uptime is at least `limit_days` days.
+  - `label()` returns `"<name> (booted <boot_epoch>)"`.
+
+  There are 2 bugs.
+hints:
+  - |
+    Read the TypeError: it says a method received more positional arguments than it declares.
+  - |
+    When you call `obj.method(x)`, Python passes the object itself as the first argument automatically.
+  - |
+    Every instance method needs `self` as its first parameter, including the ones that do not seem to use attributes.
+tags: [classes, self, methods, typeerror]
+lesson: |
+  `machine.uptime_days(now)` is translated by Python into `Machine.uptime_days(machine, now)`, so an instance method must declare `self` first. Leaving it out gives "takes 1 positional argument but 2 were given", which looks as if the caller did something wrong. It is the same rule even when a method does not touch any attribute. If a helper really needs no instance, mark it with `@staticmethod` instead.
+mistakes:
+  - "Removing the argument at the call site instead of adding `self` to the method."
+  - "Making the method a staticmethod when it needs `self.boot_epoch`."

@@ -1,0 +1,31 @@
+title: Layered Settings
+category: Config
+difficulty: 3
+xp: 200
+story: |
+  Cobalt Pay's worker reads settings from built-in defaults, a YAML file, environment variables
+  and command-line flags, and the documented rule is that the command line always wins. In
+  practice an old value in the config file keeps beating `--workers 8`, and a flag that
+  was not passed at all wipes the value from the environment.
+description: |
+  `resolve(defaults, file_cfg, env, cli)` returns a `ChainMap` where the precedence is cli > env > file > defaults.
+  Options that were not given on the command line arrive as `None` and must not hide lower layers.
+  `effective(settings)` returns a plain dict snapshot of the winning values, and `worker_count(settings)` returns
+  the integer `workers` (environment values arrive as strings). There are 3 bugs.
+hints:
+  - |
+    Resolve with `workers` set in the defaults, file, env and cli, and look at which one wins. Then pass `cli={"workers": None}`.
+  - |
+    `ChainMap` searches its maps left to right and returns the first match. `dict(chainmap)` flattens the lookup, while `chainmap.maps[0]` is only the first layer.
+  - |
+    Put the highest priority map first, filter out `None` values from `cli`, and build the snapshot with `dict(settings)`.
+tags: [chainmap, configuration, precedence, collections]
+lesson: |
+  `collections.ChainMap` layers dictionaries without copying them, and lookups search the maps in order, so the first map has
+  the highest priority. Getting that order backwards is a very common reason why "the flag does not work". Unset command-line
+  options usually arrive as `None`, and they should be dropped before layering; otherwise an absent flag overrides a real value
+  from the environment with nothing. To export the effective configuration, flatten with `dict(chain)`, because `.maps[0]`
+  only contains the top layer.
+mistakes:
+  - Calling `update()` on the defaults dict with each layer, which mutates the shared defaults.
+  - Treating falsy values such as 0 or an empty string as unset when filtering the CLI layer.

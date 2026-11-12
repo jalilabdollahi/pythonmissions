@@ -1,0 +1,31 @@
+title: Exposition Writer
+category: Metrics
+difficulty: 3
+xp: 200
+story: |
+  The Quartz exporter writes its own `/metrics` page instead of using a client
+  library. Prometheus rejects the scrape whenever a label value contains a quote or
+  a Windows path, diff tools report the label order changing between runs, and the
+  scrape fails with "unexpected end of input".
+description: |
+  `render_metrics(metrics)` takes a list of dicts `{"name", "type", "help", "samples"}`, where `samples` is a list of
+  `(labels_dict, value)` pairs, and returns the Prometheus text exposition format: a `# HELP` line and a `# TYPE` line
+  once per metric, then one line per sample like `name{a="1",b="2"} 5`. Labels are sorted by name; label values escape
+  backslash, double quote and newline (as `\\`, `\"` and `\n`); samples without labels have no braces. The text must end
+  with a newline. `escape_label_value(text)` does the escaping. There are 3 bugs.
+hints:
+  - |
+    Hint 1: Render a metric with labels given in non-alphabetical order, a value like `C:\temp "x"`, and look at the end of the output.
+  - |
+    Hint 2: Escaping order matters: handle the backslash first, otherwise you double-escape the backslashes you just added. The format is line based and every line, including the last, is terminated.
+  - |
+    Hint 3: `sorted(labels.items())`, `text.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n")`, and `return "\n".join(lines) + "\n"`.
+tags: [prometheus, exposition-format, escaping, metrics]
+lesson: |
+  The Prometheus text format is simple but strict. Label values are quoted strings, so backslash, double quote and newline must be escaped,
+  and backslash must be escaped first or the escapes you add get escaped again. Sorting labels makes the output deterministic, which keeps
+  diffs and tests stable. The format is line oriented: every line, including the last one, ends with a newline, and a missing final newline
+  makes the scrape fail. Unescaped user data in a text protocol is how injection and parse errors happen.
+mistakes:
+  - Escaping quotes before backslashes, which turns `\"` into `\\"`.
+  - Joining lines with newlines but forgetting the terminating newline.

@@ -1,0 +1,31 @@
+title: Cold Storage Returns None
+category: Functions
+difficulty: 1
+xp: 100
+story: |
+  The backup service at Ironbark Storage deletes archives once they pass their
+  retention period, which depends on the storage tier. The nightly cleanup job
+  crashed this morning with a baffling `TypeError` the moment it reached a
+  backup in the `cold` tier.
+description: |
+  `retention_days(tier)` returns how many days to keep a backup: 7 for `hot`, 30 for
+  `warm`, 365 for `cold`. Unknown tiers raise `ValueError`. `expiry_date(tier,
+  created)` returns the date (a `datetime.date`) the backup may be deleted.
+  There is 1 bug.
+hints:
+  - |
+    Call `retention_days("cold")` on its own and print the result.
+  - |
+    A function that finishes without reaching a `return` hands back `None`.
+  - |
+    One branch computes a value but never returns it. Make that branch `return` the number.
+tags: [functions, return, none, branches]
+lesson: |
+  Every code path through a function must end in a `return` if callers expect a value;
+  otherwise Python quietly returns `None`. This often happens in `if/elif` chains where
+  one branch assigns a variable and forgets to return it. The failure appears far
+  from the cause (a `TypeError` in the caller), so when you see `NoneType` errors, look
+  for a missing `return` in the callee first.
+mistakes:
+  - Adding a final `return 365` after the raise, which hides the real problem and changes the tiers.
+  - Making the caller replace None with a default, which hides bad data.

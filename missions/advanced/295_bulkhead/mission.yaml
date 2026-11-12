@@ -1,0 +1,42 @@
+title: Bulkhead Doors
+category: Resilience
+difficulty: 4
+xp: 300
+story: |
+  Thistle Travel's booking API calls a seat-map service, a pricing engine and two database
+  endpoints from one thread pool. When the seat-map vendor hung last Friday, every worker piled
+  up waiting for it and unrelated bookings failed. The new bulkhead helper was supposed to stop
+  that, but it admits one request too many, leaks slots when a call crashes, and treats the two
+  database endpoints as separate compartments.
+description: |
+  `Bulkhead(limits, pools, default_limit)` limits concurrent calls per compartment. A dependency
+  belongs to the compartment named in `pools` (or to its own compartment when not listed), and
+  the compartment's limit comes from `limits` (or `default_limit`). `acquire` returns False and
+  counts a rejection when the compartment is full; `release` frees a slot but can never push
+  the in-flight count below zero; `guard` always releases, even when the protected call
+  raises. `call` runs a function inside the guard with an optional fallback.
+  There are 4 bugs.
+hints:
+  - |
+    Set a limit of 2, acquire three times and print the results. Then raise inside a `with
+    guard(...)` block twice, and release more often than you acquired.
+  - |
+    Check the comparison that decides "full", what `finally` is for, what a negative in-flight
+    count would let through later, and which name the counters should be keyed by when two
+    dependencies share a pool.
+  - |
+    Use `>=` for full, wrap the yield in `try/finally`, clamp release with `max(0, ...)`, and key
+    everything by `self._pool(dependency)`.
+tags: [bulkhead, concurrency, isolation, resilience]
+lesson: |
+  A bulkhead caps how many workers one dependency may occupy, so a hang in one place consumes
+  only its own compartment. The cap must be exact (a full compartment rejects at `limit`, not
+  at `limit + 1`), slots must be returned on every exit path including exceptions, and release
+  must be idempotent-safe, because a negative counter silently grants extra capacity later.
+  Related dependencies, such as a primary and its replica, often need to share a compartment
+  since they share the same underlying resource, so the compartment name, not the dependency
+  name, is the key for every counter.
+mistakes:
+  - Releasing after the protected block without try/finally, which leaks a slot on every exception.
+  - Allowing the in-flight counter to go negative and treating it as spare capacity.
+  - Using one global semaphore, which removes isolation between dependencies.

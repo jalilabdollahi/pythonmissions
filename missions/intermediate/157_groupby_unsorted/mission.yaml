@@ -1,0 +1,30 @@
+title: Split Groups
+category: Itertools
+difficulty: 3
+xp: 200
+story: |
+  Lumen Retail's request logs are summarised per service with `itertools.groupby`. The weekly
+  report lists the same service three times with different totals, and a second report that is
+  supposed to find the longest streak of failed health checks keeps answering "1".
+description: |
+  `per_service_totals(events)` takes dicts with `service` and `ms` and returns
+  `{service: {"count": n, "total_ms": t}}` covering all events of each service, whatever their order in the input.
+  `longest_failing_streak(checks)` takes a list of booleans (True means healthy) in time order and
+  returns the length of the longest run of consecutive False values (0 if none).
+  There are 3 bugs.
+hints:
+  - |
+    Hint 1: Feed events whose services alternate (`api`, `db`, `api`) and print the result. Then feed `[False, False, True, False]` to the streak function.
+  - |
+    Hint 2: `groupby` only groups consecutive items, so the data must be sorted by the same key you group by. But a streak is about consecutive order, so sorting there destroys the information. Also each group iterator dies when `groupby` moves on.
+  - |
+    Hint 3: Sort by `e["service"]`, store `list(group)`, and remove the `sorted(...)` call from the streak function.
+tags: [itertools, groupby, sorting, streaks]
+lesson: |
+  `itertools.groupby` is not SQL's GROUP BY: it merges only adjacent items with equal keys, so data must be sorted by that same key first.
+  The groups it hands out are views on the underlying iterator and become invalid once you advance, so convert each one with `list(...)`
+  before moving on. The opposite case matters too: when you want runs of consecutive values, such as a streak of failures, the original
+  order is the data, and sorting would merge all the False values into one big fake streak.
+mistakes:
+  - Sorting by a different key than the one passed to groupby.
+  - Using `collections.Counter` for the streak, which counts totals instead of consecutive runs.

@@ -1,0 +1,32 @@
+title: Read Before Close
+category: Files
+difficulty: 2
+xp: 100
+story: |
+  The release tooling at Quartz Mobile writes a manifest and immediately reads it back
+  to verify it before uploading. Verification kept failing with "manifest is empty"
+  although the files were fine afterwards, and engineers lost an afternoon re-running
+  builds.
+description: |
+  `stage_manifest(path, content)` writes `content` to `path`, reads it back and
+  returns `True` if the file holds exactly what was written. `append_and_count(path,
+  line)` appends `line` plus a newline to the file and returns how many lines the file
+  now holds. Both must close their files properly.
+  There are 2 bugs.
+hints:
+  - |
+    Print what the read-back returns right after the write.
+  - |
+    Written data may sit in a buffer until the file is flushed or closed.
+  - |
+    Use `with open(...)` blocks so the file is closed (and flushed) before you read it again.
+tags: [files, with-statement, buffering, flush]
+lesson: |
+  File writes are buffered: the text may stay in memory until you call `flush()` or close the
+  file. If you read the same path through another handle before that, you see old or
+  empty content. The `with open(...) as f:` block closes the file on exit, even on
+  exceptions, so the data is on disk afterwards. Prefer it to manual `open()` and
+  `close()`, and read back only after leaving the write block.
+mistakes:
+  - Calling close() manually after the read instead of before it.
+  - Sprinkling flush() calls and still leaking the open handle.

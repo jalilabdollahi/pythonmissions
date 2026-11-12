@@ -1,0 +1,34 @@
+title: Edge Counter Convergence
+category: Distributed Systems
+difficulty: 4
+xp: 300
+story: |
+  Lumen CDN counts cache hits and active streams independently on every edge POP and
+  gossips the counters. Dashboards drifted: totals doubled whenever a POP re-sent its state,
+  and the active-stream gauge refused to show a negative skew after a burst of disconnects.
+description: |
+  `GCounter` is a grow-only counter keeping one slot per node; `increment(node, amount)` only
+  accepts positive amounts, `merge(other)` takes the per-node MAXIMUM, and `value()` is the sum.
+  `PNCounter` combines a `GCounter` of increments and one of decrements; its value is
+  increments minus decrements and may be negative. Merging must be commutative, associative
+  and idempotent. There are 4 bugs.
+hints:
+  - |
+    Hint 1: Merge the same remote state twice, and merge a state that is behind your own.
+    Then look at what happens to decrements during PNCounter.merge.
+  - |
+    Hint 2: A grow-only counter must never go down: merge keeps max(local, remote) per node.
+    PN merge has two halves.
+  - |
+    Hint 3: Reject amounts <= 0 in increment, merge both inner counters, and do not clamp value.
+tags: [crdt, g-counter, pn-counter, convergence]
+lesson: |
+  State-based CRDTs converge because merge is a join on a semilattice: per-slot max is
+  commutative, associative and idempotent, so replicas can gossip in any order and re-send
+  freely. Summing or overwriting slots breaks those laws and double counts or loses updates.
+  A PN-counter gets decrements by keeping a second grow-only counter, never by lowering the
+  first, and its value is allowed to be negative.
+mistakes:
+  - Adding the remote slot to the local one on merge, which double counts on retries.
+  - Letting the incoming state overwrite the local slot even when it is older.
+  - Clamping the PN value at zero, which makes replicas disagree after merges.

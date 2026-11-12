@@ -1,0 +1,28 @@
+title: Indented Config Template
+category: Strings
+difficulty: 1
+xp: 100
+story: |
+  The edge team at Polaris CDN generates nginx virtual host files from a template embedded in the Python code.
+  The files load, but the reload tool's linter rejects them: every line is indented by four extra spaces.
+  The template sits inside a function, so it inherited the function's indentation.
+description: |
+  vhost.py renders nginx-style config text.
+
+  - `render_vhost(domain, port)` returns a block starting with `server {` at column 0, with `listen` and `server_name` lines indented by exactly 4 spaces, closing with `}` and a final newline.
+  - `render_upstream(name, servers)` returns an `upstream <name> {` block with one `server host:port;` line per server, same style.
+
+  There are 2 bugs.
+hints:
+  - |
+    Print the output of `render_vhost('a.example', 80)` with `repr`. How many spaces does the first line start with?
+  - |
+    A triple-quoted string keeps every space that is in the source, including the indentation that makes the code look tidy.
+  - |
+    `textwrap.dedent` removes the common leading whitespace. Apply it to both templates, before `strip`.
+tags: [strings, textwrap, dedent, templates]
+lesson: |
+  A triple-quoted string inside a function includes all the leading spaces you typed to keep the code aligned. For config files, YAML and shell scripts that whitespace is part of the output and can change its meaning. `textwrap.dedent(text)` strips the indentation shared by all lines, so you can keep templates indented in the source and still produce clean text. Call `dedent` before `strip`, because `strip` only touches the ends.
+mistakes:
+  - "Calling `strip()` only, which fixes the first line and leaves the others indented."
+  - "Moving the template to column 0 inside the function, which works but makes the code hard to read."

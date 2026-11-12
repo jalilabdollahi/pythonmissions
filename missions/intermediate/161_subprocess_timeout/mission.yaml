@@ -1,0 +1,30 @@
+title: Hung Job Reaper
+category: Subprocess
+difficulty: 3
+xp: 200
+story: |
+  Nimbus Batch runs customer export jobs as child processes. One job hung on a locked database
+  and the supervisor, which was meant to give up after a few seconds, crashed with a traceback
+  and took the whole nightly queue with it.
+description: |
+  `run_job(code, timeout_ms)` runs Python source in a child interpreter (`sys.executable -c code`) and returns a
+  status dict. `{"status": "ok", "stdout": text}` when it exits with 0, `{"status": "error", "returncode": n}` when it exits non-zero,
+  and `{"status": "timeout"}` when it runs longer than `timeout_ms` milliseconds (the child is killed). It never raises
+  for those three outcomes. `run_queue(jobs, timeout_ms)` returns the status string of every job in order.
+  There are 3 bugs.
+hints:
+  - |
+    Hint 1: Run a job that sleeps for a few seconds with a timeout of 300 ms. How long does your call take and what comes back? Also run a job that exits with code 2.
+  - |
+    Hint 2: `subprocess.run(..., timeout=...)` takes seconds, and it signals expiry by raising `subprocess.TimeoutExpired`, which you must catch.
+  - |
+    Hint 3: Pass `timeout=timeout_ms / 1000`, wrap the call in `try/except subprocess.TimeoutExpired`, and check `returncode`.
+tags: [subprocess, timeout, exceptions, units]
+lesson: |
+  A supervisor must treat "the child hung" as a normal outcome, not a crash. `subprocess.run(timeout=...)` kills the child and then
+  raises `TimeoutExpired`, so catch it and map it to a status. Mind the units: the argument is in seconds, so a value in
+  milliseconds makes the limit a thousand times too generous. And a process that finished is not necessarily a process
+  that succeeded, so always inspect the return code before reporting "ok".
+mistakes:
+  - Catching a broad `Exception` around the call, which also hides real bugs in the supervisor.
+  - Sleeping in the parent and polling instead of using the built-in timeout.

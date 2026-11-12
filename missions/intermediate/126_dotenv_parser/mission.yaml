@@ -1,0 +1,32 @@
+title: Dotenv Dialect
+category: Config
+difficulty: 3
+xp: 200
+story: |
+  The Fennel deploy tool loads `.env` files before launching containers. A
+  developer exported a database URL with a query string and the container started
+  with half a URL, and another developer's quoted password arrived with the quotes
+  still attached.
+description: |
+  `parse_env(text)` parses `.env` text into a dict of strings. Blank lines and lines
+  starting with `#` are skipped. A leading `export ` is allowed. The key is everything before
+  the first `=`; the value is everything after it, so values may contain `=`. Values wrapped in
+  matching single or double quotes lose the quotes, and keep any `#` inside them. Lines without
+  `=` are ignored. `load_env_file(path)` reads a file and applies `parse_env`. There are 3 bugs.
+hints:
+  - |
+    Hint 1: Parse `URL=postgres://h/db?sslmode=require&x=1`, `export TOKEN=abc` and `PW="s3 cret"` and print each result.
+  - |
+    Hint 2: `str.split("=")` splits at every equals sign. `str.partition` or `split("=", 1)` splits only at the first one. Prefixes can be removed with `removeprefix`-style slicing.
+  - |
+    Hint 3: Strip a leading `export `, split once, then if the value starts and ends with the same quote character and has length 2 or more, drop both ends.
+tags: [dotenv, parsing, config, strings]
+lesson: |
+  There is no single `.env` standard, so each tool defines a dialect, and a hand-rolled parser has to cover the common
+  cases. Always split key from value at the first `=` only, because URLs, base64 secrets and connection strings contain
+  equals signs. Shell-style `export KEY=value` lines are common when people reuse files with `source`, and quotes are
+  part of the syntax rather than the value. Getting these wrong produces silent misconfiguration, such as a database URL
+  that is truncated but still looks plausible.
+mistakes:
+  - Using `line.split("=")` and taking the first two pieces, which truncates values containing `=`.
+  - Stripping every quote character in the value instead of only a matching pair around it.

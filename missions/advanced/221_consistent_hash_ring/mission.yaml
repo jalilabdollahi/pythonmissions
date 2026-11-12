@@ -1,0 +1,35 @@
+title: Tile Cache Hash Ring
+category: Distributed Systems
+difficulty: 4
+xp: 300
+story: |
+  The Cartograph team shards map-tile caches across a fleet of cache hosts with a consistent
+  hash ring. After decommissioning host tile-07, half the tile requests started failing with
+  KeyError, and a few keys near the top of the hash space land on the wrong host.
+description: |
+  `HashRing` places each node on the ring at `vnodes` virtual points. `get_node(key)` returns
+  the owner of the first ring point at or after the key's hash, wrapping around past the end.
+  `remove_node(node)` removes every virtual point of that node. `get_nodes(key, count)`
+  returns up to `count` DISTINCT nodes walking clockwise (used for replica placement).
+  There are 4 bugs.
+hints:
+  - |
+    Hint 1: Look at what happens to keys whose hash is larger than every point on the ring, and
+    to keys whose hash equals a point exactly.
+  - |
+    Hint 2: A ring is circular: an index past the end means index 0. Also, "first point at or
+    after" is `bisect_left`, not `bisect_right`.
+  - |
+    Hint 3: remove_node must delete the point from both the owner map and the sorted list, and
+    replica lists must skip nodes already chosen.
+tags: [consistent-hashing, bisect, sharding, distributed]
+lesson: |
+  Consistent hashing keeps most keys on the same node when membership changes, but only if the
+  ring invariants hold: points stay sorted, every point has exactly one live owner, and lookups
+  wrap around. Boundary rules (is a hash equal to a point owned by that point or the next?) must
+  be consistent everywhere or clients disagree about ownership. Replica selection must skip
+  virtual nodes of hosts already picked, otherwise all your "replicas" land on one machine.
+mistakes:
+  - Clamping the index to the last point instead of wrapping to the first.
+  - Removing the node from the node set but leaving its virtual points in the sorted list.
+  - Assuming that count virtual points means count distinct physical nodes.

@@ -1,0 +1,28 @@
+title: Endpoint Inspector
+category: Network
+difficulty: 2
+xp: 100
+story: |
+  Marlin Streaming keeps a list of internal service URLs that its probe turns into host and port pairs.
+  The probe reports "api.marlin.io?x=1" as a hostname, chokes on URLs with credentials, and returns no port at all for plain https endpoints.
+  Firewall rules generated from that output have been wrong for weeks.
+description: |
+  endpoints.py parses URLs.
+
+  - `url_parts(url)` returns a dict with `scheme`, `host` and `port`. The host has no port, credentials, query or brackets (for `http://[::1]:8000/` the host is `::1`). When the URL has no explicit port the scheme's default is used: http 80, https 443, ssh 22.
+  - `probe_target(url)` returns `"<host>:<port>"`.
+
+  There are 2 bugs.
+hints:
+  - |
+    Try `https://api.example.com?x=1`, `http://user@host:8080/p` and `https://svc.local/health`. Which fields come out wrong?
+  - |
+    `urllib.parse.urlsplit` understands the whole URL grammar and exposes `.scheme`, `.hostname` and `.port`.
+  - |
+    Use `urlsplit(url)`, take `parts.hostname`, and fall back to `DEFAULT_PORTS.get(parts.scheme)` when `parts.port` is None.
+tags: [network, urllib, parsing]
+lesson: |
+  URLs have more structure than "split on slashes and colons": credentials, query strings, fragments and bracketed IPv6 hosts all change where the host ends. `urllib.parse.urlsplit` implements that grammar, giving you `scheme`, `hostname` and `port` (None when absent). The default port belongs to the scheme, so after parsing you apply it yourself. Hand-rolled URL parsing is a classic source of subtle bugs and security problems such as host confusion.
+mistakes:
+  - "Patching the hand-written split to handle one more character, then hitting the next odd URL."
+  - "Reading `.netloc` instead of `.hostname`, which still contains the port and credentials."

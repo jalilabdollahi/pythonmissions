@@ -1,0 +1,38 @@
+title: Pelican Reconciler
+category: Infrastructure as Code
+difficulty: 5
+xp: 300
+story: |
+  Pelican Orchestrator runs a Kubernetes-style controller that keeps managed databases at
+  their declared spec. During a cloud API brownout it hammered the provider with retries,
+  re-applied specs that were already correct, and kept retrying an invalid request that was
+  never going to succeed.
+description: |
+  `Controller.run_once` processes keys that are due, in key order. `reconcile` must do nothing
+  when actual equals desired. A `TransientError` requeues the key with exponential backoff
+  `base_delay * 2 ** (failures - 1)` capped at `max_delay`; a success clears the failure streak.
+  A `PermanentError` is recorded in `dead` and the key is not queued again. `FakeBackend` is
+  an in-memory cloud with scripted failures. There are 4 bugs.
+hints:
+  - |
+    Hint 1: Reconcile a resource that is already correct and print the backend's apply calls.
+    Then script two transient failures, a success and another failure, and print the delays.
+  - |
+    Hint 2: Idempotency means checking before acting. Backoff must start at the base delay and
+    a healthy run must forget old failures. A permanent error must leave the queue.
+  - |
+    Hint 3: Return "noop" when `read(key) == desired`, pop the failure counter after a
+    successful reconcile, do not enqueue in the PermanentError handler, and use
+    `attempts - 1` in the exponent.
+tags: [controllers, reconcile, backoff, idempotency]
+lesson: |
+  A reconcile loop is level-triggered: it must be safe to run any number of times, so it first
+  observes and only acts on a difference. Failure handling separates two classes: transient
+  errors retry with capped exponential backoff, which spreads load on a struggling dependency,
+  while permanent errors are surfaced and parked because retrying them is pure waste. The
+  failure counter belongs to the current incident, so the first success must clear it, otherwise
+  the next blip starts with a huge delay.
+mistakes:
+  - Applying the spec unconditionally on every pass, relying on the cloud to ignore no-ops.
+  - Never resetting the retry counter, so later hiccups wait for minutes.
+  - Requeueing permanent errors with a long delay, which still retries forever.

@@ -1,0 +1,30 @@
+title: Expiring Lookups
+category: Caching
+difficulty: 3
+xp: 200
+story: |
+  Harbor Insurance caches DNS-like service lookups for 30 seconds so its quoting API does
+  not hammer the registry. After a failover, quotes kept hitting a dead node for minutes: some
+  entries never expired and the cache size gauge reported ghosts.
+description: |
+  `TTLCache(ttl, clock)` stores values with a time to live in seconds. `clock` is a function returning "now".
+  An entry is expired once its age is greater than or equal to `ttl`. `set` always starts a fresh lifetime, even
+  when the key already exists. `get(key, default)` never returns expired data. `size()` counts only live entries.
+  `get_or_load(key, loader)` returns the cached value or calls `loader()` and caches the result.
+  There are 3 bugs.
+hints:
+  - |
+    Hint 1: With ttl 10, read at age 9, 10 and 11 seconds. Then overwrite a key at age 8 and read it at age 15.
+  - |
+    Hint 2: Decide what "expired" means at exactly `ttl`. When a key is set again its timestamp must be replaced. `size()` should not count dead entries.
+  - |
+    Hint 3: Use `>=` in `_expired`, always store `self.clock()` in `set`, and call `self.purge()` at the start of `size()`.
+tags: [caching, ttl, clock-injection, expiry]
+lesson: |
+  A TTL cache has three classic failure points. The expiry boundary must be a deliberate choice: at `age == ttl` the data is already
+  as old as the policy allows, so it is expired. Overwriting a key has to restart the lifetime, otherwise fresh data inherits the old
+  deadline and disappears early. Finally, any metric or length that includes expired entries lies about the cache; purge before counting.
+  Passing the clock into the class lets tests move time instantly instead of sleeping.
+mistakes:
+  - Using `time.sleep` in tests instead of an injectable clock.
+  - Purging only inside `get`, which leaves unread dead entries counted forever.

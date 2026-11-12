@@ -1,0 +1,32 @@
+title: Inventory Precedence
+category: Config
+difficulty: 3
+xp: 200
+story: |
+  The Larch config tool resolves variables for each host from an inventory with
+  global, group and host level values, like Ansible does. A host-specific
+  `max_conns` override was ignored, and resolving one host changed the variables
+  that the next host saw.
+description: |
+  `resolve_vars(inventory, host)` returns the final variable dict for a host. The inventory looks like
+  `{"all": {...}, "groups": {name: {...}}, "hosts": {name: {"groups": [...], "vars": {...}}}}`.
+  Precedence from lowest to highest: `all`, then each group in the order listed for the host (later groups
+  override earlier), then the host's own `vars`. The inventory must never be modified. An unknown host or group
+  raises `KeyError`. `diff_hosts(inventory, a, b)` returns `{var: (value_a, value_b)}` for variables that differ.
+  There are 3 bugs.
+hints:
+  - |
+    Hint 1: Resolve a host that sets its own `max_conns` and belongs to a group that also sets it. Then resolve two hosts in a row and check the inventory afterwards.
+  - |
+    Hint 2: `merged = inventory["all"]` does not copy anything, it names the same dict. And `update` calls apply in order: the last one wins.
+  - |
+    Hint 3: Start from `dict(inventory["all"])`, loop over the host's groups in the listed order, then apply the host vars last.
+tags: [config, precedence, ansible, dict]
+lesson: |
+  Layered configuration works because later layers overwrite earlier ones, so the order of `dict.update` calls is the precedence rule:
+  most general first, most specific last. Two classic mistakes follow: applying layers in the wrong order, so that general
+  values beat specific ones, and mutating a shared dict. Assigning `merged = inventory["all"]` merely adds a second name for the
+  same object, and the next `update` rewrites the inventory itself, so results depend on resolution order. Copy first, then update.
+mistakes:
+  - Applying host vars first so that group values overwrite the host's own settings.
+  - Copying with `merged = inventory["all"]` and thinking that is a new dictionary.

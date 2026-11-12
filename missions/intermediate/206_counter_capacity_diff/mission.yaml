@@ -1,0 +1,30 @@
+title: Fleet Capacity Diff
+category: Collections
+difficulty: 3
+xp: 200
+story: |
+  Nimbus Cloud's capacity planner compares the instances it currently runs with the plan
+  for next quarter and prints what to add and what to retire. The plan output keeps
+  saying "nothing to add", the in-memory inventory silently changes after every run, and
+  the headline instance count is far too low.
+description: |
+  `capacity_diff(have, want)` takes two `Counter`s of instance types and returns `(to_add, to_remove)` as plain dicts
+  with positive counts: types where `want` exceeds `have`, and types where `have` exceeds `want`. It must not modify
+  its arguments. `total_instances(counter)` is the number of instances, and `with_headroom(want, pct)` rounds each count
+  up after adding a percentage buffer. There are 3 bugs.
+hints:
+  - |
+    Run a diff where the plan needs more `m5.large` than you have. What does `to_add` contain? Also compare `have` before and after the call.
+  - |
+    `Counter - Counter` discards zero and negative results. `Counter.subtract` keeps negative counts but works in place, so copy first. And `len(counter)` counts keys, not instances.
+  - |
+    Copy `have` into a new Counter and call `subtract(want)`; then negative values are shortages. Use `sum(counter.values())` for the total and `math.ceil` for headroom.
+tags: [counter, subtract, negative-counts, capacity]
+lesson: |
+  The `-` operator on Counters is a "multiset difference" that keeps only positive counts, so shortages simply vanish. When you
+  need signed differences, copy one counter and use `subtract()`, which keeps negatives and mutates in place. That mutation is why
+  copying matters: an inventory shared with other code must not change as a side effect of a report. Finally, `len()` of a Counter
+  is the number of distinct keys; use `sum(values())` for the total number of items, and `ceil` when you buffer capacity so it never rounds down.
+mistakes:
+  - Computing `to_add` as `want - have` and `to_remove` as `have - want` but mutating `have` elsewhere in the function.
+  - Using `int()` for the headroom, which rounds 2.4 instances down to 2.

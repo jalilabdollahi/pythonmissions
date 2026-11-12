@@ -1,0 +1,31 @@
+title: Always Healthy Dashboard
+category: Logic
+difficulty: 1
+xp: 100
+story: |
+  The status page for Saffron Payments showed a wall of green all through a
+  database failover. A post-incident review found that the health helper marked every
+  service as acceptable, whatever state the services reported.
+description: |
+  `is_acceptable(status)` returns `True` only when the status is `"ok"` or `"warn"`,
+  and `False` for anything else (`"critical"`, `"unknown"`, ...).
+  `healthy_services(statuses)` returns the sorted names of services whose status is
+  acceptable.
+  There is 1 bug.
+hints:
+  - |
+    Call `is_acceptable("critical")` and look at the result.
+  - |
+    A non-empty string is truthy, and `or` returns as soon as one operand is truthy.
+  - |
+    `status == "ok" or "warn"` means `(status == "ok") or "warn"`. Compare each side, or test membership with `in ("ok", "warn")`.
+tags: [logic, boolean, or, operator-precedence]
+lesson: |
+  `x == "a" or "b"` is parsed as `(x == "a") or "b"`, and the non-empty string `"b"` is
+  always truthy, so the whole condition is always true. English reads like a
+  membership test, but Python needs you to repeat the comparison
+  (`x == "a" or x == "b"`) or use `x in ("a", "b")`. Such conditions never raise errors,
+  they just let bad states through, which is the worst kind of bug in health checks.
+mistakes:
+  - Writing `status == "ok" or "warn"` in a different order, which is just as broken.
+  - Comparing against a single combined string like "ok warn".

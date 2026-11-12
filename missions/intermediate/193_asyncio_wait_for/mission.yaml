@@ -1,0 +1,27 @@
+title: Deadline Diplomacy
+category: Async
+difficulty: 4
+xp: 200
+story: |
+  Pelican Cloud's synthetic monitor probes customer endpoints, each with a timeout in milliseconds. A single hung endpoint made the whole monitoring run
+  fail with a `TimeoutError`, tiny timeouts of "200" were waiting for 200 seconds, and the summary line kept saying `timeout` even when some endpoints returned
+  hard errors that deserve the page.
+description: |
+  `run_probe(name, probe, timeout_ms)` awaits `probe(name)` with a deadline of `timeout_ms` milliseconds and returns `{"name", "status", "value"}`: status `ok` with the
+  probe's value, `timeout` (value `None`) if the deadline passes, or `error` (value is the exception class name) if the probe raised. `run_all(names, probe, timeout_ms=100)` gives each probe its own
+  deadline and returns results in order. `worst(results)` returns the most severe status, where `error` beats `timeout` beats `ok` (`ok` for no results). There are 3 bugs.
+hints:
+  - |
+    Hint 1: Make one probe wait on an `asyncio.Event` that is never set and give it `timeout_ms=20`. What does `run_all` do with the probes that are fine?
+  - |
+    Hint 2: `asyncio.wait_for` takes seconds. The deadline belongs to each probe, not to the whole group. For `worst`, think about what `max` is comparing: names or severities?
+  - |
+    Hint 3: `wait_for(probe(name), timeout_ms / 1000)` inside `run_probe`, a plain `gather` of `run_probe` calls in `run_all`, and `max(..., key=lambda r: RANK[r["status"]])`.
+tags: [asyncio, wait_for, timeout, units]
+lesson: |
+  `asyncio.wait_for(awaitable, timeout)` cancels the awaitable and raises `asyncio.TimeoutError` when the time is up, and the timeout is in seconds, so millisecond configuration must be divided by
+  1000. Put the deadline around each individual probe; wrapping the whole `gather` in one `wait_for` turns one slow endpoint into a failure for everybody. Catch the timeout inside the per-probe function
+  so it becomes data in the result instead of an exception. Finally, ranking severities needs an explicit order table; comparing the status strings themselves sorts them alphabetically.
+mistakes:
+  - "Passing milliseconds straight to wait_for."
+  - "Wrapping asyncio.gather in one wait_for and treating the whole batch as timed out."

@@ -1,0 +1,29 @@
+title: Invisible Newlines
+category: Strings
+difficulty: 2
+xp: 100
+story: |
+  The Fernhill CDN keeps an allow-list of edge hostnames in a text file, one per line.
+  After a config push, every health check reported its host as "not registered" even though the name was plainly in the file.
+  Someone printed the list and noticed ugly gaps between the entries.
+description: |
+  allowlist.py reads hostnames from a text file.
+
+  - `load_hostnames(path)` returns the hostnames, one per line, with surrounding whitespace removed and blank lines skipped.
+  - `is_registered(host, path)` is True when the host is in the file.
+  - `unregistered(hosts, path)` returns the hosts that are not in the file, in input order.
+
+  There is 1 bug.
+hints:
+  - |
+    Print repr() of what load_hostnames returns. What character does every entry end with?
+  - |
+    Lines read from a file keep their line terminator. `str.strip()` removes whitespace at both ends.
+  - |
+    Build the list with `line.strip()` for each line and skip lines that are empty after stripping.
+tags: [strings, files, strip]
+lesson: |
+  When you iterate over a file or call readlines(), each line still ends with the newline character, so "edge-01\n" is not equal to "edge-01". Always strip input you read from files, environment variables or user prompts before comparing it. Printing with repr() is the quickest way to see invisible characters that break a membership test.
+mistakes:
+  - "Slicing off the last character with line[:-1], which corrupts a final line that has no newline."
+  - "Stripping the host you search for but not the entries from the file."

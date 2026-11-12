@@ -1,0 +1,29 @@
+title: Printable Deployment Records
+category: Classes
+difficulty: 1
+xp: 100
+story: |
+  The change-management bot at Crestline Retail posts every deployment into a chat channel by calling `str()` on a Deployment object.
+  Since the object got a `__str__`, the bot has been crashing with a TypeError during Friday's freeze meeting.
+description: |
+  deploy_log.py defines `Deployment(service, version, env, ok=True)`.
+
+  - `str(deployment)` returns text like `api v2.3.1 -> prod [OK]` (or `[FAILED]` when `ok` is False).
+  - `repr(deployment)` returns something like `Deployment('api', '2.3.1', 'prod')`.
+  - `changelog(deployments)` returns the `str()` of every deployment joined by newlines.
+  - `failures(deployments)` returns only the failed ones.
+
+  There is 1 bug.
+hints:
+  - |
+    Read the TypeError raised by `str(d)`. What type does it say your method returned?
+  - |
+    `__str__` is allowed to build its value however it likes, but the object it returns must be a plain string.
+  - |
+    Return an f-string such as `f"{self.service} v{self.version} -> {self.env} [{state}]"`.
+tags: [classes, dunder, str, formatting]
+lesson: |
+  `str(obj)` calls `obj.__str__()` and insists the result is a `str`; returning a tuple or a number raises "__str__ returned non-string". The method does not print, it returns text, and everything that formats the object (print, f-strings, logging) relies on it. A good `__str__` is what turns a log line from `<Deployment object at 0x7f...>` into something an on-call engineer can read.
+mistakes:
+  - "Using print() inside `__str__` so it returns None."
+  - "Returning a tuple of the parts because it looks tidy."

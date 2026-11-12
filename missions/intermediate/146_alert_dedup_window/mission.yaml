@@ -1,0 +1,32 @@
+title: Noisy Pager
+category: Alerting
+difficulty: 3
+xp: 200
+story: |
+  The on-call phone at Kestrel Freight buzzed 140 times during a single disk-latency
+  incident because the same alert fired every 15 seconds. The new deduper was supposed to
+  quiet it, but it either lets duplicates through or goes silent for the whole night.
+description: |
+  `AlertDeduper(window_seconds)` decides whether an alert should page the engineer.
+  An alert is a dict with `name`, `labels` (a dict) and `ts` (seconds). Two alerts are the same
+  if they have the same name and the same labels, regardless of label order.
+  `should_send(alert)` returns True for a new fingerprint, and False for a repeat that arrives
+  less than `window_seconds` after the last alert that was actually sent. An alert arriving
+  exactly `window_seconds` later is sent again. `suppressed` counts the dropped repeats per fingerprint.
+  There are 3 bugs.
+hints:
+  - |
+    Hint 1: Send the same alert twice with the labels written in a different order. Then feed one alert every 30 seconds with a 60 second window and look at when pages go out.
+  - |
+    Hint 2: A fingerprint must be canonical, so sort the labels. The window is measured from the last page that was sent, not from the last alert that was seen.
+  - |
+    Hint 3: Use `sorted(labels.items())`, compare with `<` instead of `<=`, and do not update `last_sent` when you suppress.
+tags: [alerting, dedup, fingerprint, time-window]
+lesson: |
+  Alert deduplication hinges on a stable fingerprint: dictionaries preserve insertion order, so building a key from `labels.items()`
+  makes two identical alerts look different. Sort the pairs first. The suppression window should be anchored on the last notification
+  that was really sent. If every suppressed repeat also refreshes the timestamp, a flapping alert is silenced forever and the on-call
+  never gets the reminder. Finally, decide the boundary explicitly and test it: an alert exactly at the window edge is a new page.
+mistakes:
+  - Hashing `str(labels)`, which still depends on dictionary order.
+  - Making the window larger to hide the symptom instead of anchoring it on the last sent page.

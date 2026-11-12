@@ -1,0 +1,32 @@
+title: Stack Trace Census
+category: Logs
+difficulty: 2
+xp: 200
+story: |
+  The Orchid billing worker logs a Java-style stack trace whenever a payment
+  call fails, and the on-call dashboard that counts log levels is wildly off.
+  Last night it claimed 41 errors for a worker that only failed 9 times.
+description: |
+  `count_levels(lines)` reads raw log lines and returns a dict with the keys
+  `DEBUG`, `INFO`, `WARNING`, `ERROR` and `CRITICAL`, each mapped to the number of log
+  entries at that level (0 when none). An entry starts with a timestamp such as
+  `2025-03-01 10:00:00,123 ERROR message`. Indented or `Caused by:` lines after an entry
+  are continuation lines of that entry and must not be counted. The aliases `WARN` and `FATAL`
+  mean `WARNING` and `CRITICAL`. There are 2 bugs.
+hints:
+  - |
+    Hint 1: Print which lines get counted for an entry with a stack trace. Which continuation line gets counted?
+  - |
+    Hint 2: Searching for the level word anywhere in the line also matches words inside messages and traces. An entry is identified by where the level sits: right after the timestamp.
+  - |
+    Hint 3: Match the line start with a regex (timestamp, then level) and normalise the level through the ALIASES dict before counting.
+tags: [logs, regex, multiline, parsing]
+lesson: |
+  Logs are not one record per line. Stack traces, wrapped messages and JSON dumps spill onto extra
+  lines, so a parser must decide what marks the start of a record and treat everything else as
+  continuation. Anchoring the match at the beginning of the line (timestamp then level) is far more
+  reliable than searching for a keyword anywhere, because messages and traces mention words like ERROR
+  all the time. Normalising aliases such as WARN to WARNING keeps counts from splitting across spellings.
+mistakes:
+  - Skipping lines that start with whitespace only, which misses unindented `Caused by:` lines.
+  - Using `line.startswith(level)` on raw lines, which never matches because the timestamp comes first.

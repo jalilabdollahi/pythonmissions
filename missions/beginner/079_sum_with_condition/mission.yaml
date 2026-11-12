@@ -1,0 +1,29 @@
+title: Counting the Errors
+category: Builtins
+difficulty: 1
+xp: 100
+story: |
+  The Nimbus Payments SRE dashboard shows an error count of 4,200 for a service that only logged 14 errors last night.
+  The counter is computed from a list of request records, and someone suspects it is adding up the wrong thing.
+description: |
+  request_stats.py summarises request records, each a dict with `status` (int) and `bytes` (int).
+
+  - `count_errors(records)` returns how many records have a status of 500 or above.
+  - `error_bytes(records)` returns the total bytes of those error responses.
+  - `error_rate(records)` returns errors divided by total as a float, or `0.0` for no records.
+  - `count_slow(records, ms_limit)` returns how many records have `ms` greater than the limit.
+
+  There are 2 bugs.
+hints:
+  - |
+    Look at what is being summed in the error counter. Is each matching record contributing one, or something else?
+  - |
+    `sum()` of a generator adds whatever the generator yields. To count matches you add 1 per match, or add booleans.
+  - |
+    `sum(1 for r in records if r["status"] >= 500)` counts them. Check the boundary in the slow counter as well.
+tags: [builtins, sum, generators, counting]
+lesson: |
+  `sum(r["bytes"] for r in records if ...)` adds the bytes of matching rows, not the number of rows. To count matches, yield 1 for each (`sum(1 for ...)`) or sum a boolean expression, since `True` is 1. Mixing up "how many" with "how much" is a classic way for dashboards to show wildly wrong numbers, so name your helpers clearly and test them with records of different sizes.
+mistakes:
+  - "Using len() on the whole list and ignoring the condition."
+  - "Fixing the count but changing `>=` to `>` so status 500 is dropped."

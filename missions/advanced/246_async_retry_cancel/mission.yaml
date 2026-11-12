@@ -1,0 +1,39 @@
+title: Payment Gateway Retry
+category: Async
+difficulty: 4
+xp: 300
+story: |
+  Vireo Checkout wraps its card gateway calls in an async retry helper. During a rolling restart
+  shutdown hung for minutes because cancelled requests quietly started over, invalid-card
+  errors were retried five times, and failed charges waited one more backoff before reporting
+  the error to the customer.
+description: |
+  `call_with_retry(fn, policy, sleep, clock)` awaits `fn()` up to `policy.attempts` times,
+  retrying only exceptions listed in `policy.retry_on`. The wait after failed attempt `n` is
+  `base_delay * factor**(n-1)` capped at `max_delay`. No wait happens after the final attempt, and
+  if the wait would push elapsed time past `policy.budget` the helper gives up early. When it
+  gives up it raises `RetryExhausted` chained to the last error. Task cancellation must always
+  pass straight through. An optional `on_retry(attempt, delay, error)` hook runs before each wait. `retrying` is a
+  decorator form, `total_backoff` gives the worst-case sleep time and `charge_card` is a thin wrapper.
+  There are 4 bugs.
+hints:
+  - |
+    Record every `sleep` call with a fake clock. Then cancel a task that is blocked inside the
+    retried function and see whether it ever finishes.
+  - |
+    `asyncio.CancelledError` is a `BaseException`. The `except` clause decides which failures
+    count as transient, and attempt numbers in the delay formula are 1-based.
+  - |
+    Catch `policy.retry_on`, break before sleeping on the last attempt, use `attempt - 1` as the
+    exponent, and compare elapsed plus the next delay with the budget.
+tags: [asyncio, retry, backoff, cancellation]
+lesson: |
+  Retry loops sit on the hot path of every incident. They must only retry what is known to be
+  transient, so permanent errors surface at once, and they must never catch `BaseException`,
+  because `CancelledError` is how asyncio asks a task to stop and swallowing it makes shutdown
+  and timeouts impossible. Backoff arithmetic and budgets need exact boundaries: do not sleep
+  when no further attempt will follow, and decide to stop before a sleep that cannot fit.
+mistakes:
+  - Writing `except Exception` and believing it also covers cancellation on every Python version.
+  - Sleeping after the last attempt "for symmetry", which only adds latency to the failure.
+  - Checking the budget after waiting, so the total time always overshoots it.

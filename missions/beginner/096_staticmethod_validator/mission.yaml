@@ -1,0 +1,29 @@
+title: Validator Without an Instance
+category: Classes
+difficulty: 2
+xp: 100
+story: |
+  The intake form for new VM requests at Aurora Hosting groups its checks in a `RequestValidator` class.
+  Calling the checks through a validator object raises a baffling "takes 1 positional argument but 2 were given" error, so no request has been approved since Monday.
+description: |
+  intake.py defines `RequestValidator` with helpers that need no instance data.
+
+  - `is_valid_port(port)` is True for integers from 1 to 65535.
+  - `is_valid_hostname(name)` is True for non-empty names of lowercase letters, digits and dashes only (no leading or trailing dash).
+  - `validate(self, request)` returns a list of problems for a dict with `host` and `port`; the list is empty when everything is valid.
+  - The two helpers can be called on the class or on an instance.
+
+  There are 2 bugs.
+hints:
+  - |
+    Compare how the two helpers are called with their definitions. Which argument is Python adding on its own?
+  - |
+    Methods that do not need the object or the class can be declared so that Python adds no automatic first argument.
+  - |
+    Decorate `is_valid_port` and `is_valid_hostname` with `@staticmethod`.
+tags: [classes, staticmethod, validation]
+lesson: |
+  When you call a function through an instance, Python binds the instance as the first argument. A helper written as `def is_valid_port(port)` therefore receives the object as `port` and the real value as an unexpected extra argument. `@staticmethod` tells Python not to bind anything, so the function behaves like a plain function that happens to live in the class namespace, callable on the class or an instance. Use it for utilities that belong with the class but use none of its state.
+mistakes:
+  - "Adding `self` to the helpers without using it, which then breaks calls made on the class."
+  - "Decorating only one of the two helpers."

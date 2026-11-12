@@ -1,0 +1,30 @@
+title: Policy Enforcer
+category: Security
+difficulty: 3
+xp: 200
+story: |
+  The Lantern internal admin portal lets staff create service accounts. Users complained that a 12-character
+  password was rejected as "too short", while one made of letters and a space was accepted as "having a symbol",
+  and a password containing the username in capitals slipped through. Security wants the policy to be exact.
+description: |
+  `check_password(password, username="", min_length=12)` returns a list of violation codes, empty when the password is acceptable.
+  Codes: `too_short` (fewer than `min_length` characters), `no_lower`, `no_upper`, `no_digit`, `no_symbol` (a symbol is
+  a character from `string.punctuation`; spaces do not count) and `contains_username` (the username, ignoring case, appears in
+  the password; an empty username never matches). Codes appear in that order. `is_valid` is true when there are no violations.
+  There are 3 bugs.
+hints:
+  - |
+    Hint 1: Try a password that is exactly 12 characters long, then one whose only non-alphanumeric character is a space, then `Alice` vs `xxALICExx`.
+  - |
+    Hint 2: Boundaries: "at least N" means `len(p) < N` fails. A symbol is not simply "not alphanumeric". Comparing names across cases means normalising both sides.
+  - |
+    Hint 3: Use `len(password) < min_length`, `c in string.punctuation`, and `username.lower() in password.lower()` guarded by `if username`.
+tags: [validation, boundaries, string, security]
+lesson: |
+  Password rules are a pile of boundary conditions, and each one deserves a test at its edge: a minimum length of 12 means 12 is fine and 11 is not.
+  Character classes should be defined explicitly (`string.punctuation`) rather than by exclusion (`not isalnum`), otherwise whitespace passes as a
+  symbol. Case-insensitive checks need both sides normalised, and an empty username must be guarded, because the empty string is
+  a substring of everything. Returning a list of reasons instead of one boolean makes the error messages shown to users actionable.
+mistakes:
+  - "Using `<=` for a minimum length and rejecting passwords of exactly the minimum."
+  - "Treating any non-alphanumeric character, including spaces, as a symbol."

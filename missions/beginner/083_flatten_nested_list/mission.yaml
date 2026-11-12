@@ -1,0 +1,29 @@
+title: Flatten the Subnets
+category: Comprehensions
+difficulty: 2
+xp: 100
+story: |
+  The network team at Redwood Telecom keeps a list of subnets, each holding the IP addresses reserved inside it.
+  A firewall export job must produce one flat list of every reserved address, and the nested comprehension someone wrote crashes before it produces anything.
+description: |
+  ipam.py handles subnets shaped like `{"cidr": "10.0.1.0/24", "ips": ["10.0.1.5", "10.0.1.9"]}`.
+
+  - `all_ips(subnets)` returns one flat list of every IP, in subnet order and then address order.
+  - `ip_count(subnets)` returns how many addresses are reserved in total.
+  - `ips_for_firewall(subnets)` returns `"allow <ip>"` strings for each address.
+  - `cidrs_with_ips(subnets)` returns the cidr strings of subnets that have at least one reserved IP.
+
+  There are 2 bugs.
+hints:
+  - |
+    Run the tests and look at the error from the flattening function. Which name is it complaining about?
+  - |
+    In a nested comprehension the `for` clauses are written in the same order as nested loops: outer first, inner second.
+  - |
+    The shape is `[ip for subnet in subnets for ip in subnet["ips"]]`. Also check what `cidrs_with_ips` is filtering on.
+tags: [comprehensions, nested-loops, flattening]
+lesson: |
+  A nested comprehension reads like the loops it replaces: `[x for outer in data for x in outer]` equals a loop over `data` with an inner loop over `outer`. The outermost loop comes first, which is the opposite of how the final expression is written, and that trips up almost everyone once. If the clauses are swapped you get a NameError because the inner variable does not exist yet. When it gets hard to read, write the loops out first and then fold them into one line.
+mistakes:
+  - "Using `sum(lists, [])` to flatten, which works but is quadratic and hides the intent."
+  - "Writing `[[ip for ip in s['ips']] for s in subnets]`, which is still nested, not flat."

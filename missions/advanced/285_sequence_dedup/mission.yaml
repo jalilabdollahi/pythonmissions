@@ -1,0 +1,39 @@
+title: Telemetry Sequence Guard
+category: Messaging
+difficulty: 4
+xp: 300
+story: |
+  Gridline's wind-farm turbines publish readings over a flaky satellite link that re-sends and
+  reorders messages. The billing pipeline double-counts re-sent readings, never notices a lost
+  reading until a customer complains, and when two turbines are monitored together a gap on
+  one turbine shows up as a gap on the other.
+description: |
+  Every producer numbers its messages 1, 2, 3, and so on. `SequenceTracker.accept(producer, seq)`
+  returns `"ok"` for the next expected number, `"gap"` when numbers were skipped (every skipped
+  number becomes a known gap), `"late"` for a message that fills a known gap, and `"duplicate"`
+  for anything already seen. `deliver` forwards everything except duplicates. State is kept per
+  producer.
+  There are 4 bugs.
+hints:
+  - |
+    Send 1, 5, 3, 3 for one producer and print the status of each message and `gaps()`. Then
+    interleave a second producer.
+  - |
+    Look at the range of numbers recorded as missing (is `range` end-exclusive?), how a
+    message equal to `last` is classified, what happens to a gap once it is filled, and where
+    the set of missing numbers lives.
+  - |
+    Record `range(last + 1, seq)`, treat `seq <= last` as duplicate, discard a number from the
+    missing set when it arrives, and create the set inside `__init__` so each stream owns one.
+tags: [sequence-numbers, dedup, idempotency, state]
+lesson: |
+  At-least-once delivery means duplicates are normal, and unreliable links mean gaps and
+  reordering are normal too. Per-producer sequence numbers let a consumer drop re-sends,
+  spot loss, and accept late arrivals exactly once, but only if the bookkeeping is exact: a
+  missing range is end-exclusive, the boundary between duplicate and next-expected is
+  `<=`, and a filled gap must be removed so a re-send of it counts as a duplicate. State kept at
+  class level is shared by every instance, so one producer's gaps leak into another's.
+mistakes:
+  - Keeping one global last-seen number for all producers.
+  - Treating every number lower than the highest as a duplicate, which drops late arrivals that fill gaps.
+  - Fixing the shared state by copying the set on every call instead of creating it per stream.

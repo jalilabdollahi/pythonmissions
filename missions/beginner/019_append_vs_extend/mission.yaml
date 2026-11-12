@@ -1,0 +1,29 @@
+title: Nested Host Lists
+category: Lists
+difficulty: 2
+xp: 100
+story: |
+  Willow Genomics merges the host inventories of its three regions into a single list that the patch scheduler iterates.
+  The scheduler now crashes with "list has no attribute split", because the merged inventory contains lists inside the list.
+  The merge function was rewritten last sprint.
+description: |
+  inventory.py merges per-region host lists.
+
+  - `merge_regions(regions)` takes `{region: [hosts]}` and returns one flat list of hosts, regions in sorted order, hosts in their original order.
+  - `host_count(regions)` returns the total number of hosts.
+  - `patch_targets(regions, suffix)` returns the merged hosts ending with `suffix`.
+
+  There is 1 bug.
+hints:
+  - |
+    Print the merged inventory and look at the brackets. What is inside the outer list?
+  - |
+    `list.append(x)` adds x as a single element, even if x is a list. Another method adds each item.
+  - |
+    Use `merged.extend(hosts)` (or `+=`) so every host becomes its own element.
+tags: [lists, extend, nesting]
+lesson: |
+  `list.append(item)` always adds exactly one element, so appending a list creates a nested list. `list.extend(iterable)` adds each element of the iterable individually. When you combine collections, ask whether you want one more element or many more elements. Nested lists slip through until some later code treats an element as a string and crashes far from the real mistake.
+mistakes:
+  - "Flattening afterwards with a second loop instead of using extend in the first place."
+  - "Using + inside the loop without assigning the result, which changes nothing."

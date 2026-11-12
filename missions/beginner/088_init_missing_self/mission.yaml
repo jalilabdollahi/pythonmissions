@@ -1,0 +1,29 @@
+title: Server Object Forgets Everything
+category: Classes
+difficulty: 1
+xp: 100
+story: |
+  A junior at Maple Hosting refactored the provisioning script into a small `Server` class.
+  Creating a server works, but every later method complains that the object has no `host` and no `port`, as if the constructor never saved them.
+description: |
+  server.py defines `Server(host, port, role="web")`.
+
+  - The constructor stores `host`, `port` and `role` on the instance.
+  - `address()` returns `"<host>:<port>"`.
+  - `is_database()` is True when the role is `"db"`.
+  - `describe()` returns `"<role> server at <host>:<port>"`.
+
+  There are 2 bugs.
+hints:
+  - |
+    Create a Server and print its attributes. Which ones are missing?
+  - |
+    Inside `__init__`, a bare name only lives until the method returns. The object itself is reached through its first parameter.
+  - |
+    Assign to `self.host`, `self.port` and `self.role`.
+tags: [classes, init, self, attributes]
+lesson: |
+  Inside `__init__`, writing `host = host` just rebinds a local variable that disappears when the constructor returns. State is stored on the instance only by assigning to an attribute: `self.host = host`. Without it, methods later fail with AttributeError, or worse, silently use a class attribute or global of the same name. When an object seems to forget its data, check the constructor first.
+mistakes:
+  - "Adding a global variable with the same name so the methods stop crashing."
+  - "Fixing `host` and `port` but forgetting the optional `role` argument."

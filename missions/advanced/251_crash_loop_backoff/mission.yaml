@@ -1,0 +1,40 @@
+title: Worker Supervisor Restarts
+category: Orchestration
+difficulty: 4
+xp: 300
+story: |
+  Tidewater's job runner supervises hundreds of worker processes and decides, on every exit,
+  whether and when to restart them. A worker that ran happily for a day and then crashed once
+  was made to wait half a minute, a harmless clean shutdown triggered a restart, and operators
+  noticed delays growing far past the configured ceiling.
+description: |
+  `Supervised.exited(exit_code, now)` returns a `Decision(action, delay, reason)`. A failing exit
+  restarts after `base_delay * 2**(n-1)` seconds for the `n`th consecutive failure, never more
+  than `max_delay`. If the process stayed up at least `stable_after` seconds the failure streak
+  starts over. When `max_crashes` crashes fall inside the sliding `window` (a crash exactly
+  `window` seconds old has expired) the supervisor gives up and marks the process `failed`. A
+  clean exit stops the process under `on-failure`, restarts it immediately under `always`.
+  `simulate` replays a list of `(uptime, exit_code)` runs.
+  There are 4 bugs.
+hints:
+  - |
+    Replay a few scenarios with `simulate` and print the delays: ten quick crashes, a long run
+    followed by a crash, and a clean exit with each policy mode.
+  - |
+    Think about what "consecutive" means once a run was healthy, whether a ceiling applies to the
+    computed delay, and how a sliding window treats an entry that sits exactly on its edge.
+  - |
+    Reset the streak when `uptime >= stable_after`, wrap the delay in `min(max_delay, ...)`, keep
+    only crashes with `now - t < window`, and stop on exit code 0 in `on-failure` mode.
+tags: [supervisor, backoff, crash-loop, restart-policy]
+lesson: |
+  Restart policies protect a cluster from two opposite failures: a flapping process that burns
+  CPU and floods logs, and a healthy process punished for an old incident. Exponential backoff
+  needs a ceiling and a reset rule tied to proven stability, crash-loop detection needs a sliding
+  window with well-defined edges, and the exit status must be interpreted according to the
+  policy, because a clean exit is not a crash. Orchestrators such as Kubernetes and systemd
+  implement exactly these ideas.
+mistakes:
+  - Resetting the backoff on every restart instead of after a long stable run.
+  - Counting every crash since boot toward the crash-loop limit instead of a sliding window.
+  - Treating exit code 0 as a failure under an `on-failure` policy.

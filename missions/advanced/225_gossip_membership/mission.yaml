@@ -1,0 +1,36 @@
+title: Swarm Roll Call
+category: Distributed Systems
+difficulty: 5
+xp: 300
+story: |
+  The Osprey queue workers learn who is alive through SWIM-style gossip. After a rack switch
+  rebooted, workers that had been declared dead kept reappearing as "suspect", and a healthy
+  worker that was falsely suspected could not clear its name no matter how often it replied.
+description: |
+  `Membership` keeps `{name: Member(status, incarnation, suspected_at)}` and merges gossip
+  with these rules: a higher incarnation always wins; at equal incarnation the more severe
+  status wins (alive < suspect < dead); a lower incarnation is ignored. A node that hears it
+  is suspected refutes by moving to an incarnation above the accusation. `expire_suspects`
+  declares a suspect dead once `suspect_timeout` seconds have elapsed on the injected clock.
+  There are 4 bugs.
+hints:
+  - |
+    Hint 1: Feed the merge an old, stale update and a "dead" record that is followed by a
+    suspect record at the same incarnation. Which one should win?
+  - |
+    Hint 2: Refutation has to outrank the accusation, not just the node's own counter. And
+    "elapsed >= timeout" is the boundary that counts as expired.
+  - |
+    Hint 3: Use `>` on incarnation to accept, a severity table with dead highest, and
+    max(own, accused) + 1 on refute.
+tags: [gossip, swim, membership, incarnation]
+lesson: |
+  Gossip converges only if merging is commutative, associative and idempotent, so each rule
+  must define a strict order: incarnation first, status severity second. Incarnation numbers
+  let a node out-vote rumours about itself, but only if the refutation exceeds the incarnation
+  in the rumour. Stale updates must be discarded or old rumours will bounce around the cluster
+  forever, and failure-detection timers need a precise, tested boundary.
+mistakes:
+  - Accepting any update whose incarnation differs from the stored one.
+  - Letting a lower-severity status overwrite a higher one at the same incarnation.
+  - Bumping the incarnation by one relative to our own value instead of the accuser's.

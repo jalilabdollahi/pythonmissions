@@ -1,0 +1,39 @@
+title: Call Tracer Rewriter
+category: Metaprogramming
+difficulty: 5
+xp: 300
+story: |
+  Ironvale's profiling tool rewrites customer code at import time: it injects a trace call at the
+  start of every function and cleans up `== None` comparisons. After a refactor the rewritten
+  module either refuses to compile, loses its docstrings, or traces only the outermost functions.
+description: |
+  `Instrumenter` is an `ast.NodeTransformer`. `visit_FunctionDef` (also used for async) inserts
+  `__trace__("Qual.name")` as the first statement after any docstring, using qualified names
+  such as `Repo.Meta.table`, and must reach nested functions. `visit_Compare` rewrites `== None`
+  to `is None` and `!= None` to `is not None`, also for chained comparisons and inside
+  comprehensions. `transform` produces a compiled code object, and `run_traced` executes it
+  with a trace sink. There are 4 bugs.
+hints:
+  - |
+    Hint 1: Run `run_traced` on a function with a docstring and on a function that contains an
+    inner function, and watch the `compile` call and the trace list.
+  - |
+    Hint 2: Nodes you create by hand have no `lineno` yet. A transformer must call
+    `generic_visit` to process the children of the node it is changing, and the docstring is only
+    a docstring while it is statement number one.
+  - |
+    Hint 3: Call `ast.fix_missing_locations(tree)` before `compile`, call `self.generic_visit(node)`
+    inside `visit_FunctionDef`, insert at `_docstring_length(node.body)`, and map `NotEq` to
+    `ast.IsNot()`.
+tags: [ast, nodetransformer, compile, instrumentation]
+lesson: |
+  `ast.NodeTransformer` rewrites a tree, but the tree must stay valid. Nodes you build yourself
+  have no line numbers, so call `ast.fix_missing_locations` before `compile`, otherwise Python
+  raises a confusing missing-field error. Visiting is not recursive unless you call
+  `generic_visit`, which is why transformers that skip it only change the outermost level.
+  Finally, syntax carries meaning in position: a string is a docstring only as the first
+  statement of a body, so inserted code has to go after it.
+mistakes:
+  - Skipping ast.fix_missing_locations and expecting copy_location on one node to be enough for the whole tree.
+  - Forgetting generic_visit in a visit method so inner functions are never touched.
+  - Inserting instrumentation at index 0 and turning the docstring into a plain expression.

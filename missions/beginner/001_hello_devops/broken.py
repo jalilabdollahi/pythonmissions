@@ -1,24 +1,17 @@
-# Mission 01 - Hello DevOps
-# Fix the 2 bugs in this script.
-
-server_name = "prod-web-01"
-port = 8080
-environment = "production"
+# Mission 001 - Hello Status Banner
+# Builds the SSH login banner for a server.
+def banner(host, port):
+    return "Host " + host + " is listening on port " + port
 
 
-def get_server_info():
-    return {
-        "server": server_name,
-        "port": port,
-        "env": environment,
-    }
+def replica_line(service, replicas):
+    return service + " is running " + replicas + " replicas"
 
 
-def main():
-    print(f"Server: {server_name}")
-    print(f"Port: + {port}")
-    print(f"Environment: {environment}")
+def full_banner(host, port, service, replicas):
+    lines = [banner(host, port), replica_line(service, replicas)]
+    return "\n".join(lines)
 
 
 if __name__ == "__main__":
-    main()
+    print(full_banner("lf-edge-07", 8080, "router", 3))

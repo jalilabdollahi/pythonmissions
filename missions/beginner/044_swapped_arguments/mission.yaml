@@ -1,0 +1,32 @@
+title: Timeout and Retries Swapped
+category: Functions
+difficulty: 2
+xp: 100
+story: |
+  Health probes at Cobalt Telecom are meant to give each service 30 seconds per
+  attempt and try 3 times. After a release, probes waited only 3 seconds and tried 30
+  times, tripping rate limits on the registry and paging the whole platform team.
+description: |
+  `run_probe(url, opener, retries=1, timeout=5)` calls `opener(url, timeout)` up to
+  `retries` times until it returns without a `ConnectionError`, and returns `True` on
+  success or `False` when every attempt failed. `check_registry(url, opener)` must
+  probe with 3 retries and a 30 second timeout; `check_database(url, opener)` must use 2 retries and a
+  10 second timeout.
+  There are 2 bugs.
+hints:
+  - |
+    Compare the number of attempts and the timeout seen by the fake opener with the values in the description.
+  - |
+    Positional arguments are matched by position, so two numbers in the wrong order are swapped silently.
+  - |
+    Pass the numbers by keyword: `retries=3, timeout=30`.
+tags: [functions, arguments, keyword-arguments, probes]
+lesson: |
+  When a function takes several arguments of the same type, such as two integers, nothing
+  stops you from passing them in the wrong order, and the code runs happily with swapped
+  meanings. Keyword arguments (`retries=3, timeout=30`) make a call site self-describing and
+  immune to ordering mistakes. Many teams also declare such parameters keyword-only
+  with a bare `*` to force this style.
+mistakes:
+  - Reordering the numbers at one call site only, leaving the other call swapped.
+  - Changing the function signature, which would break every other caller.

@@ -1,0 +1,29 @@
+title: Jobs Leaking Between Servers
+category: Classes
+difficulty: 2
+xp: 100
+story: |
+  The batch scheduler at Quartz Analytics reported that server "node-b" had three jobs queued, even though nothing had been sent to it.
+  All the jobs turned out to belong to "node-a", and the queue seems to be visible from every server at once.
+description: |
+  scheduler.py defines `Server(name, capacity)` which keeps a queue of job names.
+
+  - `assign(job)` adds a job to this server's queue if there is room and returns True, otherwise returns False.
+  - `load()` returns how many jobs this server holds.
+  - `has_room()` is True while the queue is shorter than `capacity`.
+  - `least_loaded(servers)` returns the server with the fewest jobs.
+
+  Each server must have its own independent queue. There is 1 bug.
+hints:
+  - |
+    Create two servers, give one a job, and look at the other's queue.
+  - |
+    Where is the list created: when the class is defined, or when each object is created?
+  - |
+    Remove the class-level list and create `self.jobs = []` inside `__init__`.
+tags: [classes, class-attributes, shared-state]
+lesson: |
+  An attribute defined in the class body belongs to the class and is shared by every instance, so appending to a class-level list changes it for all objects. Per-object state must be created in `__init__` on `self`. Class attributes are fine for constants such as a default timeout, but never for lists, dicts or sets you intend to mutate.
+mistakes:
+  - "Resetting `Server.jobs = []` in `assign`, which wipes other servers' work."
+  - "Copying the list on every read instead of fixing where it is created."

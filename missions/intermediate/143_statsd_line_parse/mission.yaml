@@ -1,0 +1,31 @@
+title: StatsD Intake
+category: Metrics
+difficulty: 3
+xp: 200
+story: |
+  The Willow metrics aggregator accepts StatsD datagrams from a few hundred
+  services. Since the team enabled client-side sampling, the request counters read
+  ten times too low, gauges that were meant to move by a delta jump to absolute
+  values, and timers with fractional milliseconds are dropped.
+description: |
+  `parse_statsd(line)` parses `name:value|type[|@rate]` into `{"name", "type", "value", "delta"}`. Types are `c`
+  (counter), `g` (gauge) and `ms` (timer); other types raise `ValueError`, as does a malformed line. Counter values
+  are scaled by `1 / rate` to estimate the unsampled total. A gauge whose value starts with `+` or `-` is a relative
+  change and has `delta` True. Values may be fractional. `aggregate(lines)` returns
+  `{"counters": {name: total}, "gauges": {name: value}, "timers": {name: [values]}}`. There are 3 bugs.
+hints:
+  - |
+    Hint 1: Parse `hits:1|c|@0.1`, `queue:-5|g` and `latency:12.5|ms` and print the dicts.
+  - |
+    Hint 2: A sample rate of 0.1 means only one in ten events was sent, so each datagram stands for ten. A leading sign on a gauge is information you must not throw away. Not every value is an int.
+  - |
+    Hint 3: Counter value is `value / rate`; set `delta = raw[0] in "+-"` for gauges; convert with `float(raw)`; in aggregate, add deltas to the current gauge and set absolute values.
+tags: [statsd, metrics, parsing, sampling]
+lesson: |
+  StatsD is a line protocol: `name:value|type|@rate`. Client-side sampling lowers traffic by sending only a fraction of events, so the
+  aggregator must scale counters back up by dividing by the sample rate. Gauges can be set absolutely (`queue:5|g`) or adjusted
+  (`queue:-5|g`), and the sign is the only thing that distinguishes them, so it has to be preserved when parsing. Timers
+  commonly carry fractions of a millisecond, so parse numbers as floats rather than assuming integers.
+mistakes:
+  - Ignoring the `@rate` field because it looks like a comment.
+  - Parsing the value with `int()` and silently dropping lines that contain a decimal point.

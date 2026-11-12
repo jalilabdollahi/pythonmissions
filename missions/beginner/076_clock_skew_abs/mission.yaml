@@ -1,0 +1,29 @@
+title: Drifting Clocks Audit
+category: Numbers
+difficulty: 1
+xp: 100
+story: |
+  Kerberos tickets at Harbor Bank started failing on three database hosts, and the post-mortem found their clocks had drifted minutes behind the time server.
+  The nightly skew audit said everything was fine. It only ever noticed hosts running ahead.
+description: |
+  skew_audit.py compares each host's clock against a reference time (all values are epoch seconds).
+
+  - `skew_seconds(host_time, reference_time)` returns host minus reference.
+  - `is_skewed(host_time, reference_time, tolerance)` is True when the clock is off by MORE than `tolerance` seconds in either direction.
+  - `find_skewed_hosts(readings, reference_time, tolerance)` returns the sorted names of skewed hosts from a `{name: epoch}` dict.
+  - `worst_offender(readings, reference_time)` returns the host with the largest drift in either direction.
+
+  There are 2 bugs.
+hints:
+  - |
+    Look at which hosts get reported. Are hosts that run behind the reference ever flagged?
+  - |
+    Drift can be negative. Compare the size of the drift, not its sign. Check how the worst offender is chosen too.
+  - |
+    `abs(skew)` gives the magnitude. Use it in `is_skewed` and as the sorting key in `worst_offender`.
+tags: [numbers, abs, time]
+lesson: |
+  A signed difference answers "which direction", while a tolerance check asks "how far". Comparing `-300 > 5` is False, so a clock five minutes slow looks perfectly healthy. Whenever a threshold is about distance from a target (clock drift, temperature, replica lag), wrap the difference in `abs()` before comparing. The same applies when ranking the worst offender: rank by magnitude.
+mistakes:
+  - "Checking `skew < -tolerance` in one place but forgetting the other function that ranks hosts."
+  - "Taking abs() of the raw timestamps instead of the difference between them."

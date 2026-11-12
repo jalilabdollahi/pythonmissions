@@ -1,23 +1,17 @@
-# Mission 01 - Solution
-
-server_name = "prod-web-01"
-port = 8080
-environment = "production"
-
-
-def get_server_info():
-    return {
-        "server": server_name,
-        "port": port,
-        "env": environment,
-    }
+# Mission 001 - Hello Status Banner (solution)
+# Builds the SSH login banner for a server.
+def banner(host, port):
+    return f"Host {host} is listening on port {port}"
 
 
-def main():
-    print(f"Server: {server_name}")
-    print(f"Port: {port}")
-    print(f"Environment: {environment}")
+def replica_line(service, replicas):
+    return f"{service} is running {replicas} replicas"
+
+
+def full_banner(host, port, service, replicas):
+    lines = [banner(host, port), replica_line(service, replicas)]
+    return "\n".join(lines)
 
 
 if __name__ == "__main__":
-    main()
+    print(full_banner("lf-edge-07", 8080, "router", 3))

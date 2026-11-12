@@ -1,0 +1,29 @@
+title: Command Line Splitter
+category: Strings
+difficulty: 2
+xp: 100
+story: |
+  The audit tool at Glacier Security replays commands recorded from operators' terminals.
+  Commands with quoted arguments, such as a commit message with spaces, are broken into pieces and the replay runs the wrong thing.
+  Nobody noticed until the audit log showed a deploy with the message "fix".
+description: |
+  replay.py handles recorded command lines.
+
+  - `parse_command(line)` returns the argument list the shell would produce: quotes group words with spaces and are removed.
+  - `flag_value(line, flag)` returns the argument that follows `flag`, or `None` when the flag is missing or last.
+  - `program_name(line)` returns the first word of the command.
+
+  There is 1 bug.
+hints:
+  - |
+    Parse `git commit -m "fix login bug"` and count the items in the result.
+  - |
+    `str.split` knows nothing about quotes. The standard library has a splitter that follows shell quoting rules.
+  - |
+    Use `shlex.split(line)` in `parse_command`.
+tags: [strings, shlex, quoting]
+lesson: |
+  `line.split()` cuts on every run of whitespace, so a quoted argument such as `"fix login bug"` becomes three separate words with stray quote characters attached. `shlex.split` applies POSIX shell quoting rules: it keeps quoted text together, removes the quotes and honours backslash escapes. Whenever you turn a command string into an argv list, use it, or better still keep arguments as a list from the start. It also helps avoid accidental shell injection.
+mistakes:
+  - "Splitting on the quote character first, which breaks on single quotes and escaped quotes."
+  - "Stripping quotes from each word after splitting, which leaves the words separated."

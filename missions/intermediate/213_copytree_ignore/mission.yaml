@@ -1,0 +1,30 @@
+title: Release Staging Copy
+category: Files
+difficulty: 3
+xp: 200
+story: |
+  Basalt Software stages each release by copying the source tree into a `stage/` folder before
+  packaging. Re-running the job for a hotfix crashes because the folder already exists, and the
+  last package contained compiled `.pyc` files and a nested `manifest` that listed only the top-level files.
+description: |
+  `stage_release(src, dst, extra_ignore=())` copies the tree at `src` into `dst`, leaving out `__pycache__`, `.git`, `*.pyc`,
+  `*.log` and any extra glob patterns. It can be run again on the same destination and refreshes the files. It returns
+  `manifest(dst)`, a sorted list of every file below `dst` as a relative POSIX path (for example `pkg/app.py`).
+  `is_clean(dst)` is True when no ignored file is present in the staged tree. There are 3 bugs.
+hints:
+  - |
+    Stage the same tree twice. Then stage a tree containing a `.pyc` file and a nested directory and compare the result with the manifest you expected.
+  - |
+    `shutil.ignore_patterns` takes glob patterns like `*.pyc`, not suffixes. `copytree` refuses an existing destination unless told otherwise, and `Path.glob("*")` does not descend into subdirectories.
+  - |
+    Use the pattern `*.pyc`, pass `dirs_exist_ok=True` to `copytree`, and list files with `rglob("*")` converting each to `relative_to(root).as_posix()`.
+tags: [shutil, copytree, glob, pathlib]
+lesson: |
+  `shutil.copytree` can filter while it copies via `ignore=shutil.ignore_patterns(...)`, but those patterns are shell-style globs matched
+  against each file name, so `.pyc` matches nothing and `*.pyc` does. By default the destination must not exist; since Python 3.8
+  `dirs_exist_ok=True` merges into an existing tree and overwrites files, which makes staging jobs safely repeatable. When you
+  list the result, remember that `glob("*")` is non-recursive and `rglob("*")` walks the whole tree, and use relative POSIX paths so
+  the output is the same on every platform.
+mistakes:
+  - Deleting the destination with `shutil.rmtree` before every run, which loses files that other steps added.
+  - Filtering the copied files afterwards with `os.remove`, which copies a lot of junk first.

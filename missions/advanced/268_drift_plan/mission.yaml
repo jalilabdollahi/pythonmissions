@@ -1,0 +1,36 @@
+title: Kestrel Drift Planner
+category: Infrastructure as Code
+difficulty: 5
+xp: 300
+story: |
+  Kestrel Cloud's in-house IaC tool prints a plan before every apply. Last Friday the plan
+  proposed deleting a bucket created by hand in the console, showed a permanent diff on every
+  database because of cloud-assigned ids, and offered an in-place update for a change of region
+  that the provider can only satisfy by rebuilding the resource.
+description: |
+  `plan(desired, actual)` returns actions sorted as create, update, replace, delete (then by
+  name). Declared properties are compared with actual ones ignoring computed attributes
+  (`COMPUTED`) and list ordering. A type change or a change to any `IMMUTABLE` property is a
+  `replace`. Only resources whose `managed_by` equals `OWNER` may be deleted. `summary` and
+  `describe` format the result. There are 4 bugs.
+hints:
+  - |
+    Hint 1: Plan against a state that already matches except for an `id` field, and against
+    one that holds an extra resource somebody else created.
+  - |
+    Hint 2: Drift detection compares what you declare, not everything the cloud reports.
+    Ownership, immutability and ordering semantics all need to be encoded in the comparison.
+  - |
+    Hint 3: Skip `COMPUTED` keys, sort normalized lists, require `is_managed` before delete,
+    and mark a replace when `set(changes) & IMMUTABLE` is not empty.
+tags: [iac, drift, planning, reconciliation]
+lesson: |
+  A plan is a pure diff between intent and reality, and its credibility depends on three rules.
+  Compare only what you control, so computed fields and unordered collections never show up as
+  drift. Respect provider semantics, which means immutable attributes turn an update into a
+  replace. And never claim ownership of what you did not create: deleting every resource that
+  is absent from the config is how a tool destroys other teams' infrastructure.
+mistakes:
+  - Deleting everything in the account that is not in the desired state.
+  - Comparing raw dictionaries, so cloud-assigned ids create an eternal diff.
+  - Treating every property change as an in-place update, even immutable ones.

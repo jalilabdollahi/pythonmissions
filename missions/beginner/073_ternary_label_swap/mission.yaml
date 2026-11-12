@@ -1,0 +1,30 @@
+title: Green Means Down
+category: Logic
+difficulty: 1
+xp: 100
+story: |
+  The status board in the Zenith Air operations room shows a UP or DOWN badge for each ground-control service.
+  During a game-day drill the board showed every healthy service as DOWN and a crashed one as UP.
+  The team trusted it for twenty minutes before someone looked at the raw counters.
+description: |
+  board.py turns health-check results into badges.
+
+  - `badge(consecutive_failures, threshold=3)` returns `"UP"` while the failure streak is below the threshold, and `"DOWN"` once it reaches the threshold.
+  - `board(streaks)` takes a dict of service to failure streak and returns a dict of service to badge.
+  - `down_services(streaks)` returns the sorted names that are DOWN.
+  - `render(streaks)` returns text lines like `radar: UP`.
+
+  There is 1 bug.
+hints:
+  - |
+    Call `badge(0)` and `badge(5)`. Say each answer out loud: does it make sense?
+  - |
+    In `A if condition else B`, A is the value when the condition is true. Check which label sits where.
+  - |
+    Swap the two labels, or invert the condition. Keep the threshold comparison as `>=`.
+tags: [logic, conditional-expression, ternary]
+lesson: |
+  A conditional expression `X if cond else Y` returns X when `cond` is true and Y otherwise, so the value comes first and the condition in the middle. It is easy to write it in the order you think of the problem rather than the order Python reads it. Name the condition after what it says (`is_down`) and read the line aloud as a sentence. A test for both outcomes of every ternary catches swapped branches immediately.
+mistakes:
+  - "Changing the threshold comparison to `<` to compensate, which breaks the boundary at exactly 3."
+  - "Swapping the labels in `render` instead of in `badge`."

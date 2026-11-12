@@ -1,0 +1,29 @@
+title: Only The First Prefix Counts
+category: Strings
+difficulty: 1
+xp: 100
+story: |
+  The security team at Ironbridge Telecom audits egress rules, flagging traffic to anything outside the private ranges.
+  The audit marks `192.168.4.20` and `172.16.0.9` as public, creating hundreds of false alarms every night.
+  Only `10.x` addresses seem to be recognised as internal.
+description: |
+  egress.py classifies destination IPv4 addresses (as strings).
+
+  - `is_internal(ip)` is True for addresses starting with `10.`, `192.168.` or `172.16.`.
+  - `external_only(ips)` returns the addresses that are not internal, in the original order.
+  - `summary(ips)` returns `"<n> internal, <m> external"`.
+
+  There is 1 bug.
+hints:
+  - |
+    Test `is_internal` with one address from each of the three ranges. Which ones pass?
+  - |
+    Look at the argument given to `startswith`. How does `'a' or 'b'` evaluate in Python?
+  - |
+    `str.startswith` accepts a tuple of prefixes: `ip.startswith(('10.', '192.168.', '172.16.'))`.
+tags: [strings, startswith, tuple, networking]
+lesson: |
+  `'10.' or '192.168.'` is a boolean expression, and `or` returns its first truthy operand, so the code only ever checks `'10.'`. Readable English does not translate into Python conditions. When you need to match several prefixes, pass a tuple: `s.startswith(('a', 'b'))` (and `endswith` works the same way). The alternative `s.startswith('a') or s.startswith('b')` is correct but longer.
+mistakes:
+  - "Passing a list to startswith, which raises TypeError because it needs a tuple."
+  - "Writing `ip.startswith('10.') or '192.168.'`, which is always truthy."

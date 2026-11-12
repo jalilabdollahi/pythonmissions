@@ -1,0 +1,31 @@
+title: Pod Memory Math
+category: Parsing
+difficulty: 3
+xp: 200
+story: |
+  The Kestrel capacity planner sums Kubernetes memory requests to decide how many
+  pods fit on a node. A node with exactly enough RAM was reported as full, `1G`
+  was treated like `1Gi`, and `1.5Gi` came out as one gibibyte.
+description: |
+  `parse_memory(text)` converts a Kubernetes memory quantity to an int number of bytes.
+  Binary suffixes `Ki, Mi, Gi, Ti` are powers of 1024; decimal suffixes `K, M, G, T` are powers of 1000;
+  no suffix means bytes; fractions such as `1.5Gi` are allowed. Invalid text raises `ValueError`.
+  `total_requests(pods)` sums every container's `memory` request in a list of pods (containers
+  without a request count as 0). `fits_on_node(pods, node_bytes)` is true when the total does not
+  exceed the node's capacity. There are 3 bugs.
+hints:
+  - |
+    Hint 1: Compare `parse_memory("1G")` with `parse_memory("1Gi")`, then try `1.5Gi`.
+  - |
+    Hint 2: Kubernetes uses both unit families on purpose: the `i` means binary. The fraction has to be multiplied by the unit before converting to int. Think about what "exactly fits" means for the comparison.
+  - |
+    Hint 3: Table: `K=1000`, `Ki=1024` and so on; return `int(float(number) * factor)`; compare with `<=`.
+tags: [kubernetes, parsing, units, capacity]
+lesson: |
+  Kubernetes quantities mix decimal (`K, M, G`) and binary (`Ki, Mi, Gi`) suffixes: `1G` is 10^9 bytes while `1Gi` is
+  2^30, which is about 7 percent more. Capacity math that treats them as the same is off by gigabytes at node scale. Convert to
+  one base unit (bytes) immediately, multiply fractions before truncating to an integer so `1.5Gi` is not rounded down to `1Gi`, and be
+  careful with boundaries: a request that equals the capacity fits.
+mistakes:
+  - Assuming every suffix is a power of 1024.
+  - Calling `int()` on the number part before multiplying by the unit.

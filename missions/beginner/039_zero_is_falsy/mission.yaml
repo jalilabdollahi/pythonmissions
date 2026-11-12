@@ -1,0 +1,32 @@
+title: Zero Replicas Ignored
+category: Logic
+difficulty: 2
+xp: 100
+story: |
+  The platform team at Driftwood Cloud scales preview apps to zero replicas at night
+  to save money. Since a refactor, apps that were deliberately scaled to zero come
+  back to life with the default of two replicas, and the monthly cost review
+  noticed the bill climbing.
+description: |
+  `resolve_replicas(requested, default=2)` returns the requested replica count, or
+  `default` when `requested` is `None` (not specified). `0` is a valid request.
+  `resolve_canary_percent(config)` reads `config.get("canary_percent")` and likewise
+  falls back to 10 only when the key is missing or `None`.
+  There are 2 bugs.
+hints:
+  - |
+    Call `resolve_replicas(0)` and compare to what the cost-saving policy expects.
+  - |
+    In Python, `0`, `""`, `[]` and `None` are all falsy, but only `None` means "not provided".
+  - |
+    Test for "missing" with `is None`, not with `not value`.
+tags: [logic, falsy, none, defaults]
+lesson: |
+  `if not value` is true for `None` but also for `0`, `0.0`, `""` and empty containers.
+  When zero or an empty string is a meaningful setting (zero replicas, a canary of 0%,
+  an empty prefix), treating it as "missing" silently replaces a deliberate choice with a
+  default. Use `value is None` to detect an absent value, and reserve truthiness checks for
+  cases where every falsy value really does mean "nothing".
+mistakes:
+  - Using `or` for defaults (`requested or default`), which has exactly the same problem.
+  - Treating negative numbers as missing instead of validating them separately.

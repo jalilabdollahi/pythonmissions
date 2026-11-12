@@ -1,0 +1,29 @@
+title: Retry Wrapper
+category: Resilience
+difficulty: 3
+xp: 200
+story: |
+  The Tidewater billing sync wraps its flaky HTTP helper in a home-grown `retry` decorator.
+  Since the decorator went in, a typo in a request payload is retried five times before anyone
+  notices, failures vanish into `None`, and the metrics dashboard lists every call as `wrapper`.
+description: |
+  `retry(attempts, retry_on, delay, sleep)` returns a decorator. The wrapped function is called up to
+  `attempts` times. Only exceptions listed in `retry_on` (default `ConnectionError`) trigger a retry, after
+  `sleep(delay)`. Any other exception propagates immediately. If the last attempt still fails, the original exception is raised.
+  The decorated function must keep its `__name__` and docstring. There are 3 bugs.
+hints:
+  - |
+    Hint 1: Decorate a function that raises `ValueError` and count the calls. Then make it always raise `ConnectionError` and look at the result. Finally print `fetch.__name__`.
+  - |
+    Hint 2: The `except` clause should use the `retry_on` tuple. After the final attempt the error must be re-raised, and `functools.wraps` copies the metadata.
+  - |
+    Hint 3: `except retry_on:`, `raise` on the last attempt, and put `@functools.wraps(func)` on the wrapper.
+tags: [decorators, retry, functools, exceptions]
+lesson: |
+  A retry decorator must be selective: retrying a `ValueError` or an authentication failure only delays the inevitable and hammers the
+  remote service. Catch just the transient exception types. When the budget runs out, re-raise the last error so the caller can react;
+  returning `None` converts a failure into a silent bad value. Finally, a wrapper function replaces the original, so use
+  `functools.wraps` to preserve `__name__`, `__doc__` and friends, which logging, metrics and introspection rely on.
+mistakes:
+  - Catching `Exception` "to be safe", which retries permanent errors.
+  - Printing the error on the last attempt but still returning None.

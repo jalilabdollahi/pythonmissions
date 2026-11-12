@@ -1,0 +1,38 @@
+title: Database Connection Pool
+category: Concurrency
+difficulty: 4
+xp: 300
+story: |
+  Orbital Freight's API servers share a bounded pool of Postgres connections. During a failover
+  the pool slowly ran dry: handlers that crashed kept their connection forever, dead sockets
+  were put back for the next caller, and threads waiting for a connection slept long after one
+  had been returned.
+description: |
+  `ConnectionPool(factory, max_size)` lazily creates up to `max_size` connections.
+  `acquire(timeout)` returns an idle connection, creates one if below the cap, or waits on a
+  `threading.Condition` and raises `PoolTimeout` when time runs out. `release(conn, broken)`
+  returns a connection (ignoring ones that are not checked out); a broken connection is closed
+  and its slot freed. `connection()` is a context manager that always gives the connection back
+  and marks it broken on `ConnectionError`. `stats()` reports idle, in_use and created counts.
+  There are 4 bugs.
+hints:
+  - |
+    Check `stats()` after an exception inside `with pool.connection()` and after releasing the
+    same connection twice. Then ask what a blocked thread needs in order to wake up.
+  - |
+    A Condition wait needs a matching notify whenever the state it waits on changes, and every
+    exit path of a context manager needs cleanup in a `finally` block.
+  - |
+    Guard `release` with the in-use set, call `self._cond.notify()` after returning a
+    connection, decrement `_created` for broken ones, and put `release` in `finally`.
+tags: [threading, condition, pool, resource-leak]
+lesson: |
+  A pool is a tiny state machine guarded by a lock: idle list, in-use set and a creation counter
+  must always agree. Every transition that frees capacity has to notify waiters, otherwise they
+  sleep until their timeout. Cleanup belongs in `finally` so errors cannot leak slots, releases
+  must be idempotent so a double release cannot lend one socket to two threads, and broken
+  resources must give their capacity back or the pool shrinks until it deadlocks.
+mistakes:
+  - Releasing after the `yield` without `finally`, which only works when the body succeeds.
+  - Returning broken connections to the idle list instead of closing them.
+  - Calling `notify()` outside the lock or forgetting it because timeouts mask the missing wake-up.

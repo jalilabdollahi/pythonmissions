@@ -1,0 +1,41 @@
+title: Drain And Exit
+category: Reliability
+difficulty: 4
+xp: 300
+story: |
+  Basalt Queue's worker pods get SIGTERM on every deploy, and Kubernetes waits 30 seconds
+  before sending SIGKILL. Deploys keep losing jobs: workers keep taking new work while they
+  are supposedly shutting down, one failing job stops the drain with the rest of the queue
+  still full, slow jobs push the shutdown past the kill deadline, and an operator's second
+  Ctrl-C does not make it exit.
+description: |
+  `Server.handle_signal()` is the SIGTERM handler body. The first call stops accepting work
+  (`submit` returns False and records the job in `rejected`) and starts the grace deadline; a
+  second call sets `force`. `drain()` runs queued jobs in order until the queue is empty, the
+  deadline is reached, or force is set. A job that raises is recorded in `failed` and the drain
+  continues. Anything left over goes to `abandoned`. The return value is the process exit code:
+  0 for a clean drain, 1 when any job failed or was abandoned. Tests call the handler directly;
+  no real signals are sent.
+  There are 4 bugs.
+hints:
+  - |
+    Call `handle_signal()` and then `submit()`. Next, queue a job that raises ahead of two good
+    jobs, and queue jobs that each advance a fake clock by 10 seconds with a grace of 30.
+  - |
+    Which flag must change the moment the signal arrives? What should happen to the loop when
+    a job raises? What compares the clock to the deadline? And what does the second signal do?
+  - |
+    Set `accepting = False` in the handler, wrap each job in try/except, stop on `self.force or
+    clock >= deadline`, and make a repeated signal set `force` instead of restarting the deadline.
+tags: [shutdown, signals, draining, deadlines]
+lesson: |
+  Graceful shutdown is an ordering problem. First stop accepting new work, or the queue you are
+  draining never empties. Then drain with a hard deadline, because the platform will SIGKILL you
+  anyway and it is better to report what was abandoned than to lose it silently. Individual job
+  failures must not abort the drain, and a second signal is an explicit "stop now" from a human.
+  Keep the signal handler itself tiny, flipping flags that the main loop obeys, and make the
+  exit code truthful so the orchestrator can see that a deploy lost work.
+mistakes:
+  - Setting the accepting flag only after the drain finishes.
+  - Letting one job exception escape the drain loop.
+  - Checking the deadline only before the drain starts.

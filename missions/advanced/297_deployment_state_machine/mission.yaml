@@ -1,0 +1,40 @@
+title: Release Train States
+category: Orchestration
+difficulty: 4
+xp: 300
+story: |
+  Marigold's deploy board tracks every release as a state: queued, deploying, verifying, live.
+  Last sprint a release jumped from deploying straight to live without its smoke tests, a
+  duplicate "deployed" webhook crashed the controller, and an illegal rollback request left a
+  release stuck in a state that its history never recorded.
+description: |
+  `TRANSITIONS` is the table of legal moves. `Deployment.move(new_state)` changes state only
+  along a legal edge: an unknown state name raises `ValueError`, an illegal edge raises
+  `IllegalTransition` and leaves the deployment (state and history) untouched, and moving to the
+  state it is already in is a harmless duplicate that returns False and records nothing.
+  Terminal states (`rolled_back`, `rollback_failed`, `superseded`, `cancelled`) have no exits.
+  `apply(event)` translates event names into moves.
+  There are 4 bugs.
+hints:
+  - |
+    Walk a deployment queued -> deploying -> live and check whether it is allowed. Then try an
+    illegal move and print `state` and `history` afterwards, and apply the same event twice.
+  - |
+    Compare the table entry for `deploying` with the lifecycle in the description. `can_move`
+    must depend on where you are now. Validate before you mutate. Repeated events are normal in
+    at-least-once delivery.
+  - |
+    Remove `live` from the deploying row, look up `TRANSITIONS[self.state]` in `can_move`, check
+    legality before assigning, and return False early when `new_state == self.state`.
+tags: [state-machine, transitions, idempotency, deployment]
+lesson: |
+  Making a lifecycle explicit as a transition table turns "can this ever happen?" into data you
+  can review and test. The machine only helps if the code enforces it: a move must be checked
+  against the CURRENT state, validated before any field changes (otherwise a rejected move still
+  corrupts the object), and expressed so that skipped steps such as verification are impossible.
+  Event sources deliver duplicates, so moving to the state you are already in should be an
+  idempotent no-op rather than an error.
+mistakes:
+  - Checking that the target is a known state without checking it is reachable from the current one.
+  - Assigning the new state first and rolling back on error, which leaves a window of corruption.
+  - Treating a duplicate event as an illegal transition.

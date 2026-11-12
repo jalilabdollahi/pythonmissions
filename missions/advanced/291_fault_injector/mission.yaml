@@ -1,0 +1,41 @@
+title: Chaos Dial
+category: Chaos Engineering
+difficulty: 5
+xp: 300
+story: |
+  Fennel Cloud runs game-day drills where a fault injector breaks calls to the payment and
+  search services. The last drill could not be reproduced, because the same seed gave different
+  failures, two services always failed on the same requests, and the "failed" payment calls
+  had still charged customers' test cards.
+description: |
+  `FaultInjector(seed, rules, sleep)` wraps calls to named targets. Each target has a `Rule`
+  with an `error_rate` (0 to 1) and `latency_ms`. For a target with a rule, the injector first
+  sleeps `latency_ms / 1000` seconds (through the injected `sleep`), then rolls its dice: an
+  injected failure raises `InjectedFault` and the real function is NOT called. Targets with no
+  rule pass straight through. Everything must be reproducible from `seed`, and each target needs
+  its own independent random stream.
+  There are 4 bugs.
+hints:
+  - |
+    Build two injectors with the same seed and compare `drill()` patterns; then compare two
+    different targets with the same error rate inside one injector.
+  - |
+    Which random generator is rolled? What are the units that `sleep` expects? What do two
+    `random.Random` objects created from the same seed value produce? And does the real function
+    run before or after the roll?
+  - |
+    Roll `self._rng(target)`, divide milliseconds by 1000, seed each stream with the seed and the
+    target name together, and roll before calling `fn`.
+tags: [chaos, fault-injection, random, determinism]
+lesson: |
+  A chaos experiment you cannot replay is an anecdote. Reproducibility comes from owning your
+  random number generators: never use the global `random` module, derive one stream per target
+  from the experiment seed plus the target name so targets are independent (same seed alone
+  would make every service fail in lockstep), and inject time through a `sleep` function you
+  can fake. An injected fault must model a failure that happens before the work is done; if the
+  real function already ran, the drill produced side effects that the system under test never
+  saw as failures.
+mistakes:
+  - Calling random.seed(seed) globally, which other code and threads can disturb.
+  - Using a single shared Random for all targets, so adding one call changes every other target's failures.
+  - Raising the injected error after the real call and treating the result as discarded.

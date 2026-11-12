@@ -1,0 +1,29 @@
+title: Header Soup
+category: HTTP
+difficulty: 3
+xp: 200
+story: |
+  Grainger Gateway proxies traffic between mobile apps and internal services. Partners send `content-type`, `Content-Type` and
+  `CONTENT-TYPE` interchangeably, and some send several `Accept` headers. The gateway's header container loses repeated headers
+  and rewrites names to lowercase when it forwards them, which breaks a strict legacy backend.
+description: |
+  `Headers` stores header fields. `add(name, value)` appends a value (surrounding whitespace is stripped) without discarding
+  earlier values for the same name. Lookups ignore case: `get(name, default=None)` returns all values joined with `", "`,
+  `get_all(name)` returns a list of the individual values and `name in headers` works. `items()` lists `(name, joined_value)` in
+  first-seen order using the spelling used the first time the name was added. There are 3 bugs.
+hints:
+  - |
+    Hint 1: Add `Accept: text/html` and `accept: application/json`, then print `get("ACCEPT")`, `get_all("Accept")` and `items()`.
+  - |
+    Hint 2: Use a lower-cased key for storage and lookup, but remember the original spelling separately. Appending to a list preserves earlier values, assigning a new list throws them away.
+  - |
+    Hint 3: Normalise with `name.lower()` in `get`, use `setdefault(key, []).append(...)` in `add`, and return `self._names[key]` in `items`.
+tags: [http, headers, case-insensitive, dict]
+lesson: |
+  HTTP field names are case-insensitive, so every lookup must go through the same normalisation (`name.lower()`) that storage used. Fields can also
+  repeat; RFC 9110 lets a recipient join repeated values with a comma, so a container must append rather than overwrite. Keeping a second
+  mapping from the normalised key to the first-seen spelling lets you forward headers exactly as the sender wrote them, which some picky legacy
+  systems still require. Libraries such as `requests` solve this with a `CaseInsensitiveDict`; building the idea yourself makes the trade-offs obvious.
+mistakes:
+  - "Lower-casing the stored name and forgetting to normalise the lookup key."
+  - "Using a plain dict with `d[name] = value`, which silently drops repeated headers."

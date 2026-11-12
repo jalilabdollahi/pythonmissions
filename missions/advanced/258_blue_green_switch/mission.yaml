@@ -1,0 +1,40 @@
+title: Blue/Green Cutover
+category: Deployment
+difficulty: 4
+xp: 300
+story: |
+  Lakeshore Retail deploys its storefront with a blue/green router so releases never interrupt
+  shoppers. Last Friday the release tool overwrote the live color, switched to a candidate that
+  had passed only scattered health checks, and left the router pointing at a broken build even
+  though post-deploy verification failed.
+description: |
+  `BlueGreenRouter` has two colors and serves from `active`. `deploy(version)` installs a build
+  on the idle color. `cutover(check, required, max_checks, verify)` runs `check(color)` against
+  the idle color until it has passed `required` times IN A ROW (stopping as soon as the gate is
+  met) or `max_checks` is exhausted; a failing check restarts the streak. If the gate is not met
+  the result is `blocked` and nothing changes. Otherwise traffic switches, and if `verify` fails
+  the router returns to the previous color (`rolled_back`) with no pending rollback left.
+  `rollback()` can undo the last switch exactly once.
+  There are 4 bugs.
+hints:
+  - |
+    Follow `status()` and `history` through deploy, a blocked cutover, a failed verification and
+    two manual rollbacks in a row.
+  - |
+    "Consecutive" means the counter must forget earlier successes. The idle color is the only safe
+    deployment target. Rollback state belongs to one cutover and must not outlive its use.
+  - |
+    Reset `passes = 0` on a failed check, deploy to `self.idle`, set `previous` to `None` when
+    rolling back, and restore `self.active` when `verify` fails.
+tags: [blue-green, deployment, health-check, rollback]
+lesson: |
+  Blue/green deployment relies on a few invariants: the live color is never modified, the idle
+  color is promoted only after a streak of consecutive healthy checks, and every switch can be
+  undone. A health gate that counts total successes instead of consecutive ones lets a flapping
+  service through. Rollback bookkeeping must be consumed by the rollback itself: if the previous
+  color is still remembered afterwards, a second "undo" swaps traffic back to the build you
+  just abandoned.
+mistakes:
+  - Counting total passing checks instead of an unbroken streak.
+  - Running verification but not acting on its result.
+  - Keeping `previous` after a rollback so the next rollback reverts the rollback.

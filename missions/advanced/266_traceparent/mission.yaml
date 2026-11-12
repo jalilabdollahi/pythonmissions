@@ -1,0 +1,36 @@
+title: Traceparent Gatekeeper
+category: Observability
+difficulty: 4
+xp: 300
+story: |
+  Cobalt Freight runs an edge proxy that continues distributed traces from partner systems.
+  Partners keep sending odd headers, and the tracing backend is full of broken traces: ids made
+  of zeros, ids with a 0x prefix, and span ids that are only a few characters long.
+description: |
+  `parse` validates a W3C `traceparent` header (`version-traceid-spanid-flags`): lowercase hex
+  only with exact lengths, version `ff` forbidden, all-zero trace and parent ids forbidden, and
+  version `00` must have exactly four fields while future versions may append more.
+  `new_span_id` produces a non-zero 16-digit id, `child_context` continues the trace with a new
+  span id, and `continue_or_start` is the edge behaviour. There are 4 bugs.
+hints:
+  - |
+    Hint 1: Feed `parse` an id with a `0x` prefix, uppercase letters, and a version 00 header
+    with a trailing field. Then ask `new_span_id` for a small random number.
+  - |
+    Hint 2: `int(text, 16)` is far more permissive than the spec. The spec also marks specific
+    values as invalid, and ids have fixed width.
+  - |
+    Hint 3: Check each character against a set of lowercase hex digits, reject version 00 with
+    more than four parts, compare the trace id with 32 zeros, and format with `"016x"`.
+tags: [tracing, w3c, validation, parsing]
+lesson: |
+  Propagation headers are an interoperability contract, so validation must follow the spec
+  exactly. `int(x, 16)` accepts prefixes, signs, whitespace and uppercase, which means it
+  validates far more than a hex id. The all-zero ids are reserved to mean invalid, and fixed
+  width matters because downstream systems index on those exact strings: a span id that lost its
+  leading zeros is a different id. Version rules matter too: be strict about what version 00
+  means yet tolerant of newer versions you do not fully understand.
+mistakes:
+  - Validating hex with int(text, 16) and a length check, which lets through 0x, plus signs and uppercase.
+  - Formatting ids with %x or hex() and forgetting to zero-pad to the full width.
+  - Rejecting every header with more than four fields, which breaks forward compatibility.

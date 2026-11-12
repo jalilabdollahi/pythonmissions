@@ -1,0 +1,40 @@
+title: Poison Pill Parking
+category: Messaging
+difficulty: 4
+xp: 300
+story: |
+  Orbital Pay's settlement consumer got stuck last night on one malformed payout message that
+  crashed the handler, was redelivered immediately, and crashed again, blocking 40,000 healthy
+  payouts behind it. The dead-letter queue exists, but it shows the wrong error, gets messages
+  one attempt late, and ignores errors that should never be retried.
+description: |
+  `Broker.run(handler)` delivers messages one at a time. A handler that raises counts as a
+  failed attempt: the message goes to the BACK of the queue until it has been attempted
+  `max_attempts` times, then it is parked in `broker.dead` with `reason="retries_exhausted"`,
+  its attempt count and its LAST error. A handler error that is a `PermanentError` (or any
+  subclass) is parked immediately with `reason="permanent"` because retrying cannot help.
+  `redrive` returns parked messages to the queue with a fresh attempt budget.
+  There are 4 bugs.
+hints:
+  - |
+    Count how many times the handler is called for a message that always fails, and print the
+    order of deliveries when a bad message sits in front of a good one.
+  - |
+    Think about `>=` versus `>` when comparing attempts to the budget, where requeued work
+    should be placed, which entry of `errors` is the latest, and what `isinstance` does that
+    an exact type comparison does not.
+  - |
+    Park when `attempts >= max_attempts`, use `append` to requeue, report `errors[-1]`, and use
+    `isinstance(exc, PermanentError)`.
+tags: [dlq, retries, messaging, poison-message]
+lesson: |
+  A poison message is one that will never succeed, and a broker that retries it at the front
+  of the queue turns one bad payload into an outage for everyone behind it. Retries need a hard
+  budget that is checked with the correct boundary, requeueing at the back so healthy work keeps
+  flowing, and a fast path for errors that are permanent by nature. The dead-letter record is
+  what a human reads at 3 a.m., so it must carry the most recent error and the real attempt
+  count, and subclasses of a permanent error must be treated as permanent too.
+mistakes:
+  - Retrying forever with a sleep between attempts instead of capping attempts.
+  - Dropping the message when attempts run out instead of parking it with its error.
+  - Catching only the exact PermanentError class so custom subclasses get retried.

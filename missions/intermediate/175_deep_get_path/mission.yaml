@@ -1,0 +1,30 @@
+title: Dotted Path Digger
+category: Config
+difficulty: 3
+xp: 200
+story: |
+  The Orbit-Kube audit bot reads Kubernetes manifests and checks fields such as `spec.containers.0.image`.
+  Last week it reported that three deployments "had no replicas set" when they were deliberately scaled to zero,
+  and it crashed on a service whose ports were keyed by strings like `"80"`.
+description: |
+  `deep_get(obj, path, default=None)` walks a dotted path through dicts and lists. For lists a path segment is an integer
+  index (negative indexes count from the end). Dict keys are always used exactly as written, even if they look like numbers.
+  If any step is missing or out of range the default is returned, but real falsy values such as `0`, `""` or `False` are
+  returned as they are. `container_images(pod)` returns every container image of a pod manifest. There are 3 bugs.
+hints:
+  - |
+    Hint 1: Look up `spec.replicas` on `{"spec": {"replicas": 0}}`, and `ports.80` on `{"ports": {"80": "http"}}`, and `items.-1` on a list.
+  - |
+    Hint 2: Use a unique sentinel object to signal "missing" instead of testing the value for truthiness. Dict keys are strings in YAML/JSON; only list segments become `int`.
+  - |
+    Hint 3: Compare with `node is _MISSING`, look dict keys up with the raw segment, and accept `-len(node) <= idx < len(node)` for lists.
+tags: [nested-data, kubernetes, sentinel, lookup]
+lesson: |
+  Nested lookups must separate "the key is absent" from "the value is falsy". A module-level sentinel (`object()`) gives you a
+  value nothing else can equal, so `0`, `False` and `""` can flow through untouched. Segment types matter as well: a list segment
+  is an index, but a dict segment is a key and must stay a string, otherwise `"80"` turns into `80` and no longer matches the YAML
+  it came from. Python allows negative list indexes, so keep your bounds check symmetrical. Config audit tools that confuse
+  absent and zero produce false alarms that teach people to ignore them.
+mistakes:
+  - "Returning the default whenever the found value is falsy."
+  - "Converting every numeric-looking path segment to int, even for dictionaries."

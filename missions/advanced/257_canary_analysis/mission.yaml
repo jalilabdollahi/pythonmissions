@@ -1,0 +1,40 @@
+title: Canary Verdict
+category: Deployment
+difficulty: 4
+xp: 300
+story: |
+  Falcon Deploy automates canary releases for the checkout service: a small slice of traffic runs
+  the new build and a statistics gate decides whether to continue. The gate crashed on a quiet
+  night when nobody hit the errors, rolled back a canary that was actually better than the
+  baseline, and promoted a build that had only seen a hundred requests.
+description: |
+  `analyze(baseline, canary, min_samples, z_critical, min_effect)` compares two `Sample`s of
+  `(requests, errors)`. If either side has fewer than `min_samples` requests the verdict is
+  `inconclusive`. Otherwise it computes the one-sided two-proportion z-score with the pooled
+  error rate and returns `rollback` only when `z >= z_critical` and the canary's rate exceeds the
+  baseline's by at least `min_effect`; everything else is `promote`. A pooled variance of zero
+  means no measurable difference. `gate` also fails a promotion when the canary's p95 latency is more than 20% above the
+  baseline's. `evaluate_rollout` aggregates stages and `format_verdict` renders one line.
+  There are 4 bugs.
+hints:
+  - |
+    Try these inputs: baseline with 100 requests and canary with 5000, two samples with zero
+    errors, a canary with fewer errors than baseline, and traffic splits of 10:1.
+  - |
+    The hypothesis is one-sided (canary worse). The standard error of the difference under the
+    null hypothesis pools both samples. Both groups need enough data before any test is valid.
+  - |
+    Use `or` in the sample-size check, compute `pooled = (e1 + e2) / (n1 + n2)`, return `0.0`
+    when the variance is zero, and drop the `abs()` calls.
+tags: [canary, statistics, z-test, deployment-gates]
+lesson: |
+  A canary gate is a hypothesis test, and each detail protects against a different bad decision.
+  Minimum sample sizes stop you from judging a release on noise, and both arms need them. Under
+  the null hypothesis the two groups share one error rate, so the standard error uses the pooled
+  rate. The test is one-sided: an improvement is not a regression, so the sign of z matters.
+  Degenerate inputs such as zero errors are normal on healthy services and must not crash the
+  gate, while a minimum effect size keeps huge samples from flagging differences nobody cares about.
+mistakes:
+  - Requiring only one of the two samples to be large enough.
+  - Using the absolute value of z, which treats an improvement as a regression.
+  - Letting a zero-error night raise `ZeroDivisionError` and block the pipeline.

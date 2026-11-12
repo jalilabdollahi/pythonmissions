@@ -1,0 +1,29 @@
+title: Top Status Codes
+category: Collections
+difficulty: 2
+xp: 100
+story: |
+  The edge team at Vantage CDN wants a daily digest of the three most common HTTP status codes seen in the access log.
+  The hand-rolled tally keeps reporting every code once, and the "top" list starts with the rarest codes instead of the most frequent.
+description: |
+  digest.py reads a list of integer status codes.
+
+  - `tally(codes)` returns a mapping of code to how many times it appeared.
+  - `top_codes(codes, n)` returns the `n` most frequent codes as `(code, count)` tuples, most frequent first.
+  - `error_share(codes)` returns the fraction of codes that are 400 or above (`0.0` for an empty list).
+  - `digest_line(codes, n)` returns text like `200:5 404:2 500:1`.
+
+  There are 2 bugs.
+hints:
+  - |
+    Tally a list where one code repeats several times. What count does it end up with?
+  - |
+    The standard library has a class built for counting hashable items, and it can also rank them.
+  - |
+    `collections.Counter(codes)` counts; `.most_common(n)` returns the top `n` in descending order.
+tags: [collections, counter, most_common]
+lesson: |
+  Counting is so common that the standard library ships `collections.Counter`: `Counter(codes)` tallies in one pass and `.most_common(n)` returns the top `n` pairs, highest first. Hand-written tallies tend to reset the count instead of incrementing it, and manual sorting tends to get the direction wrong. Reach for Counter whenever you catch yourself writing `if key in d: d[key] += 1 else: d[key] = 1`.
+mistakes:
+  - "Using `dict.get(code, 0)` incorrectly: `counts[code] = counts.get(code, 0)` never adds one."
+  - "Sorting the counts ascending and taking the first n."

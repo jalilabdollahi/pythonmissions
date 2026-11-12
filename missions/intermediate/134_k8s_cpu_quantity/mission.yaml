@@ -1,0 +1,30 @@
+title: Millicore Ledger
+category: Parsing
+difficulty: 3
+xp: 200
+story: |
+  Finance asked the Basalt platform team for a cost report based on Kubernetes
+  CPU requests. The report showed a single-core pod costing as much as a
+  thousand-core one, fractional cores came out a millicore short, and multi-container
+  pods were only counted for their first container.
+description: |
+  `parse_cpu(text)` converts a Kubernetes CPU quantity (`250m`, `1.5`, `2`) into an int number
+  of millicores. `pod_millicores(pod)` sums the `cpu` of every container of a pod (missing means 0) and
+  `namespace_totals(pods)` returns `{namespace: millicores}` summed over all pods. Invalid text raises
+  `ValueError`. There are 3 bugs.
+hints:
+  - |
+    Hint 1: Parse `250m`, `1`, and `1.001` and print the results.
+  - |
+    Hint 2: The `m` suffix already means thousandths of a core. Floats such as `1.001 * 1000` produce 1000.9999999999999, so truncating with `int()` loses a millicore. Look at which containers pod_millicores visits.
+  - |
+    Hint 3: For `m` return `int(number)` directly; otherwise `round(float(text) * 1000)`; and sum over `pod["containers"]`, not just the first one.
+tags: [kubernetes, parsing, floats, units]
+lesson: |
+  A CPU quantity is either an integer count of millicores (`250m`) or a decimal number of cores (`1.5`). Convert everything to the
+  smallest unit, millicores, and add integers rather than floats. Binary floats cannot represent most decimals exactly, so
+  `1.001 * 1000` gives `1000.9999999999999` and `int()` truncates it to 1000; use `round()` when converting. And a pod has many
+  containers, so any per-pod number must sum across all of them.
+mistakes:
+  - Using `int(float(text) * 1000)` for fractional cores and trusting that it is exact.
+  - Multiplying by 1000 after stripping the `m`, which treats millicores as cores.

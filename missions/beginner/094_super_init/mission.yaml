@@ -1,0 +1,28 @@
+title: Subclass Lost Its Parent
+category: Classes
+difficulty: 2
+xp: 100
+story: |
+  The platform team at Northwind Data added `PostgresInstance` and `RedisInstance` classes on top of a shared `Instance` base.
+  Both new classes crash the moment someone asks for the instance's name or tags, as if the base attributes were never set.
+description: |
+  instances.py has a base `Instance(name, region)` that sets `name`, `region` and an empty `tags` list, and offers `label()` returning `"<name>@<region>"`.
+
+  - `PostgresInstance(name, region, version)` adds a `version` attribute and its `describe()` returns `"<label> postgres <version>"`.
+  - `RedisInstance(name, region, memory_mb)` adds `memory_mb` and `describe()` returns `"<label> redis <memory_mb>MB"`.
+  - `tag(instance, key)` appends a tag to any instance.
+
+  There are 2 bugs.
+hints:
+  - |
+    Create each subclass and read its `name`. Which attributes exist?
+  - |
+    A subclass `__init__` replaces the parent's `__init__` unless it asks for it.
+  - |
+    Call `super().__init__(name, region)` at the start of each subclass constructor.
+tags: [classes, inheritance, super]
+lesson: |
+  When a subclass defines its own `__init__`, Python does not run the parent's automatically. The parent's attributes (`name`, `region`, `tags`) therefore never exist, and methods inherited from the base fail with AttributeError. Call `super().__init__(...)` first and pass along what the base needs, then add the subclass-specific fields. This keeps the base class the only place that knows how to set itself up.
+mistakes:
+  - "Copying the base attribute assignments into each subclass instead of calling super()."
+  - "Calling `Instance.__init__()` without passing self or arguments."

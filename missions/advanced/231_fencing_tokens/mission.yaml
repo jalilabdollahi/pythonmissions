@@ -1,0 +1,38 @@
+title: Zombie Writer Fence
+category: Distributed Systems
+difficulty: 5
+xp: 300
+story: |
+  Parcelpost's nightly compaction job takes a lease lock before rewriting the manifest. One
+  night the job's JVM froze for a minute, its lease expired, a second worker took over, and then
+  the first worker woke up and overwrote the new manifest with stale data. Fencing tokens were
+  supposed to make that impossible.
+description: |
+  `LockService` grants a lease on an injected clock. Every NEW grant returns a strictly larger
+  fencing token; the current holder re-acquiring before expiry keeps its token, anyone else is
+  refused while the lease is live, and a lease is over when `now >= expires_at`. `FencedStore`
+  remembers the highest token it has seen and rejects any write carrying a smaller one
+  (`StaleTokenError`); the live holder may write many times with the same token.
+  There are 4 bugs.
+hints:
+  - |
+    Hint 1: Replay the freeze scenario: A acquires, the lease runs out, B acquires, A writes.
+    Check the tokens A and B receive and what the store remembers after each write.
+  - |
+    Hint 2: A token must increase on every new grant, including a takeover from an expired
+    holder. The store has to ratchet its high-water mark and still let the holder write twice.
+  - |
+    Hint 3: Reject only token < highest, store max(highest, token), compare expiry with
+    `now < expires_at`, and bump the counter whenever someone other than a live holder gets it.
+tags: [fencing-token, lease, locks, distributed]
+lesson: |
+  A lease alone cannot protect a shared resource: a paused process can wake up after its lease
+  expired and still believe it holds the lock. The fix is a fencing token, a number that grows
+  with every grant and is checked by the resource itself. The check must reject strictly older
+  tokens (the current holder legitimately repeats its token), the high-water mark must only
+  ever ratchet upward, and a takeover must always mint a new token or the zombie is
+  indistinguishable from the new holder.
+mistakes:
+  - Rejecting writes with token equal to the highest seen, which blocks the legitimate holder.
+  - Reusing the previous token when the old lease merely expired and was never released.
+  - Checking the lease on the client side and trusting it instead of validating at the store.

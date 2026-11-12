@@ -1,0 +1,29 @@
+title: Kebab Case Or Bust
+category: Strings
+difficulty: 1
+xp: 100
+story: |
+  Platform engineering at Lattice Bank is moving service registrations to a naming rule: lower-case kebab-case only.
+  The registration tool normalises names typed by teams, and last week it produced `Payment-gateway` and `Auth_service`.
+  The service mesh rejected both, and the migration is blocked.
+description: |
+  naming.py normalises service names.
+
+  - `normalize(name)` trims whitespace, lower-cases the whole name, and turns spaces and underscores into single hyphens. `"  Payment Gateway "` becomes `"payment-gateway"` and `"Auth_Service"` becomes `"auth-service"`.
+  - `normalize_all(names)` normalises a list.
+  - `conflicts(names)` returns the sorted normalised names that appear more than once.
+
+  There are 2 bugs.
+hints:
+  - |
+    Normalise `'Payment Gateway'` and `'auth_service'` and look at each result character by character.
+  - |
+    One string method changes only the first letter; another changes every letter. And one separator is not handled at all.
+  - |
+    Use `lower()` instead of `capitalize()`, and replace underscores as well as spaces.
+tags: [strings, lower, capitalize, normalization]
+lesson: |
+  `capitalize()` lower-cases everything except the first letter, which it upper-cases: it is for sentences, not identifiers. `lower()` is the right tool when the rule is case-insensitive naming. Normalisation also has to cover every separator your inputs use, here both spaces and underscores, otherwise two spellings of the same service stay different. Write the rule down as a list of examples, then test each one.
+mistakes:
+  - "Using title(), which capitalises every word."
+  - "Replacing underscores before lower-casing, which does nothing for the casing bug."

@@ -1,0 +1,29 @@
+title: Office VPN Gatekeeper
+category: Network
+difficulty: 2
+xp: 100
+story: |
+  Brightwater Law restricts its document portal to the office networks.
+  After the office moved to a bigger network, staff were locked out, and at the same time a visitor from an unrelated address range got in.
+  The check was written by comparing text prefixes.
+description: |
+  gatekeeper.py handles network membership.
+
+  - `in_subnet(ip, cidr)` returns True when `ip` is inside the network written as `cidr` (for example `10.20.0.0/16`). Host bits in `cidr` are tolerated (`10.20.5.7/16` means the same network). Invalid input is not part of this mission.
+  - `is_allowed(ip, cidrs)` is True when the address belongs to at least one network in the list.
+  - `matching_network(ip, cidrs)` returns the first network string that contains the address, or `None`.
+
+  There is 1 bug.
+hints:
+  - |
+    Try a /16 network and an address in its second half, then try a /24 and an address that only shares the text prefix, like 10.1.20.5 and 10.1.2.0/24.
+  - |
+    Networks are defined by bits, not by dots and text. The `ipaddress` module understands CIDR and supports the `in` operator.
+  - |
+    Convert both sides: `ipaddress.ip_address(ip) in ipaddress.ip_network(cidr, strict=False)`.
+tags: [network, cidr, ipaddress]
+lesson: |
+  A CIDR prefix such as /20 is a count of bits, which rarely lines up with the dots in the text, so string prefixes give both false negatives and false positives. `ipaddress.ip_network(cidr)` builds a real network object and `address in network` does the bit arithmetic for you, for IPv4 and IPv6 alike. `strict=False` accepts a value with host bits set instead of raising. Access lists, firewall rules and rate-limit exemptions all depend on this check being exact.
+mistakes:
+  - "Comparing only the first two or three octets, which works for /16 and /24 and fails for everything else."
+  - "Converting to integers by hand when the standard library already does it."

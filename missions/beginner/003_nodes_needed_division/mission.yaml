@@ -1,0 +1,28 @@
+title: Node Count Shortfall
+category: Numbers
+difficulty: 1
+xp: 100
+story: |
+  The capacity team at Kestrel Cloud noticed that three pods were stuck in Pending after a scale-up.
+  The autoscaler helper that decides how many worker nodes to order rounded down, leaving the last few pods without a home.
+  Finance also complains the cost estimate shows fractional servers.
+description: |
+  capacity.py sizes a cluster.
+
+  - `nodes_needed(pods, pods_per_node)` returns the number of whole nodes required, as an int, rounding up for leftover pods. Zero pods needs zero nodes.
+  - `monthly_cost(pods, pods_per_node, price_per_node)` multiplies the node count by the price.
+
+  There is 1 bug.
+hints:
+  - |
+    Try 10 pods with 4 per node on paper. How many nodes do you need, and what does the function return?
+  - |
+    `/` returns a float and `//` floors. Neither rounds up on its own. Think ceiling division.
+  - |
+    `-(-pods // per_node)` or `math.ceil(pods / per_node)` both work. Make sure the result is an int.
+tags: [numbers, division, capacity]
+lesson: |
+  True division `/` always returns a float, and floor division `//` throws away the remainder, but capacity planning needs the ceiling: 10 pods at 4 per node need 3 nodes, not 2 or 2.5. A common idiom is `-(-a // b)`, or `math.ceil(a / b)` when the values are small enough for float precision. Rounding the wrong way in capacity code means Pending pods and pager noise, so always ask what should happen to the remainder.
+mistakes:
+  - "Using round(), which rounds 2.4 down to 2 and still leaves pods unscheduled."
+  - "Switching to // and calling it done; that floors and drops the partial node."

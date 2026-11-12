@@ -1,0 +1,36 @@
+title: Cormorant Access Judge
+category: Security
+difficulty: 5
+xp: 300
+story: |
+  Cormorant Cloud's internal access service decides whether a user may perform an action on a
+  resource. An audit found that a contractor with a deny rule for production logs could still
+  read them, that a `logs.prod/*` grant also matched `logsXprod/...`, and that senior roles
+  lost permissions they should have inherited.
+description: |
+  `Policy.explain(user, action, resource)` returns `("allow", sid)` or `("deny", sid_or_None)`.
+  Statements use `*` globs that must match the whole string, with every other character literal.
+  Roles can inherit other roles transitively (cycles must not hang). An explicit deny always
+  beats any allow, whatever the order in which roles or statements are examined, and
+  no matching statement means an implicit deny. There are 4 bugs.
+hints:
+  - |
+    Hint 1: Give a user an allow-all role and a separate deny for one path, then check that path.
+    Also test a pattern with a dot or plus sign, and a pattern with no wildcard.
+  - |
+    Hint 2: Converting a glob to a regex requires escaping the literal characters and anchoring
+    the match. Deny must be able to win even after an allow has already been seen.
+  - |
+    Hint 3: Use `re.escape` before replacing the escaped star, `fullmatch`, return on every
+    deny statement immediately, and push each role's `inherits` onto the stack.
+tags: [rbac, authorization, regex, policy]
+lesson: |
+  Authorization engines rest on three rules. Deny wins over allow, which means evaluation cannot
+  stop at the first allow it finds. Patterns must match the entire string with only the wildcard
+  being special, since an unescaped dot or an unanchored match quietly widens permissions.
+  Finally, role inheritance is a graph walk with a visited set, because real policy data
+  contains chains and occasionally cycles.
+mistakes:
+  - Returning at the first matching allow, so deny rules that sort later are never consulted.
+  - Using re.match, which only anchors the start and lets patterns match as prefixes.
+  - Forgetting re.escape and letting characters such as dot and plus act as regex operators.

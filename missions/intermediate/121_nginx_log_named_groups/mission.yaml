@@ -1,0 +1,34 @@
+title: Edge Log Decoder
+category: Regex
+difficulty: 3
+xp: 200
+story: |
+  The Helios edge proxies write nginx access logs, and the traffic dashboard has
+  gone blank for half the fleet. Some nodes log the short "common" format, some
+  log the "combined" format, and a few append the forwarded client address.
+  Your decoder silently drops or mangles lines from the odd nodes.
+description: |
+  `parse_line(line)` turns one access-log line into a dict with the keys `ip`, `user`,
+  `time`, `method`, `path`, `status` (int), `bytes` (int, 0 when nginx logs `-`),
+  `referer`, `agent` and `xff`. Fields that the line does not contain are `None`.
+  It returns `None` for lines that are not access-log entries.
+  `parse_lines(lines)` returns `(records, bad_count)` and `total_bytes(records)` sums the bytes.
+  There are 3 bugs.
+hints:
+  - |
+    Hint 1: Feed the decoder one line of each format and print the match. Which line returns None, and which one returns a field full of extra text?
+  - |
+    Hint 2: A greedy `.*` inside quotes keeps eating until the last quote on the line. A negated class such as `[^"]*` stops at the first closing quote. Also check what nginx writes when it does not know the size.
+  - |
+    Hint 3: Wrap the whole referer/agent/xff tail in an optional group, let the bytes group accept `-`, and convert `-` to 0 before calling int().
+tags: [regex, named-groups, nginx, logs]
+lesson: |
+  Named groups (`(?P<name>...)`) make a log parser self-documenting, but the pattern itself
+  has to describe the format precisely. A greedy `.*` between quotes swallows every later
+  quoted field, so use a negated class like `[^"]*` that cannot run past the closing quote.
+  Real logs are ragged: optional fields need an optional group, and placeholder values such as `-`
+  must be handled before converting to numbers. A parser that quietly returns None for valid lines
+  produces dashboards that look healthy but are missing data.
+mistakes:
+  - Making the pattern fully permissive with `.*` everywhere so that every line matches but the fields are wrong.
+  - Calling `int(m["bytes"])` on a `-` placeholder, or catching the ValueError and dropping the whole record.

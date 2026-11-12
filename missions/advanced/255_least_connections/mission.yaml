@@ -1,0 +1,40 @@
+title: Least Connections Balancer
+category: Load Balancing
+difficulty: 4
+xp: 300
+story: |
+  Parcelo's edge proxies send each new request to the backend with the fewest open
+  connections. After a refactor the big instances sit half idle while small ones fall over,
+  idle backends never rotate so the first one in the list takes all the quiet-time traffic, and
+  after a retry storm the balancer thinks some servers have negative load and sends them
+  everything.
+description: |
+  `LeastConnections` hands out `Lease` objects. `acquire()` picks the non-draining server with
+  the lowest `active / weight`; equal loads go to the least recently picked server. `release`
+  frees the lease exactly once and returns `True` the first time and `False` afterwards.
+  Draining servers get no new leases but their existing leases can still be released, and they
+  can be removed only when idle. `snapshot`, `utilization`, `add` and `route_many` are helpers.
+  There are 4 bugs.
+hints:
+  - |
+    Route a few connections between a weight-3 and a weight-1 server without releasing any, then
+    release the same lease twice and print `snapshot()`.
+  - |
+    Load is a ratio, not a raw count. A tie needs a deterministic but fair rule that changes
+    over time, and a lease must remember whether it was already given back.
+  - |
+    Use `s.active / s.weight`, sort ties by `s.last_pick`, return early when
+    `lease.released`, and only consider servers that are not draining.
+tags: [load-balancing, least-connections, idempotency, tie-breaking]
+lesson: |
+  Least-connections routing only works when the load measure is comparable across servers, so
+  connection counts must be divided by capacity weight. Ties are common when traffic is light,
+  and always choosing the first candidate turns "balanced" into "one hot server", so ties are
+  broken by least recent use. Resource accounting must be idempotent: a lease that can be
+  released twice will eventually drive the counter negative, and a negative load looks like
+  infinite spare capacity. Draining is the graceful way to retire a server without cutting
+  connections.
+mistakes:
+  - Comparing raw connection counts for servers with different weights.
+  - Breaking ties by list position, which concentrates idle traffic on one server.
+  - Decrementing the counter on every release call instead of tracking each lease once.

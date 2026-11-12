@@ -1,0 +1,26 @@
+title: Echo Echo Echo
+category: Logging
+difficulty: 3
+xp: 200
+story: |
+  The Eastgate batch runner calls `setup_logging()` at the start of every job, and long-lived workers run hundreds of jobs. By the end of the day each log line is printed
+  dozens of times and the log volume bill has exploded. Module loggers like `app.db` also print every message twice, and the shutdown helper leaves file handles open.
+description: |
+  `setup_logging(app, stream, error_stream=None)` configures the logger named `app` (level INFO, no propagation to root) with a handler writing `LEVEL message` lines to `stream`.
+  If `error_stream` is given a second handler writes only ERROR and above there. Calling it again for an already configured logger must not add more handlers. `get_child(app, suffix)` returns the
+  logger `app.suffix`, which reaches the parent's handlers by propagation and must have no handlers of its own. `close_logging(app)` removes and closes every handler of the logger (iterating over a copy of the list). There are 3 bugs.
+hints:
+  - |
+    Hint 1: Call `setup_logging` three times, log one message and count the lines. Then log through `get_child` and look at the total. Finally call `close_logging` on a logger with two handlers.
+  - |
+    Hint 2: `logger.handlers` is a plain list that survives between calls, so check it before adding. Child loggers pass records up to their parents already. Removed handlers also hold resources.
+  - |
+    Hint 3: Guard with `if not logger.handlers:`, return `logging.getLogger(...)` untouched from `get_child`, and call `handler.close()` after `removeHandler` (looping over `list(logger.handlers)`).
+tags: [logging, handlers, propagation, idempotent]
+lesson: |
+  Loggers are process-wide singletons keyed by name, so a handler added by one call is still attached on the next. Setup code that runs repeatedly must be idempotent: look at
+  `logger.handlers` first. Records also propagate up the dotted hierarchy (`app.db` -> `app`), so attaching a handler to both a child and its parent prints each line once per handler.
+  Configure handlers at one level only. When tearing down, iterate over a copy of the handler list, because `removeHandler` mutates it, and `close()` each handler so files and sockets are released; removing alone leaves them open.
+mistakes:
+  - "Adding a handler in every function that wants to log."
+  - "Setting logger.propagate = False on children to hide the duplicates instead of removing the extra handler."

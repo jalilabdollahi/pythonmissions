@@ -1,0 +1,29 @@
+title: Preflight Exit Status
+category: CLI
+difficulty: 2
+xp: 100
+story: |
+  The release pipeline at Sandstone Bank runs a preflight command and stops the rollout if it exits non-zero.
+  Last week a host with 95 percent disk usage passed preflight and the deploy filled the disk.
+  The command printed FAIL on the console, but the pipeline only looks at the exit status.
+description: |
+  preflight.py checks disk and memory usage.
+
+  - A check passes only when usage is strictly below its limit: disk 90 percent, memory 85 percent. Usage at or above the limit fails.
+  - `evaluate(disk_used, memory_used)` returns `[(name, used, ok), ...]` for disk then memory.
+  - `main(argv)` takes `--disk` and `--memory` (integers), prints `PASS <name> <used>%` or `FAIL <name> <used>%` per check, and returns the exit code: 0 when every check passes, 1 when any fails.
+
+  There are 2 bugs.
+hints:
+  - |
+    Run `main(["--disk", "95", "--memory", "10"])` and look at what it returns. Then try exactly 90.
+  - |
+    Process exit status is how shell scripts and pipelines learn about failure: 0 means success, non-zero means failure. Also check the boundary comparison.
+  - |
+    Return `1 if failed else 0` and compare with `<` against the limit.
+tags: [cli, exit-codes, ci]
+lesson: |
+  A command's exit status is its machine-readable verdict: 0 means success and any other value means failure. Pipelines, `&&` chains and `set -e` scripts ignore the printed text, so a tool that prints FAIL but exits 0 is invisible to automation. Keep `main` returning an integer and let the entry point pass it to `sys.exit`. Be precise about boundaries too: when the rule says a value at the limit fails, comparing with `<=` quietly lets it through.
+mistakes:
+  - "Calling `sys.exit(1)` inside the loop, which stops after the first failing check and skips the remaining output."
+  - "Printing the failure to stderr, which does not change the exit status."

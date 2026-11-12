@@ -1,0 +1,31 @@
+title: Endless Retry Spiral
+category: Loops
+difficulty: 1
+xp: 100
+story: |
+  The nightly invoice export at Tidewater Billing calls a flaky ledger API. After
+  the vendor had a short outage, the export job was found still running at 9 a.m.,
+  hammering the API thousands of times instead of giving up after a few tries.
+description: |
+  `call_with_retries(action, max_attempts=3, sleep=...)` calls `action()` until it
+  succeeds. If it raises `ConnectionError` it waits using `sleep(delay)` with a
+  delay that doubles each time (1, 2, 4, ...) and tries again. After
+  `max_attempts` failed calls it raises `RuntimeError` mentioning the attempt count.
+  There is 1 bug.
+hints:
+  - |
+    Watch how many times the failing action is called before the test gives up.
+  - |
+    A `while attempts < max_attempts` loop only ends if something changes `attempts`.
+  - |
+    Increment the counter inside the `except` block, before computing the delay.
+tags: [loops, while, retry, backoff]
+lesson: |
+  A `while` loop runs for as long as its condition holds, so the body must change
+  something the condition depends on. A forgotten counter increment turns a retry
+  policy into an infinite loop that hammers a failing service. Always ask: "which
+  statement makes this loop end?" For bounded retries a `for attempt in range(n)`
+  loop avoids the problem, but when you use `while`, update the counter on every path.
+mistakes:
+  - Raising immediately after the first failure instead of retrying.
+  - Incrementing the counter only on success, which never happens when the service is down.

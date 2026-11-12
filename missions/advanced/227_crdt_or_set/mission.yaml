@@ -1,0 +1,35 @@
+title: Shared Watchlist Merge
+category: Distributed Systems
+difficulty: 5
+xp: 300
+story: |
+  Stargazer's on-call app lets engineers on different continents edit a shared host watchlist
+  while offline. After syncing, hosts that someone deleted keep coming back, while a host one
+  engineer had just re-added vanished again. The sync layer is an observed-remove set.
+description: |
+  `ORSet` tags every `add` with a unique `(replica, sequence)` pair. `remove(element)`
+  tombstones only the tags this replica has OBSERVED for that element. An element is present
+  when at least one of its tags is not tombstoned. `merge(other)` unions the add-tags and the
+  tombstones, so a concurrent add (new tag) beats a remove (old tags). Removing an element
+  that is not present is a no-op. There are 4 bugs.
+hints:
+  - |
+    Hint 1: Add the same element twice on one replica, then remove it. Also add, remove and
+    add again. What does `contains` say?
+  - |
+    Hint 2: Tombstones are state and must travel with merge, and merge must be a union for both
+    the tags and the tombstones.
+  - |
+    Hint 3: Increment the sequence for every add, tombstone every observed tag, and union the
+    tag sets per element in merge.
+tags: [crdt, or-set, tombstones, convergence]
+lesson: |
+  An observed-remove set solves the add/remove conflict of naive set CRDTs: each add gets a
+  globally unique tag, and a remove only deletes the tags it has seen. A concurrent add on
+  another replica carries a tag the remover never saw, so the element survives ("add wins").
+  That only works when tags are truly unique, when remove covers every observed tag, and when
+  merge unions both the tags and the tombstones.
+mistakes:
+  - Reusing the same tag for every add, so a re-add is indistinguishable from the removed one.
+  - Merging only the add sets and forgetting tombstones, so deletions never propagate.
+  - Replacing the remote tag set instead of unioning it with the local one.

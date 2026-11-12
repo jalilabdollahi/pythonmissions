@@ -1,0 +1,29 @@
+title: The Catalog That Vanished
+category: Paths
+difficulty: 1
+xp: 100
+story: |
+  Meridian Hosting's /var/log volume hit 95 percent, so an engineer wrote a quick cleanup script at 2 a.m.
+  It deleted the old logs, and also a file named `catalog` that the billing exporter reads on startup.
+  The postmortem asks for a filter that only touches real `.log` files.
+description: |
+  logclean.py cleans a log directory.
+
+  - `find_logs(directory)` returns a sorted list of file names (strings) whose extension is exactly `.log`. Sub-directories are ignored.
+  - `total_log_bytes(directory)` adds up the sizes of those files.
+  - `delete_logs(directory)` removes them and returns how many were deleted.
+
+  There is 1 bug.
+hints:
+  - |
+    Run `find_logs` on a folder containing a file called `catalog`. Is it in the result?
+  - |
+    A string ending in the letters `log` is not the same as a file with the `.log` extension.
+  - |
+    `Path.suffix` gives the extension including the dot. Compare it to `'.log'`.
+tags: [paths, pathlib, suffix, cleanup]
+lesson: |
+  `name.endswith('log')` is a text check, so it matches `catalog`, `syslog` and `blog` just as happily as `app.log`. A path has structure: `Path.suffix` is the real extension (`.log`), `Path.stem` the name without it. Cleanup scripts that delete files must filter on the structured value, because a loose match deletes data nobody meant to touch. Always test a destructive filter with a lookalike file.
+mistakes:
+  - "Adding the dot to endswith but forgetting names like `archive.log.gz` are a different kind of file."
+  - "Using `'log' in name`, which is even looser than endswith."

@@ -1,0 +1,38 @@
+title: Deploy Board Projection
+category: Event Sourcing
+difficulty: 5
+xp: 300
+story: |
+  Gantry's deploy dashboard is a read model built from a deployment event stream delivered
+  through a queue that can duplicate and reorder messages. The board now shows services with
+  doubled failure counts, services stuck on "deploying" after the success event arrived early,
+  and a "rebuild" button that wipes nothing and then ignores every event.
+description: |
+  `DeployBoard.handle(event)` projects `{stream, version, type, release}` events per service
+  stream. Versions start at 1 and are contiguous per stream. An event whose version is at or
+  below the last applied version is a duplicate and ignored. A version that skips ahead is
+  buffered (per stream) and applied automatically, in order, once the gap fills.
+  `rebuild(events)` resets the projection completely and replays. `handle` returns
+  `"applied"`, `"duplicate"` or `"buffered"`. There are 4 bugs.
+hints:
+  - |
+    Hint 1: Send the same event twice, then send version 3 before version 2 for a stream and
+    watch what the board shows.
+  - |
+    Hint 2: The buffer must be isolated per stream and drained until there is no next version.
+    Think about what rebuild must clear.
+  - |
+    Hint 3: Duplicate means version <= last, drain with `while`, key pending by stream then
+    version, and reset versions, pending and view in rebuild.
+tags: [cqrs, projection, ordering, idempotent-consumer]
+lesson: |
+  A CQRS read model is just a fold over events, and message transports only promise
+  at-least-once, unordered delivery. A projection therefore keeps the last applied version per
+  stream: lower or equal versions are duplicates, the next version is applied, and anything
+  further ahead is parked until the gap is filled. Parked events are per stream, since versions
+  from different aggregates are unrelated. A rebuild must discard all derived state, including
+  the version bookkeeping, or the replay is rejected as duplicates.
+mistakes:
+  - Treating only strictly lower versions as duplicates.
+  - Applying an event as soon as it arrives even though earlier versions are missing.
+  - Sharing one pending buffer between streams.

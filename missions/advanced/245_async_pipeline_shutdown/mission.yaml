@@ -1,0 +1,38 @@
+title: Webhook Delivery Pipeline
+category: Async
+difficulty: 4
+xp: 300
+story: |
+  Lumen Notify fans customer webhooks out to a handful of asyncio workers fed by a bounded
+  queue. Deploys now hang forever waiting for the pipeline to finish, one customer with a dead
+  endpoint silently starves everyone behind it, and an upstream disconnect leaves worker tasks
+  parked on an empty queue.
+description: |
+  `DeliveryPipeline(deliver, workers, maxsize).run(source)` consumes an async iterable, puts the
+  items on a bounded `asyncio.Queue` and has `workers` consumers call `deliver(item)`. Failures
+  are recorded in `report.failed` as `(item, ExceptionName)` and the worker carries on. Shutdown
+  is graceful: the producer sends one `_STOP` sentinel per worker, every queue entry is marked
+  with `task_done()`, queued items are delivered before returning, and a failing source still
+  stops the workers cleanly before its error is re-raised.
+  There are 4 bugs.
+hints:
+  - |
+    Run with `asyncio.wait_for` and look at which task is still pending when it times out:
+    a worker, the producer, or `queue.join()`.
+  - |
+    `queue.join()` waits for as many `task_done()` calls as there were `put()` calls, and each
+    consumer blocked in `get()` needs something to wake it up.
+  - |
+    Put one `_STOP` per worker inside a `finally`, call `task_done()` in a `finally` in the
+    worker, and use `continue` after recording a failed delivery.
+tags: [asyncio, queue, shutdown, producer-consumer]
+lesson: |
+  A clean shutdown is a protocol: the producer announces the end once per consumer, every
+  consumer acknowledges every item it took (including the sentinel) so `join()` can complete,
+  and error paths run the same protocol as the happy path. Anything that skips `task_done()` or
+  ends a worker early turns into a hang or a silent starvation in production, which is why the
+  shutdown steps belong in `finally` blocks rather than after the loop.
+mistakes:
+  - Sending a single sentinel and assuming the first worker passes it on.
+  - Cancelling workers instead of letting them drain the queue, which drops queued deliveries.
+  - Calling `task_done()` only on the success path, which makes `queue.join()` wait forever.

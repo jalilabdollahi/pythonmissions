@@ -1,0 +1,28 @@
+title: Count On Me
+category: Concurrency
+difficulty: 4
+xp: 200
+story: |
+  Birchwood Storage tracks uploads in a shared stats object that dozens of request threads update. Dashboards show fewer uploads than the
+  access log says, and under load the numbers differ on every run. A previous attempt to add a lock did not help, and the new batch
+  endpoint froze the whole server the first time it was used.
+description: |
+  `UploadStats` keeps `count`, `bytes` and `by_route` (uploads per route). `record(route, nbytes)` updates all three atomically with respect to other threads.
+  `record_batch(route, sizes)` records several uploads while holding the lock for the whole batch, and it must be allowed to call `record`.
+  `snapshot()` returns `{"count", "bytes", "by_route"}` where `by_route` is an independent copy, not the live dict. There are 3 bugs.
+hints:
+  - |
+    Hint 1: Hammer `record` from 8 threads and compare the totals with the expected values. Then call `record_batch` from a thread and see if it ever finishes.
+  - |
+    Hint 2: A lock only protects code if every thread shares the same lock object, so where is it created? A thread that already holds a plain `Lock` blocks forever when it tries to acquire it again. Think about which `threading` class allows re-entry.
+  - |
+    Hint 3: Create one lock in `__init__`, use `threading.RLock()` so `record_batch` may call `record`, and return `dict(self.by_route)` from `snapshot`.
+tags: [threading, lock, rlock, race-condition]
+lesson: |
+  `count += 1` is a read, an add and a write, so two threads can read the same value and one update is lost. A `Lock` fixes that only when all threads
+  contend for the same lock object; creating `threading.Lock()` inside the method gives every call a private lock that protects nothing. If a method that
+  holds the lock calls another method that takes it again, a plain `Lock` deadlocks while an `RLock` lets the same thread re-enter. Finally, hand out copies
+  of shared mutable state, because a snapshot that aliases the live dict keeps changing after you looked at it.
+mistakes:
+  - "Creating a new Lock inside each call, which never blocks anyone."
+  - "Sleeping or retrying instead of fixing the unsynchronised read-modify-write."

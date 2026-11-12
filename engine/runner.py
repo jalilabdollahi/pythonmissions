@@ -1,50 +1,59 @@
 """Test runner and editor integration."""
 
+from __future__ import annotations
+
+import os
+import shlex
 import shutil
 import subprocess
 import sys
 from pathlib import Path
 from typing import List, Tuple
 
+TEST_TIMEOUT_SECONDS = 60
+
 
 def get_editor() -> str:
-    """Detect user's preferred editor."""
-    import os
-
-    editor = os.environ.get("EDITOR") or os.environ.get("VISUAL")
+    """Detect the user's preferred editor."""
+    editor = os.environ.get("VISUAL") or os.environ.get("EDITOR")
     if editor:
         return editor
-    for ed in ["nano", "vim", "vi", "code", "gedit", "notepad"]:
-        if shutil.which(ed):
-            return ed
+    for candidate in ["nano", "vim", "vi", "code", "gedit", "notepad"]:
+        if shutil.which(candidate):
+            return candidate
     return "nano"
 
 
 def open_editor(file_path: Path) -> Tuple[bool, str]:
-    """Open file in editor. Returns (success, error_message)."""
-    editor = get_editor()
+    """Open a file in the editor. Returns (success, error_message).
+
+    $EDITOR may contain arguments (for example "code --wait"), so it is split
+    with shlex instead of being treated as a single executable name.
+    """
+    command = shlex.split(get_editor()) + [str(file_path)]
     try:
-        subprocess.run([editor, str(file_path)], check=False)
-        return True, ""
-    except Exception as e:
-        return False, str(e)
+        result = subprocess.run(command, check=False)
+    except (OSError, ValueError) as exc:
+        return False, str(exc)
+    if result.returncode not in (0, None):
+        return False, f"editor exited with code {result.returncode}"
+    return True, ""
 
 
-def run_tests(mission_path: Path) -> Tuple[bool, str, List[str]]:
+def run_tests(sandbox: Path) -> Tuple[bool, str, List[str]]:
+    """Run the mission tests inside the sandbox.
+
+    Returns (passed, output, failed_test_names).
     """
-    Run tests for a mission.
-    Returns: (passed, human_readable_output, list_of_failed_test_names)
-    """
-    test_file = mission_path / "test_mission.py"
-    broken_file = mission_path / "broken.py"
-
+    test_file = sandbox / "test_mission.py"
+    work_file = sandbox / "broken.py"
     if not test_file.exists():
         return False, "No test_mission.py found.", []
-    if not broken_file.exists():
+    if not work_file.exists():
         return False, "No broken.py found.", []
 
     syntax = subprocess.run(
-        [sys.executable, "-m", "py_compile", str(broken_file)],
+        [sys.executable, "-m", "py_compile", str(work_file)],
         capture_output=True,
         text=True,
         check=False,
@@ -52,30 +61,27 @@ def run_tests(mission_path: Path) -> Tuple[bool, str, List[str]]:
     if syntax.returncode != 0:
         return False, f"Syntax error:\n{syntax.stderr.strip()}", []
 
-    result = subprocess.run(
-        [sys.executable, "-m", "pytest", str(test_file), "-v", "--tb=short", "--no-header", "-q"],
-        capture_output=True,
-        text=True,
-        cwd=str(mission_path),
-        check=False,
-    )
-    output = result.stdout + result.stderr
-    passed = result.returncode == 0
+    env = dict(os.environ, PYTHONDONTWRITEBYTECODE="1")
+    try:
+        result = subprocess.run(
+            [sys.executable, "-m", "pytest", "test_mission.py", "-v", "--tb=short",
+             "--no-header", "-p", "no:cacheprovider"],
+            capture_output=True,
+            text=True,
+            cwd=str(sandbox),
+            env=env,
+            timeout=TEST_TIMEOUT_SECONDS,
+            check=False,
+        )
+    except subprocess.TimeoutExpired:
+        return False, (
+            f"Tests did not finish within {TEST_TIMEOUT_SECONDS}s. "
+            "Look for an infinite loop or a call that waits forever."
+        ), []
 
+    output = (result.stdout + result.stderr).strip()
     failed = []
     for line in output.splitlines():
-        if "FAILED" in line and "::" in line:
-            name = line.strip().split("::")[-1].split(" ")[0]
-            failed.append(name)
-
-    return passed, output.strip(), failed
-
-
-def reset_mission(mission_path: Path) -> bool:
-    """Restore broken.py from original.py."""
-    original = mission_path / "original.py"
-    broken = mission_path / "broken.py"
-    if not original.exists():
-        return False
-    shutil.copy2(original, broken)
-    return True
+        if line.startswith(("FAILED", "ERROR")) and "::" in line:
+            failed.append(line.split("::", 1)[1].split(" ")[0])
+    return result.returncode == 0, output, failed

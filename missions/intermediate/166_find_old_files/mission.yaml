@@ -1,0 +1,29 @@
+title: Stale Artifacts Sweep
+category: Files
+difficulty: 3
+xp: 200
+story: |
+  The Trellis release server hoards build artifacts until the disk fills up. The cleanup helper is meant to list
+  files untouched for more than a retention period, but on its first dry run it proposed deleting yesterday's
+  release candidate and a whole directory, and kept the year-old tarballs.
+description: |
+  `find_old_files(root, days, now)` returns the sorted names of regular files directly inside `root` whose modification time is
+  strictly more than `days` days before `now` (a number of seconds since the epoch passed in by the caller, never read from the clock).
+  Directories are never returned. `total_size(root, names)` adds up the sizes of the named files.
+  There are 3 bugs.
+hints:
+  - |
+    Hint 1: Create one file touched 40 days ago and one touched an hour ago, plus an old directory. Which names come back with `days=30`?
+  - |
+    Hint 2: A day is 86400 seconds. "Older" means a smaller mtime than the cutoff. `os.scandir` entries have an `is_file()` method.
+  - |
+    Hint 3: `cutoff = now - days * 86400`, keep entries with `st_mtime < cutoff`, and `continue` when `not entry.is_file()`.
+tags: [files, mtime, retention, scandir]
+lesson: |
+  Retention logic depends on three details. Convert days to seconds with the right factor (86400, not 3600). Compare modification times correctly:
+  an old file has a small timestamp, so it is the one below the cutoff, and a file exactly at the cutoff is not yet older than the limit. And restrict the sweep
+  to what you intend to delete: directories also have an mtime, so check `is_file()`. Passing `now` as an argument keeps cleanup code testable
+  and lets you replay a dry run for any moment.
+mistakes:
+  - Calling `time.time()` inside the function and then having tests that depend on the real clock.
+  - Flipping the comparison without noticing that the unit conversion is also wrong.

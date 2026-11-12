@@ -1,0 +1,30 @@
+title: Probe Factory
+category: Functional
+difficulty: 3
+xp: 200
+story: |
+  The Kestrel monitoring agent builds one small check function per host and registers
+  them in a table. In production every check probes the *last* host in the list, so one
+  broken server is reported eight times and the others are never looked at. A related
+  counter helper also crashes on first use.
+description: |
+  `build_checks(hosts, probe)` returns `{host: check}` where `check()` calls `probe(host)` for its own host.
+  `build_threshold_rules(limits)` takes `{name: limit}` and returns `{name: rule}` where `rule(value)` is True
+  when `value` is above that rule's own limit. `make_counter()` returns a function that returns 1, 2, 3, ... on
+  successive calls. `run_all(checks)` runs every check and returns the results. There are 3 bugs.
+hints:
+  - |
+    Build checks for two hosts and call both with a probe that records its argument. Which host name does it see?
+  - |
+    Closures capture variables, not values. Bind the current value at definition time with a default argument or `functools.partial`. A nested function that assigns to an outer variable needs a `nonlocal` declaration.
+  - |
+    Use `lambda host=host: probe(host)`, bind `limit=limit` the same way in the rules, and declare `nonlocal count` inside the counter.
+tags: [closures, late-binding, nonlocal, lambda]
+lesson: |
+  A closure remembers the variable, not the value it had when the function was created. Lambdas created in a loop therefore
+  all see the final value of the loop variable once the loop has finished. Bind the current value explicitly with a default
+  argument (`lambda h=h: ...`) or with `functools.partial`. Likewise, assigning to a variable of the enclosing function creates a
+  new local name unless you declare it `nonlocal`, which is why counters built from closures raise UnboundLocalError.
+mistakes:
+  - Creating the lambdas inside a list comprehension and expecting each comprehension step to have its own scope for the loop variable.
+  - Declaring the counter variable `global`, which refers to module scope, not to the enclosing function.

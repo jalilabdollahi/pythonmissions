@@ -1,0 +1,30 @@
+title: Round Robin Roulette
+category: Numbers
+difficulty: 1
+xp: 100
+story: |
+  Gridlock Networks runs a tiny round-robin picker in front of its three video encoders.
+  Roughly every fourth request crashes with IndexError, which the support team has been calling "the lottery".
+  The load test shows the failures arrive in a perfectly regular pattern.
+description: |
+  balancer.py rotates requests across backends.
+
+  - `RoundRobin(backends)` keeps a list of backend names; an empty list raises `ValueError("no backends")`.
+  - `next_backend()` returns the backends in order, starting with the first, wrapping around to the first after the last.
+  - `peek_cycle(n)` returns the next `n` choices.
+  - `served` counts how many picks were made.
+
+  There is 1 bug.
+hints:
+  - |
+    Call `next_backend()` four times on three backends and watch which call fails.
+  - |
+    The remainder operator wraps a counter into a range of valid indexes. Check what number it divides by.
+  - |
+    Divide by `len(self.backends)`, not by one more than that.
+tags: [numbers, modulo, indexing, round-robin]
+lesson: |
+  `counter % n` always lands between 0 and `n - 1`, which makes it the standard way to wrap a counter into a list of length n. Dividing by `n + 1` yields an index equal to `n`, which is one past the end, so the failure shows up at a regular interval. Off-by-one errors in modulo and slicing are the quiet cousins of loop bounds. When an error repeats on a fixed schedule, suspect arithmetic on the length.
+mistakes:
+  - "Catching IndexError and resetting the counter, which hides the wrong divisor."
+  - "Using `len(self.backends) - 1`, which can never select the last backend."

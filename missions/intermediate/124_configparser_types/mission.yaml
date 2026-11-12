@@ -1,0 +1,31 @@
+title: Typed INI Settings
+category: Config
+difficulty: 2
+xp: 200
+story: |
+  The Quill batch workers read their tuning knobs from an INI file. Ops set
+  `debug = false` in production and the workers still printed debug noise, and a
+  worker on a fresh host crashed because its config had no section at all.
+description: |
+  `load_settings(path)` reads an INI file with a `[worker]` section and returns
+  `{"threads": int, "debug": bool, "timeout": float}`. Defaults are `threads=4`,
+  `debug=False` and `timeout=30.0`. Missing options or a missing file or section must produce
+  the defaults, never an exception. `debug` accepts the usual INI booleans such as
+  `yes/no`, `true/false`, `on/off` and `1/0`. There are 3 bugs.
+hints:
+  - |
+    Hint 1: Load a file with `debug = false` and look at the type and value you get for debug and threads.
+  - |
+    Hint 2: ConfigParser has typed getters: getint, getfloat and getboolean. They also take a `fallback=` argument.
+  - |
+    Hint 3: Call the getters on the parser itself, `cp.getint("worker", "threads", fallback=4)`, not on a section proxy, so a missing section also uses the fallback.
+tags: [configparser, ini, types, fallback]
+lesson: |
+  ConfigParser stores everything as strings. `bool("false")` is True because any non-empty string is
+  truthy, so booleans need `getboolean`, which understands yes/no, on/off, true/false and 1/0. The typed
+  getters also convert numbers for you. Calling them on the parser, with `fallback=`, makes absent
+  options and even absent sections fall back cleanly, while `cp["worker"]` raises KeyError for a missing section.
+  Defaults belong in code so a fresh host works with no file.
+mistakes:
+  - Wrapping `bool()` around the string value, which makes every non-empty string True.
+  - Using `cp.get(..., fallback=4)` and assuming the result is an int when the file does contain a value.

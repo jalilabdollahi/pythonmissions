@@ -1,0 +1,28 @@
+title: Tags That Follow You
+category: Functions
+difficulty: 2
+xp: 100
+story: |
+  At Saffron Bank the tagging helper stamps cloud resources for the audit.
+  The auditors found a brand-new test bucket carrying the tags of a production database created ten minutes earlier by the same script.
+  Nobody shared tags on purpose.
+description: |
+  tagging.py builds tag lists for resources.
+
+  - `tag_resource(name, tag, tags=None)` returns a list of tags for the resource: the given tags (if any) plus the new tag. Every call without `tags` must start from an empty list.
+  - `standard_tags(owner)` returns `["owner:<owner>", "managed:true"]` built through tag_resource.
+
+  There is 1 bug.
+hints:
+  - |
+    Call tag_resource twice without the tags argument and print both results.
+  - |
+    Default argument values are evaluated once, when the function is defined, and then shared.
+  - |
+    Use `None` as the default and create a fresh list inside the function when it is None.
+tags: [functions, defaults, mutable]
+lesson: |
+  Default parameter values are created once at function definition time, so a mutable default like `[]` or `{}` is the same object on every call and accumulates data between calls. The standard pattern is `tags=None` followed by `if tags is None: tags = []`. In ops code this shows up as stale tags, duplicated hosts and mysteriously growing lists that only appear after the second call.
+mistakes:
+  - "Clearing the list at the start of the function, which also wipes a list the caller passed in."
+  - "Copying the default list at the end instead of avoiding the shared default."

@@ -1,0 +1,36 @@
+title: Parcel Request Timeline
+category: Observability
+difficulty: 4
+xp: 300
+story: |
+  Fernwood Logistics debugs slow parcel lookups by merging logs from the edge, router,
+  warehouse and billing services into a single timeline per request. Engineers keep finding
+  requests split in two, events in impossible order, and a hop count that ignores a request
+  bouncing back to an earlier service.
+description: |
+  `correlate(entries, skew)` groups log lines by normalized request id (stripped and lowercase,
+  blank ids are counted as unattributed), corrects each line's timestamp for its service's
+  clock skew (seconds the clock runs ahead), and sorts each timeline by corrected time with
+  service name and per-service `seq` as tie-breakers. `hops`, `summarize`, `slowest_gap` and
+  `failing_requests` analyse the timelines. There are 4 bugs.
+hints:
+  - |
+    Hint 1: Log the same request id in two cases, give one service a skewed clock and print the
+    resulting timeline order. Then give several lines the same timestamp.
+  - |
+    Hint 2: A clock that runs ahead must be corrected backwards. Ties in timestamps need a
+    stable, meaningful ordering, and a hop is a change between neighbouring lines.
+  - |
+    Hint 3: Use `raw.strip().lower()`, subtract the skew, sort by `(ts, service, seq)`, and count
+    neighbouring pairs with different services.
+tags: [logging, correlation, clock-skew, ordering]
+lesson: |
+  Correlating logs across machines means reconciling three imperfect things: identifiers that are
+  formatted inconsistently, clocks that disagree, and timestamps with limited resolution. Normalize
+  ids before grouping, correct skew in the right direction, and always give the sort a complete
+  tie-break so the same logs always produce the same story. Derived metrics must also describe
+  the sequence, not the set: a request that returns to a service has made another network hop.
+mistakes:
+  - Sorting by timestamp alone, which leaves ties in whatever order the log shipper delivered them.
+  - Adding the skew instead of subtracting it, doubling the error.
+  - Counting distinct services minus one as the number of hops.

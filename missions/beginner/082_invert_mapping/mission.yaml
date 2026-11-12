@@ -1,0 +1,29 @@
+title: Port Collision Detector
+category: Comprehensions
+difficulty: 2
+xp: 100
+story: |
+  Two services at Copperfield Logistics were deployed to the same host port last week, and the second one silently took over traffic from the first.
+  The platform team wrote a reverse lookup from port to service so they could spot clashes, but it hides the exact problem it was meant to find.
+description: |
+  ports.py works with a `{service: port}` dict.
+
+  - `by_port(services)` returns a `{port: service}` dict. If two services share a port it raises `ValueError` whose message contains the port number and both service names.
+  - `owner_of(services, port)` returns the service on that port, or `None`.
+  - `free_ports(services, candidates)` returns the candidate ports no service uses, in the given order.
+  - `check_config(services)` returns `"ok"` or `"conflict: <message>"`.
+
+  There is 1 bug.
+hints:
+  - |
+    Build a services dict where two names share a port and see what `by_port` returns.
+  - |
+    A dict comprehension that flips keys and values keeps only the last entry for a repeated key. You need to look before you overwrite.
+  - |
+    In a loop, check `if port in result:` before assigning, and raise `ValueError` with both names.
+tags: [comprehensions, dicts, inversion, validation]
+lesson: |
+  `{port: name for name, port in services.items()}` is a neat inversion, but dictionary keys are unique, so duplicates silently overwrite each other and the data loss is invisible. When the whole point of the inverted map is to find collisions, build it in an explicit loop and detect repeats before they are overwritten. Silent data loss during transformation is much harder to debug than a loud ValueError.
+mistakes:
+  - "Comparing `len(result)` to `len(services)` afterwards but not saying which services clashed."
+  - "Raising the error after the overwrite, so the first service name is already lost."

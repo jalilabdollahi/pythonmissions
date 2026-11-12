@@ -1,0 +1,29 @@
+title: Uptime Is Not a Method
+category: Classes
+difficulty: 2
+xp: 100
+story: |
+  The monitoring page at Slate Networks shows "uptime: <bound method ...>" next to every router, and the alert rule that compares uptime to a threshold crashes.
+  The computed values were meant to read like plain attributes.
+description: |
+  router.py defines `Router(name, boot_time, now)` where times are epoch seconds.
+
+  - `r.uptime_seconds` and `r.uptime_hours` are read as attributes, with no parentheses.
+  - `uptime_hours` is `uptime_seconds / 3600`.
+  - `is_fresh` (also an attribute) is True when the router has been up for less than one hour.
+  - `status_line(router)` returns text like `edge-1 up 2.5h`.
+
+  There are 2 bugs.
+hints:
+  - |
+    Print `router.uptime_hours`. Do you see a number or a method object?
+  - |
+    A method is turned into a read-only attribute by a decorator from the builtins.
+  - |
+    Put `@property` above `uptime_hours` and above `is_fresh`.
+tags: [classes, property, decorators]
+lesson: |
+  `@property` lets you write `router.uptime_hours` while Python runs a method behind the scenes, so the value is always computed from current data and never goes stale. Without the decorator, the attribute is a bound method: printing it shows `<bound method ...>` and comparing it to a number raises TypeError (or, worse, `if router.is_fresh:` is always truthy). Use properties for cheap, derived values and keep methods for actions.
+mistakes:
+  - "Calling the method with parentheses in the tests instead of adding the decorator."
+  - "Storing uptime in `__init__` so it never changes when the data does."

@@ -1,0 +1,29 @@
+title: Second Deploy, Same Directory
+category: Paths
+difficulty: 1
+xp: 100
+story: |
+  The Lumen Media pipeline prepares a directory for every release, plus a logs folder inside it.
+  The first deploy to a fresh host crashed, and so did the retry after a half-finished run.
+  On-call has been deleting directories by hand to get the pipeline moving again.
+description: |
+  prepare.py creates release directories.
+
+  - `prepare_release(base, version)` creates `<base>/<version>` and `<base>/<version>/logs` and returns the release `Path`. `base` may not exist yet.
+  - Running it again for an existing release must succeed and leave existing files alone.
+  - `list_releases(base)` returns sorted version names.
+
+  There are 2 bugs.
+hints:
+  - |
+    Call `prepare_release` on a base directory that does not exist, then call it twice in a row. Read the two errors.
+  - |
+    `Path.mkdir` has two keyword arguments for these exact situations.
+  - |
+    Use `parents=True` when intermediate directories may be missing and `exist_ok=True` when the directory may already be there.
+tags: [paths, mkdir, idempotent]
+lesson: |
+  A deploy step should be safe to run twice. `Path.mkdir()` raises `FileNotFoundError` if a parent is missing and `FileExistsError` if the directory exists, so a script that works on your machine fails on a clean host or on a retry. `parents=True` creates the missing parents and `exist_ok=True` accepts an existing directory. Together they make directory creation idempotent, which is what automation needs.
+mistakes:
+  - "Wrapping the call in a bare try/except, which also hides permission errors."
+  - "Checking `exists()` first, which leaves a race between the check and the creation."

@@ -1,0 +1,41 @@
+title: Backup Rotation
+category: Backups
+difficulty: 5
+xp: 300
+story: |
+  Cobalt Records keeps nightly database dumps in object storage, and the storage bill keeps
+  climbing. Last week a restore request for a March backup failed because the retention job had
+  deleted it, even though policy says one backup per month is kept for six months. Meanwhile a
+  busy day with four extra dumps used up the whole daily quota.
+description: |
+  `select_keep(backups, daily, weekly, monthly)` implements grandfather-father-son retention
+  over a list of datetimes. It keeps the NEWEST backup of each of the last `daily` calendar days,
+  the newest of each of the last `weekly` ISO weeks, and the newest of each of the last `monthly`
+  calendar months (years matter: March 2023 and March 2024 are different months), and returns
+  the union. `plan` and `names_to_delete` build on it. A period is counted by distinct
+  periods that have backups, not by number of backups.
+  There are 4 bugs.
+hints:
+  - |
+    Create three backups on the same day and ask for daily=2, then create backups exactly one
+    year apart and ask for monthly=6 and weekly=4 with generous limits.
+  - |
+    Week and month numbers repeat every year, so a period key needs its year. A key must
+    identify a calendar day, not a timestamp. And when you walk newest-first, the first backup
+    you see in a period is the one to keep.
+  - |
+    Use `d.date()`, `d.isocalendar()[:2]`, `(d.year, d.month)`, and skip a period you have
+    already chosen before checking the limit.
+tags: [backups, retention, gfs, datetime]
+lesson: |
+  GFS rotation is a grouping problem: bucket backups into periods, keep one representative per
+  period, and limit the number of periods rather than the number of files. The period key must
+  be unique over the whole timeline, which means ISO year plus week and year plus month, because
+  bare week and month numbers collide a year later and quietly delete the wrong restore point.
+  The representative should be the newest backup in the period, since it contains the most
+  data. Retention bugs are silent until the day you need the backup, so these invariants are
+  worth testing explicitly.
+mistakes:
+  - Keeping the last N files instead of the last N distinct days.
+  - Keying weeks by isocalendar()[1] alone, which merges the same week number across years.
+  - Sorting oldest-first and keeping the first backup of each period.

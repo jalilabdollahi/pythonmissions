@@ -1,0 +1,30 @@
+title: Sliding Window Limiter
+category: Metrics
+difficulty: 3
+xp: 200
+story: |
+  The Osprey gateway rate-limits API keys to a fixed number of calls per minute.
+  Customers complain they stay blocked long after going quiet, while the
+  dashboard that shows "requests in the last 60 seconds" keeps growing.
+description: |
+  `SlidingWindowCounter(window_seconds, clock)` tracks timestamps per key in a deque. `hit(key)` records
+  a request now; `count(key)` returns the number of requests in the last `window_seconds` (a request exactly
+  `window_seconds` old is already outside the window). `allow(key, limit)` records a request and returns True
+  only if the key has made fewer than `limit` accepted requests in the window; rejected requests are not recorded.
+  `clock` is a zero-argument callable returning seconds. There are 3 bugs.
+hints:
+  - |
+    Hint 1: Hit a key, advance the fake clock past the window, and call `count`. Then fill the limit and keep calling `allow`.
+  - |
+    Hint 2: Old timestamps have to be evicted from the left of the deque every time you read or write, not only in one method. Think about the exact boundary and about when a rejected call should leave a trace.
+  - |
+    Hint 3: Write one `_evict(key)` that pops while `now - oldest >= window`, call it at the start of `count` and `allow`, and append inside `allow` only after the limit check passes.
+tags: [deque, rate-limit, sliding-window, metrics]
+lesson: |
+  A sliding window counter keeps only timestamps that are still inside the window. A deque is ideal because new entries go on the right
+  and stale ones leave from the left in O(1). Eviction must happen on every read as well as on writes, otherwise an idle key keeps reporting
+  its old traffic. Boundaries matter: an event exactly one window old is out. And a limiter that records rejected requests punishes clients that
+  keep retrying by extending their own block, so only accepted requests are counted.
+mistakes:
+  - Evicting only inside `hit` so that a quiet key never shrinks.
+  - Appending the timestamp before checking the limit, so rejected calls fill the window.
